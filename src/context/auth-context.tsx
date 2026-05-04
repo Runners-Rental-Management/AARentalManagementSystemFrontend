@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { User, UserRole } from "@/lib/types";
 import { users as allUsers } from "@/lib/dummy-data";
+import type { FaydaConfirmResult } from "@/lib/fayda-api";
 
 interface AuthContextType {
   user: User | null;
@@ -16,9 +17,12 @@ interface AuthContextType {
   login: (role: UserRole) => void;
   register: (role: UserRole, firstName: string, lastName: string) => void;
   logout: () => void;
+  applyFaydaVerification: (result: FaydaConfirmResult) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const STORAGE_KEY = "rental_auth_user";
 
 const DEMO_USERS: Record<UserRole, string> = {
   tenant: "u3",
@@ -28,11 +32,17 @@ const DEMO_USERS: Record<UserRole, string> = {
   system_admin: "u10",
 };
 
+function persist(user: User | null) {
+  if (typeof window === "undefined") return;
+  if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  else localStorage.removeItem(STORAGE_KEY);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     if (typeof window === "undefined") return null;
     try {
-      const stored = localStorage.getItem("rental_auth_user");
+      const stored = localStorage.getItem(STORAGE_KEY);
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -43,8 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const demoUserId = DEMO_USERS[role];
     const found = allUsers.find((u) => u.id === demoUserId);
     if (found) {
-      setUser(found);
-      localStorage.setItem("rental_auth_user", JSON.stringify(found));
+      // Demo accounts are treated as already Fayda-verified so the seeded
+      // flows continue to work without forcing an extra step.
+      const next: User = { ...found, faydaVerified: true };
+      setUser(next);
+      persist(next);
     }
   }, []);
 
@@ -60,21 +73,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString().split("T")[0],
         isVerified: false,
         address: "Addis Ababa",
+        faydaVerified: false,
       };
       setUser(newUser);
-      localStorage.setItem("rental_auth_user", JSON.stringify(newUser));
+      persist(newUser);
     },
     []
   );
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem("rental_auth_user");
+    persist(null);
+  }, []);
+
+  const applyFaydaVerification = useCallback((result: FaydaConfirmResult) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next: User = {
+        ...prev,
+        firstName: result.firstName || prev.firstName,
+        fatherName: result.fatherName,
+        grandfatherName: result.grandfatherName,
+        faydaNumber: result.fan,
+        faydaVerified: true,
+        faydaVerifiedAt: result.verifiedAt,
+        isVerified: true,
+      };
+      persist(next);
+      return next;
+    });
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, register, logout }}
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        register,
+        logout,
+        applyFaydaVerification,
+      }}
     >
       {children}
     </AuthContext.Provider>

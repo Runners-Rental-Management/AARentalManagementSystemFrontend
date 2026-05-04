@@ -65,6 +65,9 @@ export default function LandingPage() {
               </span>
             </div>
             <div className="hidden md:flex items-center gap-8">
+              <Link href="/explore" className="text-sm text-slate-600 hover:text-primary-600 transition-colors font-medium">
+                {t("landing", "explore")}
+              </Link>
               <a href="#features" className="text-sm text-slate-600 hover:text-primary-600 transition-colors">
                 {t("landing", "featuresTitle")}
               </a>
@@ -78,7 +81,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setLocale(locale === "en" ? "am" : "en")}
-                className="text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors px-3 py-2 border border-slate-200 rounded-lg flex items-center gap-1.5"
+                className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1.5"
               >
                 <Globe className="w-4 h-4" />
                 {locale === "en" ? "አማርኛ" : "English"}
@@ -110,11 +113,14 @@ export default function LandingPage() {
               {t("landing", "heroDescription")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/register" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-8 py-3.5 rounded-xl transition-colors text-base">
-                {t("landing", "getStarted")}
+              <Link href="/explore" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-8 py-3.5 rounded-xl transition-colors text-base">
+                {t("landing", "explore")}
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/login" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-slate-300 hover:border-primary-300 text-slate-700 font-medium px-8 py-3.5 rounded-xl transition-colors text-base">
+              <Link href="/register" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-slate-300 hover:border-primary-300 text-slate-700 font-medium px-8 py-3.5 rounded-xl transition-colors text-base">
+                {t("landing", "getStarted")}
+              </Link>
+              <Link href="/login" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-slate-700 hover:text-primary-700 font-medium px-4 py-3.5 transition-colors text-base">
                 {t("landing", "signInDashboard")}
               </Link>
             </div>

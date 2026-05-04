@@ -1,8 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
+import { useAuth } from "@/context/auth-context";
 import { analyticsData } from "@/lib/dummy-data";
+import { ShieldOff } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import {
   BarChart,
@@ -36,6 +40,37 @@ const COLORS = [
 
 export default function AnalyticsPage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const isAuthorised = user?.role === "dara_agent" || user?.role === "admin" || user?.role === "system_admin";
+
+  useEffect(() => {
+    if (user && !isAuthorised) {
+      router.replace("/dashboard");
+    }
+  }, [user, isAuthorised, router]);
+
+  if (!user || !isAuthorised) {
+    return (
+      <>
+        <Header title="Rental Market Analytics" />
+        <main className="flex-1 p-6 overflow-y-auto flex items-center justify-center">
+          <div className="text-center max-w-sm">
+            <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <ShieldOff className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Access Restricted</h2>
+            <p className="text-slate-500 text-sm">
+              This page is only available to DARA agents and system administrators.
+              Tenants and landlords do not have access to market analytics.
+            </p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   const totalProperties = analyticsData.propertyDistribution.reduce(
     (sum, d) => sum + d.count,
     0

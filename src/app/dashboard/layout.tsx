@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sidebar } from "@/components/dashboard/sidebar";
+import { TopNav } from "@/components/dashboard/top-nav";
 import { useAuth } from "@/context/auth-context";
 
 export default function DashboardLayout({
@@ -12,14 +12,17 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (mounted && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [mounted, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
+  if (!mounted || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="animate-pulse text-slate-400">Loading...</div>
@@ -29,8 +32,8 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className="ml-64 flex flex-col min-h-screen">{children}</div>
+      <TopNav />
+      <div className="flex flex-col min-h-[calc(100vh-4rem)]">{children}</div>
     </div>
   );
 }

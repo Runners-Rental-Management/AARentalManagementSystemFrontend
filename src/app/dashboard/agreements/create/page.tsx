@@ -10,9 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const availableProperties = properties.filter((p) =>
-  ["available", "verified"].includes(p.status)
-);
+const availableProperties = properties.filter((p) => p.status === "available");
 
 export default function CreateAgreementPage() {
   const { t } = useLanguage();

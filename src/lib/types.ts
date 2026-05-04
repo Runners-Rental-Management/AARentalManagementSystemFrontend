@@ -12,6 +12,11 @@ export interface User {
   isVerified: boolean;
   address?: string;
   idNumber?: string;
+  fatherName?: string;
+  grandfatherName?: string;
+  faydaNumber?: string;
+  faydaVerified?: boolean;
+  faydaVerifiedAt?: string;
 }
 
 export interface Property {
@@ -26,7 +31,7 @@ export interface Property {
   area: number; // sqm
   amenities: string[];
   monthlyRent: number;
-  status: 'pending_verification' | 'verified' | 'rejected' | 'rented' | 'available';
+  status: 'pending_verification' | 'available' | 'rejected' | 'rented';
   landlordId: string;
   landlordName: string;
   images: string[];

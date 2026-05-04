@@ -20,7 +20,7 @@ import { useState } from "react";
 
 export default function DisputesPage() {
   const { t } = useLanguage();
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("under_review");
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const role = user?.role || "tenant";

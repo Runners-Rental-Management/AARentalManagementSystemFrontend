@@ -166,7 +166,7 @@ const navItems = [
     labelKey: "analytics",
     href: "/dashboard/analytics",
     icon: BarChart3,
-    roles: ["dara_agent"],
+    roles: ["dara_agent", "admin", "system_admin"],
   },
 
   // -- DARA/Authorities: Issue Penalty Notices --

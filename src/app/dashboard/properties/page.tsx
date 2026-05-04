@@ -1,40 +1,51 @@
 "use client";
 
 import { Header } from "@/components/dashboard/header";
+import { PropertyDossier } from "@/components/dashboard/property-dossier";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
+import { useProperties } from "@/context/properties-context";
+import { useRentalFlow } from "@/context/rental-flow-context";
 import { properties, agreements } from "@/lib/dummy-data";
-import { formatCurrency, getStatusColor, formatStatus } from "@/lib/utils";
 import {
-  Building2,
-  MapPin,
-  BedDouble,
-  Bath,
-  Ruler,
-  Plus,
+  Archive,
+  Clock,
   Filter,
+  FolderArchive,
+  Plus,
   Search,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function PropertiesPage() {
   const { t } = useLanguage();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
+  const { userProperties } = useProperties();
+  const { getPropertyLiveStatus } = useRentalFlow();
   const role = user?.role || "tenant";
   const userId = user?.id || "";
 
+  /* Merge static demo data + the landlord's user-submitted properties (newest first) */
+  const combined = useMemo(
+    () => [...userProperties, ...properties],
+    [userProperties]
+  );
+
   const roleBasedList =
     role === "landlord"
-      ? properties.filter((p) => p.landlordId === userId)
+      ? combined.filter((p) => p.landlordId === userId)
       : role === "tenant"
         ? (() => {
             const myRentedIds = agreements.filter((a) => a.tenantId === userId).map((a) => a.propertyId);
-            return properties.filter((p) => p.status === "available" || myRentedIds.includes(p.id));
+            return combined.filter(
+              (p) => p.status === "available" || myRentedIds.includes(p.id)
+            );
           })()
-        : properties;
+        : combined;
 
   const filtered = roleBasedList.filter((p) => {
     const matchesStatus = statusFilter === "all" || p.status === statusFilter;
@@ -48,10 +59,50 @@ export default function PropertiesPage() {
 
   const showRegisterButton = role === "landlord";
 
+  /* User-submitted ids for the current landlord — used to mark "just submitted" cards */
+  const myUserSubmittedIds = useMemo(
+    () => new Set(userProperties.filter((p) => p.landlordId === userId).map((p) => p.id)),
+    [userProperties, userId]
+  );
+
+  const myPendingCount = useMemo(
+    () =>
+      role === "landlord"
+        ? userProperties.filter(
+            (p) => p.landlordId === userId && p.status === "pending_verification"
+          ).length
+        : 0,
+    [userProperties, userId, role]
+  );
+
   return (
     <>
       <Header title={t("properties", "title")} />
       <main className="flex-1 p-6 overflow-y-auto">
+        {/* Pending submissions banner */}
+        {role === "landlord" && myPendingCount > 0 && (
+          <div className="mb-5 rounded-2xl border border-indigo-200/70 bg-gradient-to-r from-indigo-50 via-slate-50 to-cyan-50 px-5 py-4 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-indigo-700" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-900">
+                {myPendingCount === 1
+                  ? "1 property pending verification"
+                  : `${myPendingCount} properties pending verification`}
+              </p>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Your submission has been forwarded to a DARA officer for compliance
+                review. You&apos;ll be notified once it&apos;s approved and goes live.
+              </p>
+            </div>
+            <span className="hidden sm:inline-flex items-center gap-1.5 bg-white border border-indigo-200 text-indigo-700 text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0">
+              <Sparkles className="w-3 h-3" />
+              Just submitted
+            </span>
+          </div>
+        )}
+
         {/* Actions bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
@@ -75,7 +126,6 @@ export default function PropertiesPage() {
                 <option value="all">{t("properties", "allStatus")}</option>
                 <option value="available">{t("properties", "available")}</option>
                 <option value="rented">{t("properties", "rented")}</option>
-                <option value="verified">{t("properties", "verified")}</option>
                 <option value="pending_verification">{t("properties", "pending")}</option>
                 <option value="rejected">{t("properties", "rejected")}</option>
               </select>
@@ -92,67 +142,59 @@ export default function PropertiesPage() {
           )}
         </div>
 
-        {/* Properties Grid */}
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filtered.map((property) => (
-            <Link
-              key={property.id}
-              href={`/dashboard/properties/${property.id}`}
-              className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow group"
-            >
-              {/* Image placeholder */}
-              <div className="h-40 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center relative">
-                <Building2 className="w-12 h-12 text-slate-300" />
-                <span
-                  className={`absolute top-3 right-3 inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(property.status)}`}
-                >
-                  {formatStatus(property.status)}
-                </span>
-              </div>
-              <div className="p-5">
-                <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-primary-600 transition-colors">
-                  {property.title}
-                </h3>
-                <div className="flex items-center gap-1 text-sm text-slate-500 mb-3">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {property.address}
-                </div>
-                <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
-                  <span className="flex items-center gap-1">
-                    <BedDouble className="w-3.5 h-3.5" />
-                    {property.bedrooms} Bed
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Bath className="w-3.5 h-3.5" />
-                    {property.bathrooms} Bath
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Ruler className="w-3.5 h-3.5" />
-                    {property.area} m²
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <span className="text-lg font-bold text-primary-700">
-                    {formatCurrency(property.monthlyRent)}
-                    <span className="text-xs font-normal text-slate-400">
-                      /month
-                    </span>
-                  </span>
-                  <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                    {property.subCity}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
+        {/* ── Filing-cabinet caption ── */}
+        <div className="flex items-center gap-2 mb-4 text-xs text-slate-500 dark:text-slate-400 typewriter tracking-wider uppercase">
+          <FolderArchive className="w-3.5 h-3.5" />
+          <span>
+            DARA Property Registry · {filtered.length}{" "}
+            {filtered.length === 1 ? "dossier" : "dossiers"} on file
+          </span>
+          <span className="flex-1 border-t border-dashed border-slate-300 dark:border-slate-700 ml-2" />
         </div>
 
-        {filtered.length === 0 && (
-          <div className="text-center py-16">
-            <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">{t("properties", "noProperties")}</p>
+        {/* ── Dossier shelf ── */}
+        <div
+          className="rounded-2xl p-4 sm:p-6 border border-slate-300/80 dark:border-slate-700 relative overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-900/80"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(90deg, rgba(100,116,139,0.06) 0 1px, transparent 1px 20px)",
+          }}
+        >
+          {/* Wood-grain shelf strip on top */}
+          <div
+            className="absolute top-0 left-0 right-0 h-1.5"
+            style={{
+              background:
+                "linear-gradient(90deg, #334155 0%, #64748b 50%, #334155 100%)",
+            }}
+          />
+
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 pt-2">
+            {filtered.map((property, idx) => (
+              <PropertyDossier
+                key={property.id}
+                property={property}
+                isJustSubmitted={myUserSubmittedIds.has(property.id)}
+                index={idx}
+                liveStatus={getPropertyLiveStatus(property.id)}
+              />
+            ))}
           </div>
-        )}
+
+          {filtered.length === 0 && (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center mb-3 border border-slate-300 dark:border-slate-700">
+                <Archive className="w-8 h-8 text-slate-600 dark:text-slate-300" />
+              </div>
+              <p className="typewriter text-sm font-bold text-slate-800 dark:text-slate-100 tracking-wider uppercase">
+                Cabinet Empty
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {t("properties", "noProperties")}
+              </p>
+            </div>
+          )}
+        </div>
       </main>
     </>
   );

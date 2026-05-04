@@ -1,17 +1,120 @@
 "use client";
 
 import { Header } from "@/components/dashboard/header";
+import { PricingPanel } from "@/components/dashboard/pricing-panel";
 import { useLanguage } from "@/context/language-context";
+import { useAuth } from "@/context/auth-context";
+import { useLoading } from "@/context/loading-context";
+import { useProperties } from "@/context/properties-context";
 import { SUB_CITIES, PROPERTY_TYPES, AMENITIES } from "@/lib/constants";
-import { ArrowLeft, Upload, Plus } from "lucide-react";
+import { computeListingRange, classifyRent } from "@/lib/addis-rent-benchmarks";
+import type { Property } from "@/lib/types";
+import { ArrowLeft, Upload, Plus, ImageIcon, Lock, Landmark } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MIN_PHOTOS = 3;
+const MIN_OWNERSHIP = 1;
+
+type PropertyType = Property["propertyType"];
 
 export default function RegisterPropertyPage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const { user } = useAuth();
+  const { withLoading } = useLoading();
+  const { addProperty } = useProperties();
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [title, setTitle] = useState("");
+  const [propertyType, setPropertyType] = useState<PropertyType | "">("");
+  const [monthlyRent, setMonthlyRent] = useState<number>(0);
+  const [address, setAddress] = useState("");
+  const [subCity, setSubCity] = useState("");
+  const [woreda, setWoreda] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [bathrooms, setBathrooms] = useState("");
+  const [area, setArea] = useState("");
+  const [description, setDescription] = useState("");
+  const [photos, setPhotos] = useState<(File | null)[]>([null, null, null]);
+  const [photoPreviews, setPhotoPreviews] = useState<(string | null)[]>([null, null, null]);
+  const [ownershipFiles, setOwnershipFiles] = useState<File[]>([]);
+  const [acknowledgeAtypicalRent, setAcknowledgeAtypicalRent] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const areaNum = parseFloat(area.replace(/,/g, "")) || 0;
+
+  /* ── Government policy-driven pricing range ── */
+  const listingRange = useMemo(
+    () =>
+      subCity && propertyType && areaNum > 0
+        ? computeListingRange(subCity, propertyType, areaNum)
+        : null,
+    [subCity, propertyType, areaNum]
+  );
+
+  /* When the range becomes available, default the rent to the suggested mid-point */
+  useEffect(() => {
+    if (listingRange && monthlyRent === 0) {
+      setMonthlyRent(listingRange.mid);
+    }
+    if (listingRange) {
+      // Clamp to band on range change
+      if (monthlyRent < listingRange.floor) setMonthlyRent(listingRange.floor);
+      if (monthlyRent > listingRange.ceiling) setMonthlyRent(listingRange.ceiling);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listingRange?.floor, listingRange?.ceiling]);
+
+  const rentClassification = useMemo(
+    () =>
+      listingRange && monthlyRent > 0
+        ? classifyRent(monthlyRent, listingRange)
+        : null,
+    [listingRange, monthlyRent]
+  );
+
+  const isRentBlocked =
+    rentClassification === "below_floor" || rentClassification === "above_ceiling";
+  const isRentWarned =
+    rentClassification === "below_band" || rentClassification === "above_band";
+
+  const setPhotoAt = useCallback((index: number, file: File | null) => {
+    setPhotos((prev) => {
+      const next = [...prev];
+      next[index] = file;
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const urls = photos.map((f) => (f ? URL.createObjectURL(f) : null));
+    setPhotoPreviews(urls);
+    return () => {
+      urls.forEach((u) => u && URL.revokeObjectURL(u));
+    };
+  }, [photos]);
+
+  const photoCount = photos.filter(Boolean).length;
+
+  useEffect(() => {
+    if (rentClassification === "within_band") setAcknowledgeAtypicalRent(false);
+  }, [rentClassification]);
+
+  const submitDisabled =
+    !title.trim() ||
+    !propertyType ||
+    !subCity ||
+    !address.trim() ||
+    !woreda.trim() ||
+    areaNum <= 0 ||
+    monthlyRent <= 0 ||
+    !listingRange ||
+    photoCount < MIN_PHOTOS ||
+    ownershipFiles.length < MIN_OWNERSHIP ||
+    isRentBlocked ||
+    (isRentWarned && !acknowledgeAtypicalRent);
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>
@@ -19,10 +122,85 @@ export default function RegisterPropertyPage() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const onPickPhoto = (index: number, fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (!file) {
+      setPhotoAt(index, null);
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) return;
+    if (!file.type.startsWith("image/")) return;
+    setPhotoAt(index, file);
+  };
+
+  const onPickOwnership = (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    const next: File[] = [...ownershipFiles];
+    for (let i = 0; i < fileList.length; i++) {
+      const f = fileList[i];
+      if (f.size > MAX_FILE_BYTES) continue;
+      next.push(f);
+    }
+    setOwnershipFiles(next);
+  };
+
+  const removeOwnership = (index: number) => {
+    setOwnershipFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+    if (photoCount < MIN_PHOTOS) {
+      setSubmitError(t("properties", "minPhotosError"));
+      return;
+    }
+    if (ownershipFiles.length < MIN_OWNERSHIP) {
+      setSubmitError(t("properties", "minOwnershipError"));
+      return;
+    }
+    if (!listingRange) {
+      setSubmitError(t("properties", "rentHardBlock"));
+      return;
+    }
+    if (isRentBlocked) {
+      setSubmitError(t("properties", "rentHardBlock"));
+      return;
+    }
+    if (isRentWarned && !acknowledgeAtypicalRent) {
+      setSubmitError(t("properties", "acknowledgeNonTypicalRent"));
+      return;
+    }
+    if (!user || !propertyType) return;
+
+    await withLoading(async () => {
+      await new Promise((r) => setTimeout(r, 1100));
+      addProperty({
+        title: title.trim(),
+        propertyType: propertyType as Property["propertyType"],
+        address: address.trim(),
+        subCity,
+        woreda: woreda.trim(),
+        bedrooms: parseInt(bedrooms || "0", 10),
+        bathrooms: parseInt(bathrooms || "0", 10),
+        area: areaNum,
+        amenities: selectedAmenities,
+        monthlyRent,
+        landlordId: user.id,
+        landlordName: `${user.firstName} ${user.lastName}`.trim() || "Landlord",
+        description: description.trim(),
+        images: photoPreviews.filter((p): p is string => Boolean(p)),
+      });
+    }, "Submitting for verification…");
+
     router.push("/dashboard/properties");
   };
+
+  const photoLabels = [
+    t("properties", "photoDirection1"),
+    t("properties", "photoDirection2"),
+    t("properties", "photoDirection3"),
+  ];
 
   return (
     <>
@@ -33,83 +211,85 @@ export default function RegisterPropertyPage() {
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary-600 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Properties
+          {t("properties", "backToProperties")}
         </Link>
 
         <div className="max-w-3xl">
           <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-1">
-              Register New Property
-            </h2>
-            <p className="text-sm text-slate-500 mb-6">
-              Provide property details for registration and verification by Authorities.
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">{t("properties", "registerNew")}</h2>
+            <p className="text-sm text-slate-500 mb-2">{t("properties", "registerDesc")}</p>
+            <p className="text-xs text-slate-500 leading-relaxed border-l-2 border-primary-200 pl-3 mb-6">
+              {t("properties", "registerBenchmarkFootnote")}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Info */}
               <div>
                 <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
-                  Basic Information
+                  {t("properties", "basicInfo")}
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Property Title
+                      {t("properties", "propertyTitle")}
                     </label>
                     <input
                       type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                      placeholder="e.g., Modern 2BR Apartment in Bole"
+                      placeholder={t("properties", "propertyTitle")}
                     />
                   </div>
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Property Type
+                      {t("properties", "propertyType")}
                     </label>
-                    <select className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm">
-                      <option value="">Select type</option>
-                      {PROPERTY_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>
-                          {t.label}
+                    <select
+                      value={propertyType}
+                      onChange={(e) => setPropertyType((e.target.value || "") as PropertyType | "")}
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                    >
+                      <option value="">{t("properties", "selectType")}</option>
+                      {PROPERTY_TYPES.map((pt) => (
+                        <option key={pt.value} value={pt.value}>
+                          {pt.label}
                         </option>
                       ))}
                     </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Monthly Rent (ETB)
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                      placeholder="15000"
-                    />
+                    <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                      Title and type are landlord-defined. The monthly rent is set later
+                      using the government-approved range based on your area &amp; sub-city.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Location */}
               <div>
                 <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
-                  Location
+                  {t("properties", "location")}
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Address
+                      {t("properties", "streetAddress")}
                     </label>
                     <input
                       type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                      placeholder="Street address or landmark"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Sub-City
+                      {t("properties", "subCity")}
                     </label>
-                    <select className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm">
-                      <option value="">Select sub-city</option>
+                    <select
+                      value={subCity}
+                      onChange={(e) => setSubCity(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                    >
+                      <option value="">{t("properties", "selectSubCity")}</option>
                       {SUB_CITIES.map((sc) => (
                         <option key={sc} value={sc}>
                           {sc}
@@ -118,61 +298,158 @@ export default function RegisterPropertyPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Woreda
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "woreda")}</label>
                     <input
                       type="text"
+                      value={woreda}
+                      onChange={(e) => setWoreda(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                      placeholder="e.g., 03"
+                      placeholder="03"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Specs */}
               <div>
                 <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
-                  Property Details
+                  {t("properties", "propertyDetails")}
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Bedrooms
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "bedrooms")}</label>
                     <input
                       type="number"
+                      min={0}
+                      value={bedrooms}
+                      onChange={(e) => setBedrooms(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                      placeholder="2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Bathrooms
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "bathrooms")}</label>
                     <input
                       type="number"
+                      min={0}
+                      value={bathrooms}
+                      onChange={(e) => setBathrooms(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                      placeholder="1"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Area (m²)
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "area")} (m²)</label>
                     <input
                       type="number"
+                      min={1}
+                      value={area}
+                      onChange={(e) => setArea(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                      placeholder="85"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Amenities */}
+              {/* ── Government policy-driven pricing ── */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <Landmark className="w-4 h-4 text-emerald-600" />
+                  Pricing &amp; Government Policy
+                </h3>
+
+                {!listingRange && (
+                  <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 p-6 text-center">
+                    <div className="w-12 h-12 rounded-full bg-white border border-slate-200 mx-auto flex items-center justify-center mb-3">
+                      <Lock className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-700 mb-1">
+                      Pricing locked
+                    </p>
+                    <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
+                      The monthly rent slider unlocks once you fill in
+                      <strong className="text-slate-700"> property type</strong>,
+                      <strong className="text-slate-700"> sub-city</strong>, and
+                      <strong className="text-slate-700"> area (m²)</strong>. The
+                      government regulator publishes annual indicative bands per
+                      sub-city and property type — your allowed range is computed
+                      from those.
+                    </p>
+                  </div>
+                )}
+
+                {listingRange && (
+                  <>
+                    <PricingPanel
+                      range={listingRange}
+                      subCity={subCity}
+                      propertyType={
+                        PROPERTY_TYPES.find((p) => p.value === propertyType)?.label ??
+                        propertyType
+                      }
+                      areaSqm={areaNum}
+                      value={monthlyRent}
+                      onChange={setMonthlyRent}
+                    />
+                    {isRentWarned && (
+                      <label className="flex items-start gap-2 text-sm text-slate-800 cursor-pointer mt-3 px-1">
+                        <input
+                          type="checkbox"
+                          checked={acknowledgeAtypicalRent}
+                          onChange={(e) => setAcknowledgeAtypicalRent(e.target.checked)}
+                          className="mt-1 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="text-xs leading-relaxed">
+                          I understand my chosen rent is outside the regulator&apos;s
+                          recommended band and accept that the DARA officer will
+                          manually review this listing before activation.
+                        </span>
+                      </label>
+                    )}
+                  </>
+                )}
+              </div>
+
               <div>
                 <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
-                  Amenities
+                  {t("properties", "propertyPhotos")}
+                </h3>
+                <p className="text-xs text-slate-500 mb-4">{t("properties", "propertyPhotosDesc")}</p>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50">
+                      <div className="aspect-[4/3] relative bg-slate-200">
+                        {photoPreviews[i] ? (
+                          <img src={photoPreviews[i]!} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-2 text-center">
+                            <ImageIcon className="w-8 h-8 mb-1 opacity-60" />
+                            <span className="text-[10px] font-medium text-slate-500 leading-tight">{photoLabels[i]}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2 border-t border-slate-100 bg-white">
+                        <label className="cursor-pointer">
+                          <span className="inline-flex items-center justify-center gap-1 w-full py-2 text-xs font-semibold text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
+                            <Upload className="w-3.5 h-3.5" />
+                            {photos[i] ? t("properties", "replacePhoto") : t("properties", "browseFiles")}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => onPickPhoto(i, e.target.files)}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {photoCount < MIN_PHOTOS && (
+                  <p className="text-xs text-rose-600 mt-2">{t("properties", "minPhotosError")}</p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                  {t("properties", "amenities")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {AMENITIES.map((amenity) => (
@@ -192,54 +469,78 @@ export default function RegisterPropertyPage() {
                 </div>
               </div>
 
-              {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "description")}</label>
                 <textarea
                   rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm resize-none"
-                  placeholder="Describe the property..."
                 />
               </div>
 
-              {/* Documents */}
               <div>
                 <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
-                  Ownership Documents
+                  {t("properties", "ownershipProofTitle")}
                 </h3>
-                <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center">
+                <p className="text-xs text-slate-600 mb-3">{t("properties", "ownershipProofDesc")}</p>
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50/50">
                   <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                  <p className="text-sm text-slate-600 mb-1">
-                    Upload ownership documents for Authorities verification
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    PDF, JPG, PNG up to 10MB each
-                  </p>
-                  <button
-                    type="button"
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary-600 font-medium hover:text-primary-700"
-                  >
+                  <p className="text-xs text-slate-500 mb-3">{t("properties", "ownershipProofHint")}</p>
+                  <label className="inline-flex items-center gap-1.5 text-sm text-primary-600 font-medium hover:text-primary-700 cursor-pointer">
                     <Plus className="w-4 h-4" />
-                    Browse Files
-                  </button>
+                    {t("properties", "browseFiles")}
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,image/jpeg,image/png,image/webp,application/pdf"
+                      className="hidden"
+                      onChange={(e) => onPickOwnership(e.target.files)}
+                    />
+                  </label>
                 </div>
+                {ownershipFiles.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {ownershipFiles.map((f, idx) => (
+                      <li
+                        key={`${f.name}-${idx}`}
+                        className="flex items-center justify-between text-sm bg-white border border-slate-200 rounded-lg px-3 py-2"
+                      >
+                        <span className="truncate text-slate-700">{f.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeOwnership(idx)}
+                          className="text-rose-600 text-xs font-semibold hover:underline shrink-0 ml-2"
+                        >
+                          {t("properties", "removeFile")}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {ownershipFiles.length < MIN_OWNERSHIP && (
+                  <p className="text-xs text-rose-600 mt-2">{t("properties", "minOwnershipError")}</p>
+                )}
               </div>
 
-              {/* Submit */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              {submitError && <p className="text-sm text-rose-600">{submitError}</p>}
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-slate-100">
+                {submitDisabled && (
+                  <p className="text-xs text-slate-500 sm:mr-auto">{t("properties", "submitBlocked")}</p>
+                )}
                 <Link
                   href="/dashboard/properties"
-                  className="px-5 py-2.5 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-5 py-2.5 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-center"
                 >
-                  Cancel
+                  {t("properties", "cancel")}
                 </Link>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                  disabled={submitDisabled}
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit for Verification
+                  {t("properties", "submitForVerification")}
                 </button>
               </div>
             </form>

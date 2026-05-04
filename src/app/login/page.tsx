@@ -1,11 +1,12 @@
 "use client";
-
-import { useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Building2, Eye, EyeOff, LogIn, Globe, User, Home, ShieldCheck, Gavel } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Building2, Eye, EyeOff, LogIn, Globe, User, Home, ArrowLeft, MapPin, Heart, ShieldX } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
+import { useLoading } from "@/context/loading-context";
+import { properties } from "@/lib/dummy-data";
 import type { UserRole } from "@/lib/types";
 
 const LOGIN_ROLES: {
@@ -17,29 +18,52 @@ const LOGIN_ROLES: {
 }[] = [
   { value: "tenant", labelKey: "tenantRole", descKey: "tenantRoleDesc", icon: User, color: "blue" },
   { value: "landlord", labelKey: "landlordRole", descKey: "landlordRoleDesc", icon: Home, color: "emerald" },
-  { value: "admin", labelKey: "adminRole", descKey: "adminRoleDesc", icon: ShieldCheck, color: "purple" },
-  { value: "dara_agent", labelKey: "daraRole", descKey: "daraRoleDesc", icon: Gavel, color: "amber" },
 ];
 
 const COLOR_MAP: Record<string, { border: string; bg: string; text: string; icon: string }> = {
   blue: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-700", icon: "text-blue-600" },
   emerald: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-700", icon: "text-emerald-600" },
-  purple: { border: "border-purple-500", bg: "bg-purple-50", text: "text-purple-700", icon: "text-purple-600" },
-  amber: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-700", icon: "text-amber-600" },
 };
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, locale, setLocale } = useLanguage();
   const { login } = useAuth();
+  const { withLoading } = useLoading();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | "">("");
   const [formData, setFormData] = useState({ email: "", password: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const propertyIdParam = searchParams.get("propertyId");
+
+  const selectedProperty = useMemo(
+    () => (propertyIdParam ? properties.find((p) => p.id === propertyIdParam) : null),
+    [propertyIdParam]
+  );
+
+  // Default to tenant when arriving with a rent intent
+  useEffect(() => {
+    if (selectedProperty && selectedRole === "") {
+      setSelectedRole("tenant");
+    }
+  }, [selectedProperty, selectedRole]);
+
+  const isLandlordWithRentIntent = selectedRole === "landlord" && !!selectedProperty;
+  const isBlockedRole = selectedRole === "landlord" && !!selectedProperty;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRole) return;
-    login(selectedRole);
+    if (!selectedRole || isBlockedRole) return;
+    await withLoading(async () => {
+      await new Promise((r) => setTimeout(r, 800));
+      login(selectedRole);
+    }, "Signing in…");
+    // If arriving from "Rent this home", go straight to the property (login = already verified)
+    if (selectedProperty && selectedRole === "tenant") {
+      router.push(`/dashboard/properties/${selectedProperty.id}`);
+      return;
+    }
     router.push("/dashboard");
   };
 
@@ -53,8 +77,8 @@ export default function LoginPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-primary-900/90 via-primary-800/50 to-primary-700/30" />
         <div className="relative z-10 max-w-md text-white">
-          <div className="w-14 h-14 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 border border-white/20">
-            <Building2 className="w-8 h-8" />
+          <div className="w-14 h-14 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 border border-white/20" suppressHydrationWarning>
+            <Building2 className="w-8 h-8" suppressHydrationWarning />
           </div>
           <h2 className="text-3xl font-bold mb-3 drop-shadow-lg">{t("auth", "loginSideTitle")}</h2>
           <p className="text-white/80 leading-relaxed text-sm drop-shadow">{t("auth", "loginSideDesc")}</p>
@@ -62,24 +86,58 @@ export default function LoginPage() {
       </div>
       <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-lg">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 gap-3">
+            <Link
+              href={selectedProperty ? "/explore" : "/"}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {selectedProperty ? t("landing", "explore") : t("explore", "backToHome")}
+            </Link>
             <div className="lg:hidden flex items-center gap-2">
               <div className="w-9 h-9 bg-primary-700 rounded-lg flex items-center justify-center">
                 <Building2 className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-lg">{t("landing", "brand")}{t("landing", "brandAccent")}</span>
             </div>
-            <button onClick={() => setLocale(locale === "en" ? "am" : "en")} className="text-sm font-medium text-slate-700 hover:text-primary-600 px-3 py-1.5 border border-slate-200 rounded-lg flex items-center gap-1.5 ml-auto">
-              <Globe className="w-4 h-4" />
-              {locale === "en" ? "አማርኛ" : "English"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setLocale(locale === "en" ? "am" : "en")} className="text-sm font-medium text-slate-700 hover:text-primary-600 px-3 py-1.5 border border-slate-200 rounded-lg flex items-center gap-1.5">
+                <Globe className="w-4 h-4" />
+                {locale === "en" ? "አማርኛ" : "English"}
+              </button>
+            </div>
           </div>
 
           <h1 className="text-2xl font-bold text-slate-900 mb-2">{t("auth", "welcomeBack")}</h1>
           <p className="text-slate-500 mb-6">{t("auth", "selectRole")}</p>
 
+          {/* Property card shown when arriving from "Rent this home" */}
+          {selectedProperty && (
+            <div className="mb-6 rounded-2xl border border-primary-200 bg-gradient-to-br from-primary-50 to-indigo-50 p-4 flex items-start gap-4">
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shrink-0 shadow-sm">
+                <Heart className="w-7 h-7 text-white fill-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-1">
+                  {t("explore", "rentThisHome")}
+                </div>
+                <div className="font-semibold text-slate-900 truncate">{selectedProperty.title}</div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-0.5">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span className="truncate">{selectedProperty.subCity} · {selectedProperty.address}</span>
+                </div>
+                <div className="text-sm font-semibold text-primary-700 mt-1">
+                  {selectedProperty.monthlyRent.toLocaleString()} ETB{t("explore", "perMonth")}
+                </div>
+              </div>
+              <Link href="/explore" className="text-xs font-medium text-slate-500 hover:text-primary-700 shrink-0">
+                Change
+              </Link>
+            </div>
+          )}
+
           {/* Role selection grid */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-2 gap-3 mb-4">
             {LOGIN_ROLES.map((role) => {
               const colors = COLOR_MAP[role.color];
               const isSelected = selectedRole === role.value;
@@ -104,6 +162,21 @@ export default function LoginPage() {
             })}
           </div>
 
+          {/* Warning: landlord or agent can't rent */}
+          {isBlockedRole && (
+            <div className="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+              <ShieldX className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-red-700">
+                  {isLandlordWithRentIntent ? "Landlords cannot rent a property" : "This role cannot rent a property"}
+                </p>
+                <p className="text-xs text-red-600 mt-0.5">
+                  Your rental session is paused. Switch back to <strong>Tenant</strong> to continue renting this home.
+                </p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("auth", "email")}</label>
@@ -123,15 +196,15 @@ export default function LoginPage() {
             </div>
             <button
               type="submit"
-              disabled={!selectedRole}
+              disabled={!selectedRole || isBlockedRole}
               className={`w-full font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                selectedRole
+                selectedRole && !isBlockedRole
                   ? "bg-primary-600 hover:bg-primary-700 text-white"
                   : "bg-slate-200 text-slate-400 cursor-not-allowed"
               }`}
             >
               <LogIn className="w-4 h-4" />
-              {selectedRole
+              {selectedRole && !isBlockedRole
                 ? `${t("auth", "continueAs")} ${t("auth", LOGIN_ROLES.find((r) => r.value === selectedRole)?.labelKey || "")}`
                 : t("auth", "signInButton")}
             </button>
@@ -139,10 +212,23 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             {t("auth", "noAccount")}{" "}
-            <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">{t("auth", "registerHere")}</Link>
+            <Link
+              href={propertyIdParam ? `/register?role=tenant&propertyId=${propertyIdParam}` : "/register"}
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
+              {t("auth", "registerHere")}
+            </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+      <LoginPageInner />
+    </Suspense>
   );
 }
