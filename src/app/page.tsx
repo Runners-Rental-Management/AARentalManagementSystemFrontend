@@ -5,27 +5,13 @@ import { useLanguage } from "@/context/language-context";
 import {
   Building2,
   ShieldCheck,
-  FileText,
-  BarChart3,
-  Scale,
-  Bell,
-  Users,
   ArrowRight,
-  CheckCircle2,
   Globe,
 } from "lucide-react";
+import { LandingPlatformSections } from "@/components/landing-platform-sections";
 
 export default function LandingPage() {
   const { t, locale, setLocale } = useLanguage();
-
-  const features = [
-    { icon: FileText, titleKey: "feature1Title", descKey: "feature1Desc" },
-    { icon: Building2, titleKey: "feature2Title", descKey: "feature2Desc" },
-    { icon: Scale, titleKey: "feature3Title", descKey: "feature3Desc" },
-    { icon: BarChart3, titleKey: "feature4Title", descKey: "feature4Desc" },
-    { icon: ShieldCheck, titleKey: "feature5Title", descKey: "feature5Desc" },
-    { icon: Bell, titleKey: "feature6Title", descKey: "feature6Desc" },
-  ];
 
   const stats = [
     { valueKey: "stat1Value", labelKey: "stat1Label" },
@@ -34,28 +20,12 @@ export default function LandingPage() {
     { valueKey: "stat4Value", labelKey: "stat4Label" },
   ];
 
-  const stakeholders = [
-    {
-      roleKey: "tenants",
-      benefits: ["tenantBenefit1", "tenantBenefit2", "tenantBenefit3", "tenantBenefit4"],
-    },
-    {
-      roleKey: "landlords",
-      benefits: ["landlordBenefit1", "landlordBenefit2", "landlordBenefit3", "landlordBenefit4"],
-    },
-    {
-      roleKey: "government",
-      benefits: ["govBenefit1", "govBenefit2", "govBenefit3", "govBenefit4"],
-    },
-  ];
-
   return (
     <div className="min-h-screen">
-      {/* Nav */}
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <div className="w-9 h-9 bg-primary-700 rounded-lg flex items-center justify-center">
                 <Building2 className="w-5 h-5 text-white" />
               </div>
@@ -63,33 +33,36 @@ export default function LandingPage() {
                 {t("landing", "brand")}
                 <span className="text-primary-600">{t("landing", "brandAccent")}</span>
               </span>
-            </div>
-            <div className="hidden md:flex items-center gap-8">
-              <Link href="/explore" className="text-sm text-slate-600 hover:text-primary-600 transition-colors font-medium">
+            </Link>
+
+            <div className="flex flex-1 items-center justify-center md:absolute md:left-1/2 md:-translate-x-1/2">
+              <Link
+                href="/explore"
+                className="text-sm text-slate-700 hover:text-primary-600 transition-colors font-semibold px-4 py-2 rounded-full hover:bg-primary-50"
+              >
                 {t("landing", "explore")}
               </Link>
-              <a href="#features" className="text-sm text-slate-600 hover:text-primary-600 transition-colors">
-                {t("landing", "featuresTitle")}
-              </a>
-              <a href="#stakeholders" className="text-sm text-slate-600 hover:text-primary-600 transition-colors">
-                {t("landing", "stakeholdersTitle")}
-              </a>
-              <a href="#about" className="text-sm text-slate-600 hover:text-primary-600 transition-colors">
-                {t("landing", "aboutTitle")}
-              </a>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <button
                 onClick={() => setLocale(locale === "en" ? "am" : "en")}
-                className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-primary-600 transition-colors px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1.5"
+                className="text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors px-2 sm:px-3 py-2 border border-slate-200 rounded-lg flex items-center gap-1.5"
+                type="button"
               >
-                <Globe className="w-4 h-4" />
-                {locale === "en" ? "አማርኛ" : "English"}
+                <Globe className="w-4 h-4 shrink-0" />
+                <span className="hidden sm:inline">{locale === "en" ? "አማርኛ" : "English"}</span>
               </button>
-              <Link href="/login" className="text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors px-4 py-2">
+              <Link
+                href="/login"
+                className="hidden sm:inline text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors px-3 py-2"
+              >
                 {t("landing", "signIn")}
               </Link>
-              <Link href="/register" className="text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 px-5 py-2.5 rounded-lg transition-colors">
+              <Link
+                href="/register"
+                className="text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
+              >
                 {t("landing", "register")}
               </Link>
             </div>
@@ -97,7 +70,6 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero */}
       <section className="pt-32 pb-20 bg-gradient-to-br from-primary-50 via-white to-accent-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
@@ -113,14 +85,23 @@ export default function LandingPage() {
               {t("landing", "heroDescription")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/explore" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-8 py-3.5 rounded-xl transition-colors text-base">
+              <Link
+                href="/explore"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-8 py-3.5 rounded-xl transition-colors text-base"
+              >
                 {t("landing", "explore")}
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/register" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-slate-300 hover:border-primary-300 text-slate-700 font-medium px-8 py-3.5 rounded-xl transition-colors text-base">
+              <Link
+                href="/register"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-slate-300 hover:border-primary-300 text-slate-700 font-medium px-8 py-3.5 rounded-xl transition-colors text-base"
+              >
                 {t("landing", "getStarted")}
               </Link>
-              <Link href="/login" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-slate-700 hover:text-primary-700 font-medium px-4 py-3.5 transition-colors text-base">
+              <Link
+                href="/login"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-slate-700 hover:text-primary-700 font-medium px-4 py-3.5 transition-colors text-base"
+              >
                 {t("landing", "signInDashboard")}
               </Link>
             </div>
@@ -128,7 +109,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="py-16 border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -144,77 +124,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">{t("landing", "featuresTitle")}</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">{t("landing", "featuresDescription")}</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature) => (
-              <div key={feature.titleKey} className="p-6 rounded-2xl border border-slate-200 hover:border-primary-200 hover:shadow-lg transition-all duration-300 group">
-                <div className="w-12 h-12 bg-primary-100 group-hover:bg-primary-600 rounded-xl flex items-center justify-center mb-4 transition-colors">
-                  <feature.icon className="w-6 h-6 text-primary-600 group-hover:text-white transition-colors" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{t("landing", feature.titleKey)}</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">{t("landing", feature.descKey)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <LandingPlatformSections />
 
-      {/* Stakeholders */}
-      <section id="stakeholders" className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">{t("landing", "stakeholdersTitle")}</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">{t("landing", "stakeholdersDescription")}</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {stakeholders.map((s) => (
-              <div key={s.roleKey} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <Users className="w-6 h-6 text-primary-600" />
-                  <h3 className="text-xl font-bold text-slate-900">{t("landing", s.roleKey)}</h3>
-                </div>
-                <ul className="space-y-3">
-                  {s.benefits.map((bKey) => (
-                    <li key={bKey} className="flex items-start gap-3 text-sm text-slate-600">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                      {t("landing", bKey)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* About */}
-      <section id="about" className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">{t("landing", "aboutTitle")}</h2>
-          <p className="text-slate-600 leading-relaxed mb-6">{t("landing", "aboutP1")}</p>
-          <p className="text-slate-600 leading-relaxed">{t("landing", "aboutP2")}</p>
-        </div>
-      </section>
-
-      {/* CTA */}
       <section className="py-20 bg-primary-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">{t("landing", "ctaTitle")}</h2>
           <p className="text-primary-100 mb-8 max-w-xl mx-auto">{t("landing", "ctaDescription")}</p>
-          <Link href="/register" className="inline-flex items-center gap-2 bg-white text-primary-700 font-semibold px-8 py-3.5 rounded-xl hover:bg-primary-50 transition-colors">
-            {t("landing", "ctaButton")}
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-2 bg-white text-primary-700 font-semibold px-8 py-3.5 rounded-xl hover:bg-primary-50 transition-colors"
+            >
+              {t("landing", "explore")}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 border-2 border-white/80 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-white/10 transition-colors"
+            >
+              {t("landing", "ctaButton")}
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-slate-900 text-slate-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -223,7 +157,8 @@ export default function LandingPage() {
                 <Building2 className="w-4 h-4 text-white" />
               </div>
               <span className="font-semibold text-white">
-                {t("landing", "brand")}{t("landing", "brandAccent")}
+                {t("landing", "brand")}
+                {t("landing", "brandAccent")}
               </span>
             </div>
             <p className="text-sm text-center">{t("landing", "footerUniversity")}</p>

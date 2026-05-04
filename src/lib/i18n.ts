@@ -67,6 +67,9 @@ export const translations = {
       profile: 'Profile',
       collapse: 'Collapse',
       signOut: 'Sign out',
+      showTopNav: 'Show top navigation bar',
+      menu: 'Menu',
+      authorityWorkspace: 'Workspace',
     },
 
     // Landing Page
@@ -903,6 +906,9 @@ export const translations = {
       profile: 'መገለጫ',
       collapse: 'አሳንስ',
       signOut: 'ውጣ',
+      showTopNav: 'የላይኛውን የአሰሳ አሞሌ አሳይ',
+      menu: 'ምናሌ',
+      authorityWorkspace: 'የስራ ቦታ',
     },
 
     // Landing Page

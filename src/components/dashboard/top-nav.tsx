@@ -66,11 +66,11 @@ const ALL_ITEMS: NavItem[] = [
   { labelKey: "penaltyNotices", href: "/dashboard/penalty-notices", icon: Gavel, roles: ["dara_agent"] },
 ];
 
-// Per-role primary nav shown inline (overflow goes into "More")
+// Per-role primary nav shown inline ("More" holds analytics & extras for authority)
 const PRIMARY: Record<string, string[]> = {
   tenant: ["favorites", "myAgreements", "payments", "disputes"],
-  admin: ["analytics", "userManagement", "systemParameters", "auditLogs", "rolesPermissions"],
-  dara_agent: ["analytics", "verifyAgreements", "reviewViolations", "approveRentAdjustment", "penaltyNotices"],
+  admin: ["userManagement", "systemParameters", "auditLogs", "rolesPermissions"],
+  dara_agent: ["verifyAgreements", "reviewViolations", "approveRentAdjustment", "penaltyNotices"],
 };
 
 export function TopNav() {
@@ -143,7 +143,9 @@ export function TopNav() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2 lg:gap-8">
               <Link
-                href={role === "admin" || role === "dara_agent" ? "/dashboard/analytics" : "/dashboard"}
+                href={
+                  role === "admin" || role === "dara_agent" ? "/dashboard/authority" : "/dashboard"
+                }
                 className="flex items-center gap-2 group shrink-0"
               >
                 <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-sm transition-all group-hover:scale-110 group-hover:rotate-3">

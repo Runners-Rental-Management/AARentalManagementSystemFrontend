@@ -116,7 +116,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isAuthority) {
-      router.replace("/dashboard/analytics");
+      router.replace("/dashboard/authority");
     }
   }, [isAuthority, router]);
 

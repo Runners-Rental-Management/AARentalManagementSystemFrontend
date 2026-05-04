@@ -33,7 +33,7 @@ export default function AuthorityLoginPage() {
       await new Promise((r) => setTimeout(r, 800));
       login("dara_agent");
     }, "Authenticating…");
-    router.push("/dashboard/analytics");
+    router.push("/dashboard/authority");
   };
 
   return (

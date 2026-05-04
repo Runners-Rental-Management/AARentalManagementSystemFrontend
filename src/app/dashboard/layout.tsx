@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TopNav } from "@/components/dashboard/top-nav";
+import { AuthorityNavDropdown } from "@/components/dashboard/authority-nav-dropdown";
 import { useAuth } from "@/context/auth-context";
+import { cn } from "@/lib/utils";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
@@ -30,10 +32,27 @@ export default function DashboardLayout({
     );
   }
 
+  const role = user?.role || "tenant";
+  const authorityUi =
+    role === "admin" || role === "dara_agent" || role === "system_admin";
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <TopNav />
-      <div className="flex flex-col min-h-[calc(100vh-4rem)]">{children}</div>
+    <div
+      className={cn("min-h-screen", authorityUi ? "bg-white" : "bg-slate-50")}
+    >
+      {authorityUi ? (
+        <AuthorityNavDropdown />
+      ) : (
+        <TopNav />
+      )}
+      <div
+        className={cn(
+          "flex flex-col",
+          authorityUi ? "min-h-screen pt-11" : "min-h-[calc(100vh-4rem)]"
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 }

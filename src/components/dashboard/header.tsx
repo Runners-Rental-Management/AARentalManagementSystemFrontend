@@ -4,8 +4,15 @@ import { Bell, Search } from "lucide-react";
 import Link from "next/link";
 import { notifications } from "@/lib/dummy-data";
 import { useLanguage } from "@/context/language-context";
+import { useAuth } from "@/context/auth-context";
 
 export function Header({ title }: { title: string }) {
+  const { user } = useAuth();
+  const role = user?.role;
+  const authorityUi =
+    role === "admin" || role === "dara_agent" || role === "system_admin";
+  if (authorityUi) return null;
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const { t } = useLanguage();
 
