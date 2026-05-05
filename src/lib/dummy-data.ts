@@ -726,6 +726,8 @@ export const agreements: TenancyAgreement[] = [
     status: 'pending_verification',
     createdAt: '2025-06-01',
     signedAt: '2025-06-05',
+    tenantSignedAt: '2025-06-03T10:30:00.000Z',
+    landlordSignedAt: '2025-06-05T14:15:00.000Z',
     utilities: ['Water', 'Guard service'],
   },
   {

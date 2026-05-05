@@ -18,6 +18,7 @@ import { properties } from "@/lib/dummy-data";
 import { formatCurrency } from "@/lib/utils";
 import { lookupTenantByFaydaNumber, DEMO_FAYDA_HINTS, type TenantLookupResult } from "@/lib/fayda-lookup";
 import { ContractBody } from "@/components/dashboard/contract-body";
+import { exportCanvasSignaturePng } from "@/lib/procedural-signature";
 
 /* ------------------------------------------------------------------ */
 /*  Canvas e-signature pad (same as tenant contract page)             */
@@ -223,6 +224,7 @@ export default function RentToTenantPage() {
     if (!foundTenant || !user) return;
     await withLoading(async () => {
       await new Promise((r) => setTimeout(r, 1000));
+      const landlordSignatureDataUrl = exportCanvasSignaturePng(canvasRef.current);
       const id = landlordInitiateContract({
         propertyId: property.id,
         propertyTitle: property.title,
@@ -235,6 +237,7 @@ export default function RentToTenantPage() {
         monthlyRent: property.monthlyRent,
         advanceAmount: property.monthlyRent * 2,
         initiatedByLandlord: true,
+        ...(landlordSignatureDataUrl ? { landlordSignatureDataUrl } : {}),
       });
       setCreatedAgreementId(id);
     }, "Sending contract to tenant…");

@@ -23,6 +23,7 @@ import { useLoading } from "@/context/loading-context";
 import { useLanguage } from "@/context/language-context";
 import { properties } from "@/lib/dummy-data";
 import { ContractBody } from "@/components/dashboard/contract-body";
+import { exportCanvasSignaturePng } from "@/lib/procedural-signature";
 
 /* ------------------------------------------------------------------ */
 /*  Canvas e-signature pad                                             */
@@ -235,6 +236,7 @@ export default function ContractPage() {
     setSubmitting(true);
     await withLoading(async () => {
       await new Promise((r) => setTimeout(r, 1400));
+      const tenantSignatureDataUrl = exportCanvasSignaturePng(canvasRef.current);
       const id = createAgreement({
         propertyId: property.id,
         propertyTitle: property.title,
@@ -245,6 +247,7 @@ export default function ContractPage() {
         tenantName,
         monthlyRent: property.monthlyRent,
         advanceAmount: property.monthlyRent * advanceMonths,
+        ...(tenantSignatureDataUrl ? { tenantSignatureDataUrl } : {}),
       });
       setLiveAgreementId(id);
     }, "Submitting your contract…");

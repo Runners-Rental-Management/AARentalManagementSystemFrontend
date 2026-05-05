@@ -386,6 +386,19 @@ export const translations = {
       submitBlocked: 'Cannot submit until requirements are met.',
       registerBenchmarkFootnote:
         'Indicative ETB/m²/month bands follow published Addis Ababa rent patterns (e.g. The Africanvestor 2026 rent summaries; neighbourhood ladders from Miles Consulting / listing analytics). For on-screen guidance only — not a legal valuation.',
+      homeCondition: 'Home condition & finishing',
+      homeConditionHint:
+        'RAG retrieves pricing guidance by condition (new, renovated, fair, needs work). Suggestions stay inside the regulator band.',
+      homeConditionNew: 'New / first occupancy',
+      homeConditionExcellent: 'Excellent / recently renovated',
+      homeConditionGood: 'Good / well maintained',
+      homeConditionFair: 'Fair / lived-in',
+      homeConditionNeeds: 'Needs significant renovation',
+      ragTitle: 'RAG price assistant',
+      ragLoading: 'Retrieving guidance…',
+      ragApply: 'Apply suggested rent',
+      ragSources: 'Sources',
+      ragPowered: 'Retrieval + policy band; optional OpenAI summary if API key is set.',
     },
 
     // Agreements
@@ -1225,6 +1238,19 @@ export const translations = {
       submitBlocked: 'እስከ መስፈርቶቹ ይፈጸሙ ድረስ ማስረከብ አይቻልም።',
       registerBenchmarkFootnote:
         'የብር/ካ.ሜ/ወር መመዘኛ ክልሎች የታወቁ የአ.አ ኪራይ አዝማሚያዎችን ይከተላሉ (ለምሳሌ The Africanvestor 2026፣ ከMiles Consulting / ዝርዝር ትንተና ጋር የተጣጣሙ)። ለስክሪን መመሪያ ብቻ — ህጋዊ ግምት አይደለም።',
+      homeCondition: 'የቤት ሁኔታ እና ጨረር',
+      homeConditionHint:
+        'RAG በሁኔታ (አዲስ፣ የተሻሻለ፣ መጠነኛ፣ ጥገና የሚያስፈልግ) መመሪያ ያገኛል። ጥቆማዎች በቁጥጥር ክልል ውስጥ ይቆያሉ።',
+      homeConditionNew: 'አዲስ / የመጀመሪያ ኪራይ',
+      homeConditionExcellent: 'በጣም ጥሩ / የተሻሻለ',
+      homeConditionGood: 'ጥሩ / በጥሩ ሁኔታ',
+      homeConditionFair: 'መጠነኛ / የተኖረበት',
+      homeConditionNeeds: 'ከባድ ጥገና ያስፈልገዋል',
+      ragTitle: 'RAG የኪራይ ረዳ',
+      ragLoading: 'መመሪያ በመጫን ላይ…',
+      ragApply: 'የተጠቆመውን ኪራይ ይተግብሩ',
+      ragSources: 'ምንጮች',
+      ragPowered: 'መረጃ ማውጣት + የመመሪያ ክልል። API ቁልፍ ካለ የOpenAI ማጠቃለያ።',
     },
 
     // Agreements

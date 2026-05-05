@@ -8,8 +8,8 @@ import { useLoading } from "@/context/loading-context";
 import { useProperties } from "@/context/properties-context";
 import { SUB_CITIES, PROPERTY_TYPES, AMENITIES } from "@/lib/constants";
 import { computeListingRange, classifyRent } from "@/lib/addis-rent-benchmarks";
-import type { Property } from "@/lib/types";
-import { ArrowLeft, Upload, Plus, ImageIcon, Lock, Landmark } from "lucide-react";
+import type { Property, HomeCondition } from "@/lib/types";
+import { ArrowLeft, Upload, Plus, ImageIcon, Lock, Landmark, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -19,6 +19,25 @@ const MIN_PHOTOS = 3;
 const MIN_OWNERSHIP = 1;
 
 type PropertyType = Property["propertyType"];
+
+const HOME_CONDITION_OPTIONS: { value: HomeCondition; labelKey: string }[] = [
+  { value: "new_build", labelKey: "homeConditionNew" },
+  { value: "excellent", labelKey: "homeConditionExcellent" },
+  { value: "good", labelKey: "homeConditionGood" },
+  { value: "fair", labelKey: "homeConditionFair" },
+  { value: "needs_renovation", labelKey: "homeConditionNeeds" },
+];
+
+type RagSuggestResponse = {
+  suggestedMin: number;
+  suggestedMax: number;
+  suggestedMid: number;
+  summary: string;
+  source: string;
+  retrievedChunkIds: string[];
+  conditionMultiplier: number;
+  amenityBump: number;
+};
 
 export default function RegisterPropertyPage() {
   const { t } = useLanguage();
@@ -37,6 +56,11 @@ export default function RegisterPropertyPage() {
   const [bathrooms, setBathrooms] = useState("");
   const [area, setArea] = useState("");
   const [description, setDescription] = useState("");
+  const [homeCondition, setHomeCondition] = useState<HomeCondition>("good");
+  const [ragSuggestion, setRagSuggestion] = useState<RagSuggestResponse | null>(
+    null
+  );
+  const [ragLoading, setRagLoading] = useState(false);
   const [photos, setPhotos] = useState<(File | null)[]>([null, null, null]);
   const [photoPreviews, setPhotoPreviews] = useState<(string | null)[]>([null, null, null]);
   const [ownershipFiles, setOwnershipFiles] = useState<File[]>([]);
@@ -101,6 +125,59 @@ export default function RegisterPropertyPage() {
   useEffect(() => {
     if (rentClassification === "within_band") setAcknowledgeAtypicalRent(false);
   }, [rentClassification]);
+
+  /* RAG rent suggestion — retrieval over local knowledge + optional OpenAI summary */
+  useEffect(() => {
+    if (!listingRange || !subCity || !propertyType || areaNum <= 0) {
+      setRagSuggestion(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setRagLoading(true);
+      try {
+        const res = await fetch("/api/rag/suggest-rent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: ctrl.signal,
+          body: JSON.stringify({
+            subCity,
+            propertyType,
+            areaSqm: areaNum,
+            homeCondition,
+            bedrooms: parseInt(bedrooms || "0", 10) || undefined,
+            bathrooms: parseInt(bathrooms || "0", 10) || undefined,
+            amenities: selectedAmenities,
+            description: description.trim(),
+          }),
+        });
+        if (!res.ok) {
+          setRagSuggestion(null);
+          return;
+        }
+        const data = (await res.json()) as RagSuggestResponse;
+        setRagSuggestion(data);
+      } catch {
+        if (!ctrl.signal.aborted) setRagSuggestion(null);
+      } finally {
+        if (!ctrl.signal.aborted) setRagLoading(false);
+      }
+    }, 500);
+    return () => {
+      ctrl.abort();
+      window.clearTimeout(timer);
+    };
+  }, [
+    listingRange,
+    subCity,
+    propertyType,
+    areaNum,
+    homeCondition,
+    bedrooms,
+    bathrooms,
+    selectedAmenities,
+    description,
+  ]);
 
   const submitDisabled =
     !title.trim() ||
@@ -189,6 +266,7 @@ export default function RegisterPropertyPage() {
         landlordId: user.id,
         landlordName: `${user.firstName} ${user.lastName}`.trim() || "Landlord",
         description: description.trim(),
+        homeCondition,
         images: photoPreviews.filter((p): p is string => Boolean(p)),
       });
     }, "Submitting for verification…");
@@ -346,6 +424,27 @@ export default function RegisterPropertyPage() {
                     />
                   </div>
                 </div>
+                <div className="mt-4 sm:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {t("properties", "homeCondition")}
+                  </label>
+                  <select
+                    value={homeCondition}
+                    onChange={(e) =>
+                      setHomeCondition(e.target.value as HomeCondition)
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  >
+                    {HOME_CONDITION_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {t("properties", opt.labelKey)}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    {t("properties", "homeConditionHint")}
+                  </p>
+                </div>
               </div>
 
               {/* ── Government policy-driven pricing ── */}
@@ -388,6 +487,55 @@ export default function RegisterPropertyPage() {
                       value={monthlyRent}
                       onChange={setMonthlyRent}
                     />
+
+                    <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/60 p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-violet-600 shrink-0" />
+                        <h4 className="text-sm font-semibold text-violet-900">
+                          {t("properties", "ragTitle")}
+                        </h4>
+                      </div>
+                      {ragLoading && (
+                        <p className="text-xs text-violet-800 animate-pulse">
+                          {t("properties", "ragLoading")}
+                        </p>
+                      )}
+                      {!ragLoading && ragSuggestion && (
+                        <>
+                          <p className="text-xs text-violet-950/90 leading-relaxed mb-3">
+                            {ragSuggestion.summary}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                            <span className="text-xs font-semibold text-violet-900">
+                              {ragSuggestion.suggestedMid.toLocaleString()} ETB/mo
+                            </span>
+                            <span className="text-[10px] text-violet-700 bg-white/70 px-2 py-0.5 rounded border border-violet-100">
+                              {ragSuggestion.source}
+                            </span>
+                          </div>
+                          {ragSuggestion.retrievedChunkIds.length > 0 && (
+                            <p className="text-[10px] text-violet-700 mb-3">
+                              <span className="font-semibold">
+                                {t("properties", "ragSources")}:
+                              </span>{" "}
+                              {ragSuggestion.retrievedChunkIds.join(", ")}
+                            </p>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMonthlyRent(ragSuggestion.suggestedMid)
+                            }
+                            className="text-xs font-semibold text-white bg-violet-600 hover:bg-violet-700 px-3 py-2 rounded-lg transition-colors"
+                          >
+                            {t("properties", "ragApply")}
+                          </button>
+                          <p className="text-[10px] text-violet-600/90 mt-2">
+                            {t("properties", "ragPowered")}
+                          </p>
+                        </>
+                      )}
+                    </div>
                     {isRentWarned && (
                       <label className="flex items-start gap-2 text-sm text-slate-800 cursor-pointer mt-3 px-1">
                         <input

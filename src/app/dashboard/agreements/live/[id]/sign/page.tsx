@@ -22,6 +22,7 @@ import { useLoading } from "@/context/loading-context";
 import { useLanguage } from "@/context/language-context";
 import { properties } from "@/lib/dummy-data";
 import { ContractBody } from "@/components/dashboard/contract-body";
+import { exportCanvasSignaturePng } from "@/lib/procedural-signature";
 import { Header } from "@/components/dashboard/header";
 
 /* ------------------------------------------------------------------ */
@@ -237,7 +238,8 @@ export default function TenantSignPage() {
     setSubmitting(true);
     await withLoading(async () => {
       await new Promise((r) => setTimeout(r, 1200));
-      tenantAcceptContract(agreementId);
+      const png = exportCanvasSignaturePng(canvasRef.current);
+      tenantAcceptContract(agreementId, png);
     }, locale === "am" ? "ውሉን እያስገቡ ነው…" : "Submitting your signature…");
     setSubmitting(false);
     setSubmitted(true);

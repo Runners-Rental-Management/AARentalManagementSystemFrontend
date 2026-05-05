@@ -19,6 +19,13 @@ export interface User {
   faydaVerifiedAt?: string;
 }
 
+export type HomeCondition =
+  | "new_build"
+  | "excellent"
+  | "good"
+  | "fair"
+  | "needs_renovation";
+
 export interface Property {
   id: string;
   title: string;
@@ -38,6 +45,8 @@ export interface Property {
   description: string;
   createdAt: string;
   verifiedAt?: string;
+  /** Reported condition — used for RAG-assisted pricing at registration */
+  homeCondition?: HomeCondition;
 }
 
 export type AgreementStatus =
@@ -67,6 +76,8 @@ export interface TenancyAgreement {
   status: AgreementStatus;
   createdAt: string;
   signedAt?: string;
+  tenantSignedAt?: string;
+  landlordSignedAt?: string;
   verifiedAt?: string;
   terminatedAt?: string;
   terminationReason?: string;

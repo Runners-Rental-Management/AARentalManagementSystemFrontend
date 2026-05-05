@@ -43,6 +43,9 @@ export interface LiveAgreement {
   paymentMethod?: string;
   paymentRef?: string;
   initiatedByLandlord?: boolean;
+  /** PNG data URL from e-sign pad when available */
+  tenantSignatureDataUrl?: string;
+  landlordSignatureDataUrl?: string;
 }
 
 export type NotifRecipient = "landlord" | "dara_agent" | "tenant";
@@ -103,15 +106,25 @@ interface RentalFlowCtx {
   createAgreement: (
     data: Omit<LiveAgreement, "id" | "status" | "tenantSignedAt">
   ) => string;
-  landlordSign: (id: string) => void;
+  landlordSign: (id: string, landlordSignatureDataUrl?: string) => void;
   landlordInitiateContract: (
     data: Omit<LiveAgreement, "id" | "status" | "tenantSignedAt"> & { tenantFaydaNumber: string }
   ) => string;
-  tenantAcceptContract: (id: string) => void;
+  tenantAcceptContract: (id: string, tenantSignatureDataUrl?: string) => void;
   tenantDeclineContract: (id: string) => void;
   tenantCancelAgreement: (id: string) => void;
   landlordCancelAgreement: (id: string) => void;
   daraApprove: (id: string) => void;
+  daraReject: (id: string) => void;
+  notifyStaticAgreementVerification: (
+    agreementId: string,
+    approved: boolean,
+    meta: {
+      propertyTitle: string;
+      tenantName: string;
+      landlordName: string;
+    }
+  ) => void;
   recordPayment: (id: string, method: string, ref: string) => void;
   getLandlordPhone: (landlordId: string, agreementId: string) => string | null;
   getPropertyLiveStatus: (propertyId: string) => LiveStatus | null;
@@ -211,11 +224,13 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
   const createAgreement = useCallback(
     (data: Omit<LiveAgreement, "id" | "status" | "tenantSignedAt">) => {
       const id = uid();
+      const { tenantSignatureDataUrl, landlordSignatureDataUrl: _l, ...rest } = data;
       const agreement: LiveAgreement = {
-        ...data,
+        ...rest,
         id,
         status: "tenant_signed",
         tenantSignedAt: now(),
+        ...(tenantSignatureDataUrl ? { tenantSignatureDataUrl } : {}),
       };
       setAgreements((prev) => {
         const next = [agreement, ...prev];
@@ -234,11 +249,18 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
   );
 
   const landlordSign = useCallback(
-    (id: string) => {
+    (id: string, landlordSignatureDataUrl?: string) => {
       setAgreements((prev) => {
         const next = prev.map((a) =>
           a.id === id
-            ? { ...a, status: "landlord_signed" as LiveStatus, landlordSignedAt: now() }
+            ? {
+                ...a,
+                status: "landlord_signed" as LiveStatus,
+                landlordSignedAt: now(),
+                ...(landlordSignatureDataUrl
+                  ? { landlordSignatureDataUrl }
+                  : {}),
+              }
             : a
         );
         save(AGREEMENTS_KEY, next);
@@ -260,13 +282,16 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
   const landlordInitiateContract = useCallback(
     (data: Omit<LiveAgreement, "id" | "status" | "tenantSignedAt"> & { tenantFaydaNumber: string }) => {
       const id = uid();
+      const { tenantFaydaNumber, landlordSignatureDataUrl, ...rest } = data;
       const agreement: LiveAgreement = {
-        ...data,
+        ...rest,
         id,
+        tenantFaydaNumber,
         status: "landlord_initiated",
         tenantSignedAt: "",
         landlordSignedAt: now(),
         initiatedByLandlord: true,
+        ...(landlordSignatureDataUrl ? { landlordSignatureDataUrl } : {}),
       };
       setAgreements((prev) => {
         const next = [agreement, ...prev];
@@ -285,11 +310,16 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
   );
 
   const tenantAcceptContract = useCallback(
-    (id: string) => {
+    (id: string, tenantSignatureDataUrl?: string) => {
       setAgreements((prev) => {
         const next = prev.map((a) =>
           a.id === id
-            ? { ...a, status: "landlord_signed" as LiveStatus, tenantSignedAt: now() }
+            ? {
+                ...a,
+                status: "landlord_signed" as LiveStatus,
+                tenantSignedAt: now(),
+                ...(tenantSignatureDataUrl ? { tenantSignatureDataUrl } : {}),
+              }
             : a
         );
         save(AGREEMENTS_KEY, next);
@@ -394,26 +424,95 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
 
   const daraApprove = useCallback(
     (id: string) => {
+      const a = agreements.find((x) => x.id === id);
+      if (!a) return;
       setAgreements((prev) => {
-        const next = prev.map((a) =>
-          a.id === id
-            ? { ...a, status: "dara_approved" as LiveStatus, daraApprovedAt: now() }
-            : a
+        const next = prev.map((x) =>
+          x.id === id
+            ? { ...x, status: "dara_approved" as LiveStatus, daraApprovedAt: now() }
+            : x
         );
         save(AGREEMENTS_KEY, next);
         return next;
       });
-      const a = agreements.find((x) => x.id === id);
-      if (a) {
-        addNotif("tenant", "Agreement Approved — Payment Required",
-          `Your rental agreement for ${a.propertyTitle} has been approved by DARA. Please complete the advance payment of ETB ${a.advanceAmount.toLocaleString()} to activate your contract.`, id);
-        addNotif("landlord", "Agreement Approved by DARA",
-          `The rental agreement for ${a.propertyTitle} (Tenant: ${a.tenantName}) has been verified and approved by DARA. Awaiting advance payment from tenant.`, id);
-        addNotif("dara_agent", "Verification Submitted",
-          `You have approved the rental agreement for ${a.propertyTitle}. Both parties have been notified.`, id);
-      }
+      addNotif("tenant", "Agreement Approved — Payment Required",
+        `Your rental agreement for ${a.propertyTitle} has been approved by DARA. Please complete the advance payment of ETB ${a.advanceAmount.toLocaleString()} to activate your contract.`, id);
+      addNotif("landlord", "Agreement Approved by DARA",
+        `The rental agreement for ${a.propertyTitle} (Tenant: ${a.tenantName}) has been verified and approved by DARA. Awaiting advance payment from tenant.`, id);
+      addNotif("dara_agent", "Verification Submitted",
+        `You have approved the rental agreement for ${a.propertyTitle}. Both parties have been notified.`, id);
     },
     [agreements, addNotif]
+  );
+
+  const daraReject = useCallback(
+    (id: string) => {
+      const a = agreements.find((x) => x.id === id);
+      if (!a) return;
+      setAgreements((prev) => {
+        const next = prev.map((x) =>
+          x.id === id ? { ...x, status: "rejected" as LiveStatus } : x
+        );
+        save(AGREEMENTS_KEY, next);
+        return next;
+      });
+      addNotif("tenant", "Agreement Rejected by DARA",
+        `Your rental agreement for ${a.propertyTitle} was not approved by the Authorities. Please review compliance requirements or contact DARA for details.`, id);
+      addNotif("landlord", "Agreement Rejected by DARA",
+        `The rental agreement for ${a.propertyTitle} (Tenant: ${a.tenantName}) was rejected by the Authorities. Both parties have been notified.`, id);
+      addNotif("dara_agent", "Agreement Rejected",
+        `You rejected the rental agreement for ${a.propertyTitle}. Tenant and landlord were notified.`, id);
+    },
+    [agreements, addNotif]
+  );
+
+  const notifyStaticAgreementVerification = useCallback(
+    (
+      agreementId: string,
+      approved: boolean,
+      meta: { propertyTitle: string; tenantName: string; landlordName: string }
+    ) => {
+      if (approved) {
+        addNotif(
+          "tenant",
+          "Agreement Approved by Authorities",
+          `Your rental agreement for ${meta.propertyTitle} has been approved. You may proceed with advance payment and activation as applicable.`,
+          agreementId
+        );
+        addNotif(
+          "landlord",
+          "Agreement Approved by Authorities",
+          `The rental agreement for ${meta.propertyTitle} with tenant ${meta.tenantName} has been approved by the Authorities.`,
+          agreementId
+        );
+        addNotif(
+          "dara_agent",
+          "Verification completed",
+          `Approved agreement for ${meta.propertyTitle} (${meta.tenantName} / ${meta.landlordName}).`,
+          agreementId
+        );
+      } else {
+        addNotif(
+          "tenant",
+          "Agreement Rejected by Authorities",
+          `Your rental agreement for ${meta.propertyTitle} was not approved. Please review the contract terms or submit a revised agreement.`,
+          agreementId
+        );
+        addNotif(
+          "landlord",
+          "Agreement Rejected by Authorities",
+          `The rental agreement for ${meta.propertyTitle} with ${meta.tenantName} was rejected by the Authorities.`,
+          agreementId
+        );
+        addNotif(
+          "dara_agent",
+          "Verification completed",
+          `Rejected agreement for ${meta.propertyTitle} (${meta.tenantName} / ${meta.landlordName}). Parties notified.`,
+          agreementId
+        );
+      }
+    },
+    [addNotif]
   );
 
   const recordPayment = useCallback(
@@ -616,6 +715,8 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         tenantCancelAgreement,
         landlordCancelAgreement,
         daraApprove,
+        daraReject,
+        notifyStaticAgreementVerification,
         recordPayment,
         getLandlordPhone,
         getPropertyLiveStatus,

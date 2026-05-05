@@ -52,6 +52,7 @@ import { useAuth } from "@/context/auth-context";
 import { useRentalFlow, type LiveAgreement, type LiveStatus } from "@/context/rental-flow-context";
 import { useLoading } from "@/context/loading-context";
 import { users } from "@/lib/dummy-data";
+import { proceduralSignatureDataUrl } from "@/lib/procedural-signature";
 
 /* ------------------------------------------------------------------ */
 /*  Stage pipeline                                                     */
@@ -772,7 +773,8 @@ export default function LiveAgreementPage() {
     autoSignFiredRef.current = true;
     setAutoSigning(true);
     const t = window.setTimeout(() => {
-      landlordSign(agreement.id);
+      const sig = proceduralSignatureDataUrl(agreement.landlordName, "landlord");
+      landlordSign(agreement.id, sig);
       notifs
         .filter((n) => n.agreementId === agreement.id)
         .forEach((n) => markRead(n.id));
