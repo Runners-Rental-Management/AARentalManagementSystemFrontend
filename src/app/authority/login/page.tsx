@@ -30,8 +30,7 @@ export default function AuthorityLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await withLoading(async () => {
-      await new Promise((r) => setTimeout(r, 800));
-      login("dara_agent");
+      await login("dara_agent", email, password);
     }, "Authenticating…");
     router.push("/dashboard/authority");
   };

@@ -3,12 +3,13 @@
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
+import { getAccessToken, apiListAgreements } from "@/lib/api";
 import {
   useRentalFlow,
   type LiveAgreement, type LiveStatus,
   type ExtensionRequest,
 } from "@/context/rental-flow-context";
-import { agreements } from "@/lib/dummy-data";
+import type { TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
   Clock, FileText, Plus, Search, Calendar, ArrowRight, Zap,
@@ -709,6 +710,7 @@ export default function AgreementsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [extensionTarget, setExtensionTarget]   = useState<LiveAgreement | null>(null);
   const [terminationTarget, setTerminationTarget] = useState<LiveAgreement | null>(null);
+  const [backendAgreements, setBackendAgreements] = useState<TenancyAgreement[]>([]);
   const { user } = useAuth();
   const router = useRouter();
   const {
@@ -723,6 +725,14 @@ export default function AgreementsPage() {
 
   const role = user?.role || "tenant";
   const userId = user?.id || "";
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token) return;
+    apiListAgreements(token)
+      .then((res) => setBackendAgreements(res.items))
+      .catch(() => setBackendAgreements([]));
+  }, []);
 
   /* Live agreements filtered for current user/role */
   const IN_PROGRESS_LIVE: LiveStatus[] = [
@@ -756,10 +766,10 @@ export default function AgreementsPage() {
   /* Dummy/static agreements filtered for current user/role */
   const roleBasedList =
     role === "landlord"
-      ? agreements.filter((a) => a.landlordId === userId)
+      ? backendAgreements.filter((a) => a.landlordId === userId)
       : role === "tenant"
-        ? agreements.filter((a) => a.tenantId === userId)
-        : agreements;
+        ? backendAgreements.filter((a) => a.tenantId === userId)
+        : backendAgreements;
 
   const staticFiltered = roleBasedList.filter((a) => {
     const matchesStatus =

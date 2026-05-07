@@ -3,7 +3,8 @@
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { disputes } from "@/lib/dummy-data";
+import { getAccessToken, apiGetDisputeById } from "@/lib/api";
+import type { Dispute } from "@/lib/types";
 import { formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import { VIOLATION_TYPES } from "@/lib/constants";
 import {
@@ -18,13 +19,38 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function DisputeDetailPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const role = user?.role || "tenant";
   const params = useParams();
-  const dispute = disputes.find((d) => d.id === params.id);
+  const disputeId = String(params.id ?? "");
+  const [dispute, setDispute] = useState<Dispute | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token || !disputeId) {
+      setLoading(false);
+      return;
+    }
+    apiGetDisputeById(token, disputeId)
+      .then((res) => setDispute(res))
+      .finally(() => setLoading(false));
+  }, [disputeId]);
+
+  if (loading) {
+    return (
+      <>
+        <Header title="Dispute Details" />
+        <main className="flex-1 p-6 flex items-center justify-center">
+          <p className="text-slate-500">Loading dispute...</p>
+        </main>
+      </>
+    );
+  }
 
   if (!dispute) {
     return (

@@ -3,7 +3,8 @@
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { disputes } from "@/lib/dummy-data";
+import { getAccessToken, apiListDisputes } from "@/lib/api";
+import type { Dispute } from "@/lib/types";
 import { formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import { VIOLATION_TYPES } from "@/lib/constants";
 import {
@@ -16,15 +17,24 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function DisputesPage() {
   const { t } = useLanguage();
   const [statusFilter, setStatusFilter] = useState("under_review");
   const [searchQuery, setSearchQuery] = useState("");
+  const [disputes, setDisputes] = useState<Dispute[]>([]);
   const { user } = useAuth();
   const role = user?.role || "tenant";
   const userId = user?.id || "";
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token) return;
+    apiListDisputes(token)
+      .then((res) => setDisputes(res.items))
+      .catch(() => setDisputes([]));
+  }, []);
 
   const roleBasedList =
     role === "admin" || role === "dara_agent" || role === "system_admin"

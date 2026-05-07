@@ -3,7 +3,8 @@
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { agreements } from "@/lib/dummy-data";
+import { getAccessToken, apiGetAgreementById } from "@/lib/api";
+import type { TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
   ArrowLeft, FileText, User, Building2, Calendar, DollarSign,
@@ -427,9 +428,33 @@ export default function AgreementDetailPage() {
   const { user } = useAuth();
   const role = user?.role || "tenant";
   const params = useParams();
-  const agreement = agreements.find((a) => a.id === params.id);
+  const [agreement, setAgreement] = useState<TenancyAgreement | null>(null);
+  const [loading, setLoading] = useState(true);
+  const agreementId = String(params.id ?? "");
   const [showExtension,   setShowExtension]   = useState(false);
   const [showTermination, setShowTermination] = useState(false);
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token || !agreementId) {
+      setLoading(false);
+      return;
+    }
+    apiGetAgreementById(token, agreementId)
+      .then((data) => setAgreement(data))
+      .finally(() => setLoading(false));
+  }, [agreementId]);
+
+  if (loading) {
+    return (
+      <>
+        <Header title="Agreement Details" />
+        <main className="flex-1 p-6 flex items-center justify-center">
+          <p className="text-slate-500">Loading agreement...</p>
+        </main>
+      </>
+    );
+  }
 
   if (!agreement) {
     return (

@@ -2,7 +2,8 @@
 
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
-import { properties } from "@/lib/dummy-data";
+import { useProperties } from "@/context/properties-context";
+import { getAccessToken, apiCreateAgreement } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { MAX_ADVANCE_MONTHS, MIN_LEASE_YEARS } from "@/lib/constants";
 import { ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
@@ -10,17 +11,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const availableProperties = properties.filter((p) => p.status === "available");
-
 export default function CreateAgreementPage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const { userProperties, isLoading } = useProperties();
   const [selectedProperty, setSelectedProperty] = useState("");
   const [monthlyRent, setMonthlyRent] = useState("");
   const [advancePayment, setAdvancePayment] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [tenantEmail, setTenantEmail] = useState("");
+  const [tenantId, setTenantId] = useState("");
+  const [utilities, setUtilities] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const availableProperties = userProperties.filter((p) => p.status === "available");
 
   const rent = parseFloat(monthlyRent) || 0;
   const advance = parseFloat(advancePayment) || 0;
@@ -36,9 +41,42 @@ export default function CreateAgreementPage() {
       : 0;
   const isLeaseValid = leaseMonths >= MIN_LEASE_YEARS * 12;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/dashboard/agreements");
+    setError(null);
+    const token = getAccessToken();
+    if (!token) {
+      setError("Please log in again.");
+      return;
+    }
+    if (!selectedProperty || !tenantId.trim()) {
+      setError("Property and tenant ID are required.");
+      return;
+    }
+    if (!isAdvanceValid || !isLeaseValid) {
+      setError("Please fix agreement validation errors first.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await apiCreateAgreement(token, {
+        propertyId: selectedProperty,
+        tenantId: tenantId.trim(),
+        monthlyRent: rent,
+        advancePayment: advance,
+        startDate,
+        endDate,
+        utilities: utilities
+          .split(",")
+          .map((u) => u.trim())
+          .filter(Boolean),
+      });
+      router.push("/dashboard/agreements");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create agreement");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -102,6 +140,7 @@ export default function CreateAgreementPage() {
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                 >
                   <option value="">Choose a verified property</option>
+                  {isLoading && <option value="">Loading properties...</option>}
                   {availableProperties.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.title} — {formatCurrency(p.monthlyRent)}/mo
@@ -116,14 +155,14 @@ export default function CreateAgreementPage() {
                   Tenant Information
                 </h3>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Tenant Email (registered user)
+                  Tenant ID (registered tenant user id)
                 </label>
                 <input
-                  type="email"
-                  value={tenantEmail}
-                  onChange={(e) => setTenantEmail(e.target.value)}
+                  type="text"
+                  value={tenantId}
+                  onChange={(e) => setTenantId(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                  placeholder="tenant@example.com"
+                  placeholder="e.g. cm9x..."
                 />
               </div>
 
@@ -225,10 +264,13 @@ export default function CreateAgreementPage() {
                 </label>
                 <input
                   type="text"
+                  value={utilities}
+                  onChange={(e) => setUtilities(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                   placeholder="e.g., Water, Electricity (shared)"
                 />
               </div>
+              {error && <p className="text-sm text-red-600">{error}</p>}
 
               {/* Submit */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -240,9 +282,10 @@ export default function CreateAgreementPage() {
                 </Link>
                 <button
                   type="submit"
+                  disabled={submitting}
                   className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
                 >
-                  Create & Send for Signing
+                  {submitting ? "Creating..." : "Create & Send for Signing"}
                 </button>
               </div>
             </form>

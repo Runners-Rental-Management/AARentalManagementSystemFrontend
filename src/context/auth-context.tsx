@@ -2,21 +2,36 @@
 
 import {
   createContext,
+  useEffect,
   useContext,
   useState,
   useCallback,
   type ReactNode,
 } from "react";
 import type { User, UserRole } from "@/lib/types";
-import { users as allUsers } from "@/lib/dummy-data";
 import type { FaydaConfirmResult } from "@/lib/fayda-api";
+import {
+  apiGetMe,
+  apiLogin,
+  apiRegister,
+  clearAuthTokens,
+  getAccessToken,
+  setAuthTokens,
+} from "@/lib/api";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (role: UserRole) => void;
-  register: (role: UserRole, firstName: string, lastName: string) => void;
-  logout: () => void;
+  login: (role: UserRole, email?: string, password?: string) => Promise<void>;
+  register: (
+    role: UserRole,
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    phone: string
+  ) => Promise<void>;
+  logout: () => Promise<void>;
   applyFaydaVerification: (result: FaydaConfirmResult) => void;
 }
 
@@ -24,12 +39,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = "rental_auth_user";
 
-const DEMO_USERS: Record<UserRole, string> = {
-  tenant: "u3",
-  landlord: "u2",
-  admin: "u1",
-  dara_agent: "u6",
-  system_admin: "u10",
+const DEMO_CREDENTIALS: Record<UserRole, { email: string; password: string }> = {
+  tenant: { email: "tenant@aarental.local", password: "Passw0rd!234" },
+  landlord: { email: "landlord@aarental.local", password: "Passw0rd!234" },
+  admin: { email: "admin@aarental.local", password: "Passw0rd!234" },
+  dara_agent: { email: "admin@aarental.local", password: "Passw0rd!234" },
+  system_admin: { email: "admin@aarental.local", password: "Passw0rd!234" },
 };
 
 function persist(user: User | null) {
@@ -49,39 +64,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  const login = useCallback((role: UserRole) => {
-    const demoUserId = DEMO_USERS[role];
-    const found = allUsers.find((u) => u.id === demoUserId);
-    if (found) {
-      // Demo accounts are treated as already Fayda-verified so the seeded
-      // flows continue to work without forcing an extra step.
-      const next: User = { ...found, faydaVerified: true };
-      setUser(next);
-      persist(next);
-    }
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token) return;
+
+    apiGetMe(token)
+      .then((next) => {
+        setUser(next);
+        persist(next);
+      })
+      .catch(() => {
+        clearAuthTokens();
+        setUser(null);
+        persist(null);
+      });
   }, []);
 
-  const register = useCallback(
-    (role: UserRole, firstName: string, lastName: string) => {
-      const newUser: User = {
-        id: `u_new_${Date.now()}`,
-        firstName: firstName || "New",
-        lastName: lastName || "User",
-        email: `${(firstName || "new").toLowerCase()}@example.com`,
-        phone: "+251900000000",
-        role,
-        createdAt: new Date().toISOString().split("T")[0],
-        isVerified: false,
-        address: "Addis Ababa",
-        faydaVerified: false,
-      };
-      setUser(newUser);
-      persist(newUser);
+  const login = useCallback(
+    async (role: UserRole, email?: string, password?: string) => {
+      const creds = DEMO_CREDENTIALS[role];
+      const loginEmail = (email?.trim() || creds.email).toLowerCase();
+      const loginPassword = password?.trim() || creds.password;
+      const result = await apiLogin(loginEmail, loginPassword);
+      setAuthTokens(result.accessToken, result.refreshToken);
+      const next = await apiGetMe(result.accessToken);
+      setUser(next);
+      persist(next);
     },
     []
   );
 
-  const logout = useCallback(() => {
+  const register = useCallback(
+    async (
+      role: UserRole,
+      firstName: string,
+      lastName: string,
+      email: string,
+      password: string,
+      phone: string
+    ) => {
+      const result = await apiRegister({
+        role,
+        firstName: firstName || "New",
+        lastName: lastName || "User",
+        email: email.toLowerCase(),
+        password,
+        phone,
+      });
+      setAuthTokens(result.accessToken, result.refreshToken);
+      const next = await apiGetMe(result.accessToken);
+      setUser(next);
+      persist(next);
+    },
+    []
+  );
+
+  const logout = useCallback(async () => {
+    clearAuthTokens();
     setUser(null);
     persist(null);
   }, []);

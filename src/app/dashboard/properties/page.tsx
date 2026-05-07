@@ -6,7 +6,6 @@ import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useProperties } from "@/context/properties-context";
 import { useRentalFlow } from "@/context/rental-flow-context";
-import { properties, agreements } from "@/lib/dummy-data";
 import {
   Archive,
   Clock,
@@ -24,28 +23,17 @@ export default function PropertiesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
-  const { userProperties } = useProperties();
+  const { userProperties, isLoading } = useProperties();
   const { getPropertyLiveStatus } = useRentalFlow();
   const role = user?.role || "tenant";
   const userId = user?.id || "";
 
-  /* Merge static demo data + the landlord's user-submitted properties (newest first) */
-  const combined = useMemo(
-    () => [...userProperties, ...properties],
-    [userProperties]
-  );
-
-  const roleBasedList =
-    role === "landlord"
-      ? combined.filter((p) => p.landlordId === userId)
-      : role === "tenant"
-        ? (() => {
-            const myRentedIds = agreements.filter((a) => a.tenantId === userId).map((a) => a.propertyId);
-            return combined.filter(
-              (p) => p.status === "available" || myRentedIds.includes(p.id)
-            );
-          })()
-        : combined;
+  const roleBasedList = useMemo(() => {
+    if (role === "landlord") {
+      return userProperties.filter((p) => p.landlordId === userId);
+    }
+    return userProperties;
+  }, [role, userId, userProperties]);
 
   const filtered = roleBasedList.filter((p) => {
     const matchesStatus = statusFilter === "all" || p.status === statusFilter;
@@ -181,7 +169,11 @@ export default function PropertiesPage() {
             ))}
           </div>
 
-          {filtered.length === 0 && (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <p className="text-sm text-slate-500">Loading properties...</p>
+            </div>
+          ) : filtered.length === 0 && (
             <div className="text-center py-16">
               <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center mb-3 border border-slate-300 dark:border-slate-700">
                 <Archive className="w-8 h-8 text-slate-600 dark:text-slate-300" />

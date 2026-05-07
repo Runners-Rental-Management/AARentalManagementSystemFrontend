@@ -251,8 +251,7 @@ export default function RegisterPropertyPage() {
     if (!user || !propertyType) return;
 
     await withLoading(async () => {
-      await new Promise((r) => setTimeout(r, 1100));
-      addProperty({
+      await addProperty({
         title: title.trim(),
         propertyType: propertyType as Property["propertyType"],
         address: address.trim(),

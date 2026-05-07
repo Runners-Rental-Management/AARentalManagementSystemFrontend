@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -75,20 +75,18 @@ function RegisterPageInner() {
   const initialRole: UserRole | "" =
     roleParam === "tenant" || roleParam === "landlord" ? (roleParam as UserRole) : "";
 
-  const [selectedRole, setSelectedRole] = useState<UserRole | "">(initialRole);
-  const [formData, setFormData] = useState({
-    firstName: "", lastName: "", email: "", phone: "",
-    password: "", confirmPassword: "",
-  });
-
   const selectedProperty = useMemo(
     () => (propertyIdParam ? properties.find((p) => p.id === propertyIdParam) : null),
     [propertyIdParam]
   );
 
-  useEffect(() => {
-    if (selectedProperty && selectedRole === "") setSelectedRole("tenant");
-  }, [selectedProperty, selectedRole]);
+  const resolvedInitialRole: UserRole | "" =
+    initialRole || (selectedProperty ? "tenant" : "");
+  const [selectedRole, setSelectedRole] = useState<UserRole | "">(resolvedInitialRole);
+  const [formData, setFormData] = useState({
+    firstName: "", lastName: "", email: "", phone: "",
+    password: "", confirmPassword: "",
+  });
 
   const roles = [
     { value: "tenant" as UserRole,   labelKey: "tenantRole",   icon: User, descKey: "tenantRoleDesc" },
@@ -129,8 +127,14 @@ function RegisterPageInner() {
     if (Object.keys(errs).length > 0) return;
 
     await withLoading(async () => {
-      await new Promise((r) => setTimeout(r, 800));
-      register(selectedRole as UserRole, formData.firstName.trim(), formData.lastName.trim());
+      await register(
+        selectedRole as UserRole,
+        formData.firstName.trim(),
+        formData.lastName.trim(),
+        formData.email.trim(),
+        formData.password,
+        formData.phone.trim()
+      );
     }, "Creating your account…");
 
     if (selectedRole === "tenant" && selectedProperty) {
