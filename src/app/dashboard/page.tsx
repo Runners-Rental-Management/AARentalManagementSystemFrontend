@@ -7,20 +7,11 @@ import {
   FileText,
   AlertTriangle,
   TrendingUp,
-  Users,
-  ArrowUpRight,
-  ArrowDownRight,
-  Home,
   ShieldCheck,
-  Gavel,
-  BarChart3,
-  Settings,
-  ScrollText,
   CreditCard,
   Compass,
   ArrowRight,
   FolderOpen,
-  Plus,
   Bell,
   Sparkles,
   Heart,
@@ -31,77 +22,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useFavorites } from "@/context/favorites-context";
 import {
-  properties,
-  agreements,
-  disputes,
-  rentAdjustments,
-  analyticsData,
-  users,
-  penaltyNotices,
-  rentPayments,
-  notifications as allNotifications,
-  supportingDocuments,
-} from "@/lib/dummy-data";
+  apiListAgreements,
+  apiListDisputes,
+  apiListProperties,
+  apiListRentAdjustments,
+  getAccessToken,
+} from "@/lib/api";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import { PropertyCoverImage } from "@/components/property-cover-image";
-
-const LANDLORD_CARD_GRADIENTS = [
-  "from-sky-500 via-blue-500 to-indigo-600",
-  "from-emerald-500 via-teal-500 to-cyan-600",
-  "from-amber-500 via-orange-500 to-red-500",
-  "from-violet-500 via-purple-500 to-indigo-600",
-];
-
-function landlordCardGradient(id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  return LANDLORD_CARD_GRADIENTS[Math.abs(h) % LANDLORD_CARD_GRADIENTS.length];
-}
-
-function StatCard({
-  title,
-  value,
-  change,
-  changeType,
-  icon: Icon,
-  color,
-  href,
-}: {
-  title: string;
-  value: string;
-  change: string;
-  changeType: "up" | "down";
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow group"
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className={`w-10 h-10 ${color} rounded-lg flex items-center justify-center`}>
-          <Icon className="w-5 h-5 text-white" />
-        </div>
-        <span
-          className={`inline-flex items-center gap-1 text-xs font-medium ${
-            changeType === "up" ? "text-emerald-600" : "text-red-600"
-          }`}
-        >
-          {changeType === "up" ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-          {change}
-        </span>
-      </div>
-      <p className="text-2xl font-bold text-slate-900 mb-1">{value}</p>
-      <p className="text-sm text-slate-500">{title}</p>
-    </Link>
-  );
-}
+import type { Dispute, Property, RentAdjustment, TenancyAgreement } from "@/lib/types";
 
 export default function DashboardPage() {
   const { t } = useLanguage();
@@ -113,6 +46,12 @@ export default function DashboardPage() {
 
   const isAuthority =
     role === "admin" || role === "dara_agent" || role === "system_admin";
+  const [landlordProperties, setLandlordProperties] = useState<Property[]>([]);
+  const [landlordAgreements, setLandlordAgreements] = useState<TenancyAgreement[]>([]);
+  const [landlordDisputes, setLandlordDisputes] = useState<Dispute[]>([]);
+  const [landlordRentAdjustments, setLandlordRentAdjustments] = useState<RentAdjustment[]>([]);
+  const [landlordDashboardLoading, setLandlordDashboardLoading] = useState(false);
+  const [landlordDashboardError, setLandlordDashboardError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthority) {
@@ -120,17 +59,59 @@ export default function DashboardPage() {
     }
   }, [isAuthority, router]);
 
-  const myProperties = properties.filter((p) => p.landlordId === userId);
-  const myAgreementsAsLandlord = agreements.filter((a) => a.landlordId === userId);
-  const myAgreementsAsTenant = agreements.filter((a) => a.tenantId === userId);
-  const myDisputes = disputes.filter(
+  useEffect(() => {
+    if (isAuthority) return;
+
+    let mounted = true;
+    const loadDashboardData = async () => {
+      setLandlordDashboardLoading(true);
+      setLandlordDashboardError(null);
+      try {
+        let token: string | null = null;
+        for (let attempt = 0; attempt < 5; attempt += 1) {
+          token = getAccessToken();
+          if (token) break;
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+
+        if (!token) {
+          throw new Error("Missing auth token. Please login again.");
+        }
+
+        const propertiesResult = await apiListProperties(token, "page=1&pageSize=1000");
+        const agreementsResult = await apiListAgreements(token, "page=1&pageSize=1000");
+        const disputesResult = await apiListDisputes(token, "page=1&pageSize=1000");
+        const rentAdjustmentsResult = await apiListRentAdjustments(
+          token,
+          "page=1&pageSize=1000",
+        );
+
+        if (!mounted) return;
+        setLandlordProperties(propertiesResult.items);
+        setLandlordAgreements(agreementsResult.items);
+        setLandlordDisputes(disputesResult.items);
+        setLandlordRentAdjustments(rentAdjustmentsResult.items);
+      } catch (error) {
+        if (!mounted) return;
+        const message =
+          error instanceof Error ? error.message : "Failed to load landlord dashboard data.";
+        setLandlordDashboardError(message);
+      } finally {
+        if (mounted) setLandlordDashboardLoading(false);
+      }
+    };
+
+    void loadDashboardData();
+    return () => {
+      mounted = false;
+    };
+  }, [isAuthority, role, user?.id]);
+
+  const myAgreementsAsTenant = landlordAgreements.filter((a) => a.tenantId === userId);
+  const myDisputes = landlordDisputes.filter(
     (d) => d.reporterId === userId || d.respondentId === userId
   );
-  const myRentAdjustments = rentAdjustments.filter((r) => r.landlordId === userId);
-  const availableProperties = properties.filter((p) => p.status === "available");
-  const openDisputes = disputes.filter((d) => !["resolved", "closed"].includes(d.status));
-  const pendingRentAdj = rentAdjustments.filter((r) => ["pending", "under_review"].includes(r.status));
-  const pendingVerifProps = properties.filter((p) => p.status === "pending_verification");
+  const availableProperties = landlordProperties.filter((p) => p.status === "available");
 
   const titleKey =
     role === "admin"
@@ -141,11 +122,11 @@ export default function DashboardPage() {
 
   // ====== TENANT EXPERIENCE — WELCOMING LANDING ======
   if (role === "tenant") {
-    const myPendingPayments = rentPayments.filter(
-      (p) => p.payerId === userId && (p.status === "pending" || p.status === "overdue")
+    const myPendingPayments = myAgreementsAsTenant.filter((a) =>
+      ["pending_tenant_signature", "pending_verification", "pending_dara_verification"].includes(a.status)
     );
-    const myDocs = supportingDocuments.filter((d) => d.uploaderId === userId);
-    const unreadNotifs = allNotifications.filter((n) => !n.isRead).length;
+    const myDocs: Array<{ id: string }> = [];
+    const unreadNotifs = 0;
 
     const featured = [...availableProperties]
       .sort((a, b) => a.monthlyRent - b.monthlyRent)
@@ -527,322 +508,183 @@ export default function DashboardPage() {
       <Header title={t("dashboard", titleKey)} />
       <main className="flex-1 p-6 overflow-y-auto">
         {/* (Admin/DARA blocks removed — authority roles redirect to /dashboard/analytics) */}
-        {false && role === "admin" && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <StatCard
-                title={t("dashboard", "registeredUsers")}
-                value={users.length.toString()}
-                change="+15%"
-                changeType="up"
-                icon={Users}
-                color="bg-indigo-500"
-                href="/dashboard/admin/users"
-              />
-              <StatCard
-                title={t("dashboard", "totalProperties")}
-                value={properties.length.toString()}
-                change="+12%"
-                changeType="up"
-                icon={Building2}
-                color="bg-blue-500"
-                href="/dashboard/admin/users"
-              />
-              <StatCard
-                title={t("dashboard", "activeAgreements")}
-                value={agreements.filter((a) => a.status === "active").length.toString()}
-                change="+8%"
-                changeType="up"
-                icon={FileText}
-                color="bg-emerald-500"
-                href="/dashboard/admin/audit-logs"
-              />
-              <StatCard
-                title={t("dashboard", "openDisputes")}
-                value={openDisputes.length.toString()}
-                change="-5%"
-                changeType="down"
-                icon={AlertTriangle}
-                color="bg-amber-500"
-                href="/dashboard/admin/audit-logs"
-              />
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <Link href="/dashboard/admin/users" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow group text-center">
-                <Users className="w-8 h-8 text-indigo-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "userManagement")}</p>
-                <p className="text-xs text-slate-500 mt-1">{users.length} users</p>
-              </Link>
-              <Link href="/dashboard/admin/parameters" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow group text-center">
-                <Settings className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "systemParameters")}</p>
-                <p className="text-xs text-slate-500 mt-1">9 parameters</p>
-              </Link>
-              <Link href="/dashboard/admin/audit-logs" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow group text-center">
-                <ScrollText className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "auditLogs")}</p>
-                <p className="text-xs text-slate-500 mt-1">View activity</p>
-              </Link>
-              <Link href="/dashboard/admin/roles" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow group text-center">
-                <ShieldCheck className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "rolesPermissions")}</p>
-                <p className="text-xs text-slate-500 mt-1">4 roles</p>
-              </Link>
-            </div>
-          </>
-        )}
+        {false && role === "admin" && null}
 
-        {/* Landlord Dashboard — Casino circular layout */}
+        {/* Landlord Dashboard */}
         {role === "landlord" && (() => {
-          const chips = [
+          const landlordActiveAgreements = landlordAgreements.filter(
+            (agreement) => agreement.status === "active" || agreement.status === "extended"
+          );
+          const landlordPendingAgreementActions = landlordAgreements.filter((agreement) =>
+            [
+              "pending_tenant_signature",
+              "pending_verification",
+              "pending_dara_verification",
+            ].includes(agreement.status)
+          );
+
+          const stats = [
             {
               title: t("dashboard", "myProperties"),
-              value: myProperties.length,
-              sub: `${myProperties.filter((p) => p.status === "available").length} available`,
+              value: landlordProperties.length,
+              sub: `${landlordProperties.filter((p) => p.status === "available").length} available`,
               icon: Building2,
               href: "/dashboard/properties",
-              // top-centre
-              cx: 50, cy: 9,
-              glow: "rgba(59,130,246,0.7)",
-              ring: "#3b82f6",
-              iconBg: "from-blue-500 to-blue-700",
+              tone: "bg-blue-50 text-blue-700",
             },
             {
               title: t("dashboard", "myAgreements"),
-              value: myAgreementsAsLandlord.filter((a) => a.status === "active").length,
-              sub: `${myAgreementsAsLandlord.length} total`,
+              value: landlordAgreements.filter((a) => a.status === "active").length,
+              sub: `${landlordAgreements.length} total`,
               icon: FileText,
               href: "/dashboard/agreements",
-              // top-right
-              cx: 88, cy: 37,
-              glow: "rgba(16,185,129,0.7)",
-              ring: "#10b981",
-              iconBg: "from-emerald-500 to-emerald-700",
+              tone: "bg-emerald-50 text-emerald-700",
             },
             {
               title: t("dashboard", "myRentAdjustments"),
-              value: myRentAdjustments.filter((r) => ["pending","under_review"].includes(r.status)).length,
-              sub: `${myRentAdjustments.length} total`,
+              value: landlordRentAdjustments.filter((r) =>
+                ["pending", "under_review"].includes(r.status)
+              ).length,
+              sub: `${landlordRentAdjustments.length} total`,
               icon: TrendingUp,
               href: "/dashboard/rent-adjustment",
-              // bottom-right
-              cx: 74, cy: 82,
-              glow: "rgba(168,85,247,0.7)",
-              ring: "#a855f7",
-              iconBg: "from-purple-500 to-purple-700",
+              tone: "bg-violet-50 text-violet-700",
             },
             {
               title: t("dashboard", "myDisputes"),
-              value: myDisputes.filter((d) => !["resolved","closed"].includes(d.status)).length,
-              sub: `${myDisputes.length} total`,
+              value: landlordDisputes.filter((d) => !["resolved", "closed"].includes(d.status))
+                .length,
+              sub: `${landlordDisputes.length} total`,
               icon: AlertTriangle,
               href: "/dashboard/disputes",
-              // bottom-left
-              cx: 26, cy: 82,
-              glow: "rgba(245,158,11,0.7)",
-              ring: "#f59e0b",
-              iconBg: "from-amber-500 to-amber-700",
+              tone: "bg-amber-50 text-amber-700",
             },
             {
               title: t("nav", "payments"),
-              value: rentPayments.filter((p) => p.recipientId === userId && p.status === "paid").length,
-              sub: `${rentPayments.filter((p) => p.recipientId === userId && p.status === "pending").length} pending`,
+              value: landlordActiveAgreements.length,
+              sub: `${landlordPendingAgreementActions.length} pending actions`,
               icon: CreditCard,
               href: "/dashboard/payments",
-              // top-left
-              cx: 12, cy: 37,
-              glow: "rgba(20,184,166,0.7)",
-              ring: "#14b8a6",
-              iconBg: "from-teal-500 to-teal-700",
+              tone: "bg-cyan-50 text-cyan-700",
             },
           ];
 
           return (
-            <div className="flex items-center justify-center py-4 px-4">
-              <div className="relative w-full max-w-[620px]" style={{ aspectRatio: "1/1" }}>
-
-                {/* Felt table */}
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: "radial-gradient(ellipse at center, #1a3d24 0%, #0e2016 55%, #060e09 100%)",
-                    boxShadow: "0 0 0 3px #7c5a1a, 0 0 0 6px #3d2d0a, 0 0 80px rgba(234,179,8,0.12), inset 0 0 100px rgba(0,0,0,0.6)",
-                  }}
-                />
-
-                {/* Decorative concentric rings */}
-                <div className="absolute inset-[8%] rounded-full border border-yellow-700/20" />
-                <div className="absolute inset-[16%] rounded-full border border-yellow-700/10" />
-
-                {/* SVG lines from center to each chip */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  {chips.map((c, i) => (
-                    <line
-                      key={i}
-                      x1="50" y1="50"
-                      x2={c.cx} y2={c.cy}
-                      stroke={c.ring}
-                      strokeWidth="0.3"
-                      strokeOpacity="0.35"
-                      strokeDasharray="1.5 1.5"
-                    />
+            <div className="space-y-6">
+              <div className="px-4">
+                {landlordDashboardLoading && (
+                  <div className="text-xs text-slate-500 mb-3">Loading landlord dashboard...</div>
+                )}
+                {landlordDashboardError && (
+                  <div className="text-xs text-rose-600 mb-3">{landlordDashboardError}</div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                  {stats.map((stat) => (
+                    <Link
+                      key={stat.href}
+                      href={stat.href}
+                      className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stat.tone}`}>
+                        <stat.icon className="w-5 h-5" />
+                      </div>
+                      <p className="text-2xl font-bold text-slate-900 mt-3">{stat.value}</p>
+                      <p className="text-sm font-medium text-slate-700">{stat.title}</p>
+                      <p className="text-xs text-slate-500 mt-1">{stat.sub}</p>
+                    </Link>
                   ))}
-                  {/* Outer pentagon */}
-                  <polygon
-                    points={chips.map((c) => `${c.cx},${c.cy}`).join(" ")}
-                    fill="none"
-                    stroke="rgba(234,179,8,0.12)"
-                    strokeWidth="0.25"
-                  />
-                </svg>
+                </div>
+              </div>
 
-                {/* Center medallion */}
-                <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[18%] aspect-square rounded-full flex flex-col items-center justify-center"
-                  style={{
-                    background: "radial-gradient(circle, #d97706 0%, #92400e 100%)",
-                    boxShadow: "0 0 24px rgba(234,179,8,0.6), 0 0 60px rgba(234,179,8,0.2)",
-                  }}
-                >
-                  <Building2 className="w-[45%] h-[45%] text-yellow-100" />
-                  <span className="text-[1.8cqw] font-bold text-yellow-100 tracking-tight leading-none mt-[4%]" style={{ fontSize: "clamp(8px, 1.8vw, 14px)" }}>
-                    {user?.firstName}
-                  </span>
+              <div className="grid lg:grid-cols-3 gap-4 px-4 pb-6">
+                <div className="bg-white rounded-xl border border-slate-200">
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-slate-900">Recent agreements</h3>
+                    <Link href="/dashboard/agreements" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
+                      View all
+                    </Link>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {landlordAgreements.slice(0, 4).map((agreement) => (
+                      <Link
+                        key={agreement.id}
+                        href={`/dashboard/agreements/${agreement.id}`}
+                        className="block px-4 py-3 hover:bg-slate-50"
+                      >
+                        <p className="text-sm font-medium text-slate-900 truncate">
+                          {agreement.propertyTitle}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {formatCurrency(agreement.monthlyRent)} / mo
+                        </p>
+                      </Link>
+                    ))}
+                    {landlordAgreements.length === 0 && (
+                      <p className="px-4 py-6 text-xs text-slate-500">No agreements yet.</p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Chips */}
-                {chips.map((c) => (
-                  <Link
-                    key={c.href}
-                    href={c.href}
-                    className="absolute z-10 group"
-                    style={{
-                      left: `${c.cx}%`,
-                      top: `${c.cy}%`,
-                      transform: "translate(-50%, -50%)",
-                      width: "22%",
-                    }}
-                  >
-                    <div
-                      className="rounded-2xl p-3 flex flex-col items-center text-center transition-all duration-300 group-hover:-translate-y-1"
-                      style={{
-                        background: "linear-gradient(145deg, #111c14 0%, #0a1209 100%)",
-                        border: `1px solid ${c.ring}55`,
-                        boxShadow: `0 0 0 1px ${c.ring}22, 0 4px 20px rgba(0,0,0,0.6)`,
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 16px ${c.glow}, 0 0 40px ${c.glow}55, 0 4px 20px rgba(0,0,0,0.6)`;
-                        (e.currentTarget as HTMLDivElement).style.borderColor = c.ring;
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 0 1px ${c.ring}22, 0 4px 20px rgba(0,0,0,0.6)`;
-                        (e.currentTarget as HTMLDivElement).style.borderColor = `${c.ring}55`;
-                      }}
-                    >
-                      {/* Icon */}
-                      <div
-                        className={`w-8 h-8 rounded-xl bg-gradient-to-br ${c.iconBg} flex items-center justify-center mb-1.5 shadow-lg`}
-                        style={{ boxShadow: `0 0 12px ${c.glow}60` }}
+                <div className="bg-white rounded-xl border border-slate-200">
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-slate-900">Recent disputes</h3>
+                    <Link href="/dashboard/disputes" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
+                      View all
+                    </Link>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {landlordDisputes.slice(0, 4).map((dispute) => (
+                      <Link
+                        key={dispute.id}
+                        href={`/dashboard/disputes/${dispute.id}`}
+                        className="block px-4 py-3 hover:bg-slate-50"
                       >
-                        <c.icon className="w-4 h-4 text-white" />
-                      </div>
-                      {/* Value */}
-                      <span
-                        className="text-2xl font-black leading-none tracking-tight"
-                        style={{ color: c.ring, textShadow: `0 0 10px ${c.glow}` }}
+                        <p className="text-sm font-medium text-slate-900 truncate">
+                          {dispute.title}
+                        </p>
+                        <p className="text-xs text-slate-500">{formatDate(dispute.createdAt)}</p>
+                      </Link>
+                    ))}
+                    {landlordDisputes.length === 0 && (
+                      <p className="px-4 py-6 text-xs text-slate-500">No disputes found.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-slate-200">
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-slate-900">Recent rent adjustments</h3>
+                    <Link href="/dashboard/rent-adjustment" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
+                      View all
+                    </Link>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {landlordRentAdjustments.slice(0, 4).map((adjustment) => (
+                      <Link
+                        key={adjustment.id}
+                        href="/dashboard/rent-adjustment"
+                        className="block px-4 py-3 hover:bg-slate-50"
                       >
-                        {c.value}
-                      </span>
-                      {/* Title */}
-                      <span className="text-[10px] font-semibold text-slate-300 mt-0.5 leading-tight line-clamp-2">
-                        {c.title}
-                      </span>
-                      {/* Sub */}
-                      <span className="text-[9px] text-slate-500 mt-0.5 leading-tight">
-                        {c.sub}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+                        <p className="text-sm font-medium text-slate-900 truncate">
+                          {adjustment.propertyTitle}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {formatCurrency(adjustment.currentRent)} {"->"} {formatCurrency(adjustment.proposedRent)}
+                        </p>
+                      </Link>
+                    ))}
+                    {landlordRentAdjustments.length === 0 && (
+                      <p className="px-4 py-6 text-xs text-slate-500">No rent adjustments yet.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           );
         })()}
 
         {/* (DARA block removed — dara_agent redirects to /dashboard/analytics) */}
-        {false && role === "dara_agent" && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              <StatCard title={t("dashboard", "pendingVerifications")} value={`${pendingVerifProps.length + agreements.filter((a) => ["pending_verification", "pending_dara_verification"].includes(a.status)).length}`} change="To verify" changeType="up" icon={ShieldCheck} color="bg-orange-500" href="/dashboard/admin/verifications" />
-              <StatCard title={t("dashboard", "openDisputes")} value={openDisputes.length.toString()} change={`${disputes.filter((d) => d.priority === "critical").length} critical`} changeType="down" icon={AlertTriangle} color="bg-amber-500" href="/dashboard/disputes" />
-              <StatCard title={t("dashboard", "pendingAdjustments")} value={pendingRentAdj.length.toString()} change="To review" changeType="up" icon={TrendingUp} color="bg-purple-500" href="/dashboard/rent-adjustment" />
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              <Link href="/dashboard/admin/verifications" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow text-center">
-                <ShieldCheck className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "verifyAgreements")}</p>
-              </Link>
-              <Link href="/dashboard/disputes" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow text-center">
-                <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "reviewViolations")}</p>
-              </Link>
-              <Link href="/dashboard/rent-adjustment" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow text-center">
-                <TrendingUp className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "approveRentAdjustment")}</p>
-              </Link>
-              <Link href="/dashboard/analytics" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow text-center">
-                <BarChart3 className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "analytics")}</p>
-              </Link>
-              <Link href="/dashboard/penalty-notices" className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow text-center">
-                <Gavel className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-900">{t("nav", "penaltyNotices")}</p>
-              </Link>
-            </div>
-            <div className="grid lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl border border-slate-200">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-900">{t("dashboard", "recentAgreements")}</h3>
-                  <Link href="/dashboard/admin/verifications" className="text-xs text-primary-600 hover:text-primary-700 font-medium">{t("dashboard", "viewAll")}</Link>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {agreements.filter((a) => ["pending_verification", "pending_dara_verification"].includes(a.status)).slice(0, 4).map((agreement) => (
-                    <Link key={agreement.id} href={`/dashboard/agreements/${agreement.id}`} className="block px-6 py-3.5 flex items-center justify-between hover:bg-slate-50">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 truncate">{agreement.propertyTitle}</p>
-                        <p className="text-xs text-slate-500">{agreement.tenantName} &middot; {formatCurrency(agreement.monthlyRent)}/mo</p>
-                      </div>
-                      <span className={`ml-3 inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(agreement.status)}`}>{formatStatus(agreement.status)}</span>
-                    </Link>
-                  ))}
-                  {agreements.filter((a) => ["pending_verification", "pending_dara_verification"].includes(a.status)).length === 0 && (
-                    <p className="px-6 py-6 text-sm text-slate-500">No pending agreements.</p>
-                  )}
-                </div>
-              </div>
-              <div className="bg-white rounded-xl border border-slate-200">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-900">{t("dashboard", "recentDisputes")}</h3>
-                  <Link href="/dashboard/disputes" className="text-xs text-primary-600 hover:text-primary-700 font-medium">{t("dashboard", "viewAll")}</Link>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {openDisputes.slice(0, 4).map((dispute) => (
-                    <Link key={dispute.id} href={`/dashboard/disputes/${dispute.id}`} className="block px-6 py-3.5 flex items-center justify-between hover:bg-slate-50">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 truncate">{dispute.title}</p>
-                        <p className="text-xs text-slate-500">{dispute.reporterName} &middot; {formatDate(dispute.createdAt)}</p>
-                      </div>
-                      <div className="ml-3 flex items-center gap-2">
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${dispute.priority === "critical" ? "bg-red-100 text-red-700" : dispute.priority === "high" ? "bg-orange-100 text-orange-700" : "bg-slate-100 text-slate-600"}`}>{dispute.priority}</span>
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(dispute.status)}`}>{formatStatus(dispute.status)}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+        {false && role === "dara_agent" && null}
       </main>
     </>
   );

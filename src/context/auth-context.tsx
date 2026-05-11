@@ -66,18 +66,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token) {
+      setUser(null);
+      persist(null);
+      return;
+    }
+
+    let cancelled = false;
+    const tokenAtStart = token;
 
     apiGetMe(token)
       .then((next) => {
+        if (cancelled) return;
+        if (getAccessToken() !== tokenAtStart) return;
         setUser(next);
         persist(next);
       })
       .catch(() => {
+        if (cancelled) return;
+        // Avoid clearing a freshly-updated token from a concurrent login.
+        if (getAccessToken() !== tokenAtStart) return;
         clearAuthTokens();
         setUser(null);
         persist(null);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(

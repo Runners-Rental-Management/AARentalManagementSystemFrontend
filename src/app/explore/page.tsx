@@ -32,7 +32,7 @@ import {
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useFavorites } from "@/context/favorites-context";
-import { properties } from "@/lib/dummy-data";
+import { apiListPublicProperties } from "@/lib/api";
 import type { Property } from "@/lib/types";
 import type { TranslationKeys } from "@/lib/i18n";
 import { getInitials } from "@/lib/utils";
@@ -121,6 +121,9 @@ export default function ExplorePage() {
   const [beds, setBeds] = useState<BedroomFilter>("any");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [propertiesError, setPropertiesError] = useState<string | null>(null);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -129,6 +132,33 @@ export default function ExplorePage() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadProperties = async () => {
+      setIsLoadingProperties(true);
+      setPropertiesError(null);
+      try {
+        const result = await apiListPublicProperties("page=1&pageSize=100");
+        if (!mounted) return;
+        setProperties(result.items);
+      } catch (error) {
+        if (!mounted) return;
+        const message =
+          error instanceof Error ? error.message : "Failed to fetch available properties.";
+        setProperties([]);
+        setPropertiesError(message);
+      } finally {
+        if (mounted) {
+          setIsLoadingProperties(false);
+        }
+      }
+    };
+    void loadProperties();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const rentable = useMemo(
@@ -610,7 +640,6 @@ export default function ExplorePage() {
                         type="button"
                         onClick={() => toggleFavorite(featured.id)}
                         className="inline-flex items-center justify-center w-12 h-12 rounded-xl border-2 border-slate-200 bg-white text-slate-700 hover:border-rose-300 hover:bg-rose-50 transition-all shadow-sm"
-                        aria-pressed={isFav(featured.id)}
                         aria-label={
                           isFav(featured.id)
                             ? t("explore", "favoriteAriaRemove")
@@ -695,7 +724,17 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
+        {isLoadingProperties ? (
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-12 text-center animate-fade-in-up">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Loading available homes...</h3>
+            <p className="text-slate-500 text-sm">Please wait while we fetch properties from the server.</p>
+          </div>
+        ) : propertiesError ? (
+          <div className="bg-rose-50 border border-rose-200 rounded-3xl p-12 text-center animate-fade-in-up">
+            <h3 className="text-lg font-semibold text-rose-900 mb-2">Could not load homes</h3>
+            <p className="text-rose-700 text-sm">{propertiesError}</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="bg-slate-50 border border-slate-200 rounded-3xl p-12 text-center animate-fade-in-up">
             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
               <Search className="w-7 h-7 text-slate-400" />
@@ -831,6 +870,7 @@ export default function ExplorePage() {
               <button
                 onClick={() => setShowMoreFilters(false)}
                 className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center"
+                aria-label="Close filters"
               >
                 <X className="w-5 h-5 text-slate-500" />
               </button>
@@ -1084,7 +1124,6 @@ function PropertyCard({
               type="button"
               onClick={onToggleFavorite}
               className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 hover:border-rose-300 hover:bg-rose-50 transition-all"
-              aria-pressed={isFavorite}
               aria-label={
                 isFavorite ? t("explore", "favoriteAriaRemove") : t("explore", "favoriteAriaAdd")
               }
