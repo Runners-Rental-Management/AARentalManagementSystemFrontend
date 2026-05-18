@@ -8,13 +8,13 @@ import { useAuth } from "@/context/auth-context";
 
 export function Header({ title }: { title: string }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const role = user?.role;
   const authorityUi =
     role === "admin" || role === "dara_agent" || role === "system_admin";
   if (authorityUi) return null;
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-  const { t } = useLanguage();
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">

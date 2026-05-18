@@ -1,11 +1,23 @@
+import { ApiError } from "@/lib/api-error";
 import type { Property, RentAdjustment, User, UserRole } from "@/lib/types";
 import type { TenancyAgreement } from "@/lib/types";
 import type { Dispute } from "@/lib/types";
 
 const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+function devProxyBaseUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  if (process.env.NEXT_PUBLIC_API_USE_PROXY !== "1") return null;
+  return `${window.location.origin}/api-proxy`;
+}
+
 const API_BASE_URLS = configuredBaseUrl
   ? [configuredBaseUrl]
-  : ["http://localhost:3001", "http://localhost:3000"];
+  : [
+      ...(devProxyBaseUrl() ? [devProxyBaseUrl() as string] : []),
+      "http://localhost:3001",
+      "http://localhost:3000",
+    ];
 let activeApiBaseUrl: string | null = null;
 
 const ACCESS_TOKEN_KEY = "rental_access_token";
@@ -124,8 +136,9 @@ async function apiRequest<T>(
   if (!response) {
     const details =
       networkError instanceof Error ? networkError.message : "Network error";
-    throw new Error(
+    throw new ApiError(
       `Cannot reach backend API. Tried: ${candidates.join(", ")}. Details: ${details}`,
+      0,
     );
   }
 
@@ -154,38 +167,79 @@ async function apiRequest<T>(
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("rental_auth_user");
       }
-      throw new Error("Your session expired. Please sign in again.");
+      throw new ApiError("Your session expired. Please sign in again.", 401);
     }
 
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   return (await response.json()) as T;
 }
 
-export function apiLogin(email: string, password: string) {
-  return apiRequest<AuthResponse>("/auth/login", {
-    method: "POST",
-    body: { email, password },
-  });
-}
+export type LoginInput = {
+  email: string;
+  password: string;
+  role: UserRole;
+};
 
-export function apiRegister(input: {
+export type RegisterInput = {
   role: UserRole;
   firstName: string;
   lastName: string;
   email: string;
   password: string;
   phone: string;
-}) {
+};
+
+export function apiLogin(input: LoginInput) {
+  return apiRequest<AuthResponse>("/auth/login", {
+    method: "POST",
+    body: {
+      email: input.email.trim().toLowerCase(),
+      password: input.password,
+      role: input.role,
+    },
+  });
+}
+
+export function apiRegister(input: RegisterInput) {
   return apiRequest<AuthResponse>("/auth/register", {
     method: "POST",
-    body: input,
+    body: {
+      role: input.role,
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+      email: input.email.trim().toLowerCase(),
+      password: input.password,
+      phone: input.phone.trim(),
+    },
   });
 }
 
 export function apiGetMe(token: string) {
   return apiRequest<User>("/users/me", { token });
+}
+
+export type VerifyFaydaInput = {
+  faydaNumber: string;
+  firstName: string;
+  fatherName: string;
+  grandfatherName: string;
+  otpCode: string;
+};
+
+export function apiVerifyFayda(token: string, input: VerifyFaydaInput) {
+  return apiRequest<User>("/users/me/fayda/verify", {
+    method: "POST",
+    token,
+    body: {
+      faydaNumber: input.faydaNumber.trim(),
+      firstName: input.firstName.trim(),
+      fatherName: input.fatherName.trim(),
+      grandfatherName: input.grandfatherName.trim(),
+      otpCode: input.otpCode.trim(),
+    },
+  });
 }
 
 function toIsoDate(value: unknown): string {
@@ -270,6 +324,11 @@ export async function apiListPublicProperties(
     ...result,
     items: result.items.map(mapBackendProperty),
   };
+}
+
+export async function apiGetProperty(token: string, id: string) {
+  const raw = await apiRequest<BackendProperty>(`/properties/${id}`, { token });
+  return mapBackendProperty(raw);
 }
 
 export async function apiCreateProperty(

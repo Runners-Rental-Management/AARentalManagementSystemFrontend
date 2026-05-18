@@ -115,7 +115,8 @@ export function ContractBody({
         </p>
         {!isAm && (
           <p className="text-xs text-slate-500 italic mb-2">
-            (Water, phone, electricity, security, cleaning and other service fees are the tenant's responsibility.)
+            (Water, phone, electricity, security, cleaning and other service fees
+            are the tenant&apos;s responsibility.)
           </p>
         )}
       </div>

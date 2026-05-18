@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { OnboardingRedirect } from "@/components/dashboard/onboarding-redirect";
 import { TopNav } from "@/components/dashboard/top-nav";
 import { AuthorityNavDropdown } from "@/components/dashboard/authority-nav-dropdown";
 import { useAuth } from "@/context/auth-context";
@@ -40,6 +41,7 @@ export default function DashboardLayout({
     <div
       className={cn("min-h-screen", authorityUi ? "bg-white" : "bg-slate-50")}
     >
+      <OnboardingRedirect />
       {authorityUi ? (
         <AuthorityNavDropdown />
       ) : (

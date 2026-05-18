@@ -13,7 +13,6 @@ import {
   ArrowRight,
   FolderOpen,
   Bell,
-  Sparkles,
   Heart,
   MapPin,
   BedDouble,
@@ -191,86 +190,19 @@ export default function DashboardPage() {
 
     return (
       <main className="flex-1">
-        {/* HERO */}
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-700 via-indigo-700 to-fuchsia-700 animate-gradient-pan" />
-          <div className="absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-cyan-400/30 blur-3xl animate-blob" />
-          <div
-            className="absolute top-10 -right-32 w-[32rem] h-[32rem] rounded-full bg-fuchsia-400/30 blur-3xl animate-blob"
-            style={{ animationDelay: "3s" }}
-          />
-          <div
-            className="absolute -bottom-24 left-1/3 w-[26rem] h-[26rem] rounded-full bg-amber-300/20 blur-3xl animate-blob"
-            style={{ animationDelay: "6s" }}
-          />
-          <div
-            className="absolute inset-0 opacity-[0.08]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)",
-              backgroundSize: "44px 44px",
-            }}
-          />
-
-          <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
-            <div className="max-w-3xl text-white">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium mb-5 border border-white/20 animate-fade-in-up">
-                <Sparkles className="w-4 h-4" />
-                {t("dashboard", "welcomeTenantKicker")}
-              </div>
-              <h1
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight mb-5 animate-fade-in-up"
-                style={{ animationDelay: "0.1s" }}
-              >
-                {t("dashboard", "welcomeTenantHeadline1")} {user?.firstName ?? "there"},{" "}
-                <br className="hidden sm:block" />
-                <span className="bg-gradient-to-r from-amber-200 via-rose-200 to-fuchsia-200 bg-clip-text text-transparent">
-                  {t("dashboard", "welcomeTenantHeadline2")}
-                </span>
-              </h1>
-              <p
-                className="text-white/80 text-base sm:text-lg mb-8 max-w-2xl animate-fade-in-up"
-                style={{ animationDelay: "0.2s" }}
-              >
-                {t("dashboard", "welcomeTenantHelper")}
-              </p>
-
-              <div
-                className="flex flex-wrap items-center gap-3 animate-fade-in-up"
-                style={{ animationDelay: "0.3s" }}
-              >
-                <Link
-                  href="/explore"
-                  className="group inline-flex items-center gap-2 bg-white text-primary-700 font-semibold px-6 py-3.5 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-black/10 hover-shine"
-                >
-                  <Compass className="w-5 h-5 transition-transform group-hover:rotate-12" />
-                  {t("dashboard", "exploreHomesCta")}
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link
-                  href="/dashboard/agreements"
-                  className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white font-semibold px-6 py-3.5 rounded-2xl hover:bg-white/20 border border-white/20 transition-colors"
-                >
-                  <FileText className="w-5 h-5" />
-                  {t("nav", "myAgreements")}
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* wavy divider */}
-          <div className="absolute bottom-0 inset-x-0 leading-none">
-            <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="w-full h-10 sm:h-14" aria-hidden>
-              <path
-                d="M0,64L80,58.7C160,53,320,43,480,42.7C640,43,800,53,960,56C1120,59,1280,53,1360,50.7L1440,48L1440,80L1360,80C1280,80,1120,80,960,80C800,80,640,80,480,80C320,80,160,80,80,80L0,80Z"
-                fill="rgb(248 250 252)"
-              />
-            </svg>
-          </div>
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          <h1 className="text-2xl sm:text-[1.875rem] font-medium leading-snug tracking-tight text-slate-900 antialiased">
+            <span className="text-slate-400 font-normal">
+              {t("dashboard", "welcomeTenantHeadline1")}
+            </span>{" "}
+            <span className="font-semibold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-600 bg-clip-text text-transparent">
+              {user?.firstName ?? ""}
+            </span>
+          </h1>
         </section>
 
         {/* Shortcuts */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4">
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
           <div className="flex items-end justify-between mb-5">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
               {t("dashboard", "yourShortcuts")}
@@ -303,6 +235,77 @@ export default function DashboardPage() {
           </div>
         </section>
 
+         {/* Recent activity + tip */}
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
+          <div className="grid lg:grid-cols-3 gap-5">
+            {/* Recent agreements */}
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden animate-fade-in-up">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+                  {t("dashboard", "recentAgreements")}
+                </h3>
+                <Link
+                  href="/dashboard/agreements"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-semibold"
+                >
+                  {t("dashboard", "viewAll")}
+                </Link>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {myAgreementsAsTenant.length === 0 ? (
+                  <div className="px-6 py-12 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                      <FileText className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <p className="text-sm text-slate-500 mb-4">No agreements yet.</p>
+                    <Link
+                      href="/explore"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800"
+                    >
+                      <Compass className="w-4 h-4" />
+                      {t("dashboard", "startExploring")}
+                    </Link>
+                  </div>
+                ) : (
+                  myAgreementsAsTenant.slice(0, 4).map((a) => (
+                    <Link
+                      key={a.id}
+                      href={`/dashboard/agreements/${a.id}`}
+                      className="flex items-center justify-between px-6 py-3.5 hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-900 truncate">
+                          {a.propertyTitle}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {a.landlordName} · {formatCurrency(a.monthlyRent)}/mo
+                        </p>
+                      </div>
+                      <span
+                        className={`ml-3 inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(a.status)}`}
+                      >
+                        {formatStatus(a.status)}
+                      </span>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Tip card */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-6 animate-fade-in-up">
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/10 animate-blob" />
+              <Heart className="w-8 h-8 mb-4 fill-white text-white animate-bounce-subtle" />
+              <h3 className="text-lg font-bold mb-2 leading-tight">
+                {t("dashboard", "quickTipTitle")}
+              </h3>
+              <p className="text-white/90 text-sm leading-relaxed">
+                {t("dashboard", "quickTipDesc")}
+              </p>
+            </div>
+          </div>
+        </section>
+        
         {/* Trending homes */}
         <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-end justify-between mb-5">
@@ -420,76 +423,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Recent activity + tip */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
-          <div className="grid lg:grid-cols-3 gap-5">
-            {/* Recent agreements */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden animate-fade-in-up">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                  {t("dashboard", "recentAgreements")}
-                </h3>
-                <Link
-                  href="/dashboard/agreements"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-semibold"
-                >
-                  {t("dashboard", "viewAll")}
-                </Link>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {myAgreementsAsTenant.length === 0 ? (
-                  <div className="px-6 py-12 text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                      <FileText className="w-6 h-6 text-slate-400" />
-                    </div>
-                    <p className="text-sm text-slate-500 mb-4">No agreements yet.</p>
-                    <Link
-                      href="/explore"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800"
-                    >
-                      <Compass className="w-4 h-4" />
-                      {t("dashboard", "startExploring")}
-                    </Link>
-                  </div>
-                ) : (
-                  myAgreementsAsTenant.slice(0, 4).map((a) => (
-                    <Link
-                      key={a.id}
-                      href={`/dashboard/agreements/${a.id}`}
-                      className="flex items-center justify-between px-6 py-3.5 hover:bg-slate-50 transition-colors"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900 truncate">
-                          {a.propertyTitle}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {a.landlordName} · {formatCurrency(a.monthlyRent)}/mo
-                        </p>
-                      </div>
-                      <span
-                        className={`ml-3 inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(a.status)}`}
-                      >
-                        {formatStatus(a.status)}
-                      </span>
-                    </Link>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Tip card */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-6 animate-fade-in-up">
-              <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/10 animate-blob" />
-              <Heart className="w-8 h-8 mb-4 fill-white text-white animate-bounce-subtle" />
-              <h3 className="text-lg font-bold mb-2 leading-tight">
-                {t("dashboard", "quickTipTitle")}
-              </h3>
-              <p className="text-white/90 text-sm leading-relaxed">
-                {t("dashboard", "quickTipDesc")}
-              </p>
-            </div>
-          </div>
-        </section>
+       
       </main>
     );
   }

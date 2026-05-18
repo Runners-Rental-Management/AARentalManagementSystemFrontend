@@ -20,10 +20,13 @@ import { useLoading } from "@/context/loading-context";
 import { properties } from "@/lib/dummy-data";
 import {
   confirmFaydaCode,
+  FAYDA_DEMO_CODE,
   requestFaydaVerification,
   type FaydaPersonalInfo,
   type FaydaRequestResult,
 } from "@/lib/fayda-api";
+import { formatErrorForUser, getErrorMessage } from "@/lib/api-error";
+import { resolvePostFaydaPath } from "@/lib/onboarding-paths";
 
 type Step = "info" | "otp" | "done";
 
@@ -38,9 +41,15 @@ function VerifyFaydaInner() {
 
   const propertyId = searchParams.get("propertyId");
   const nextHref = useMemo(() => {
-    if (propertyId) return `/dashboard/properties/${propertyId}`;
-    return searchParams.get("next") || "/dashboard";
-  }, [propertyId, searchParams]);
+    if (propertyId && user?.role === "tenant") {
+      return `/dashboard/properties/${propertyId}`;
+    }
+    const requested = searchParams.get("next");
+    if (requested && requested.startsWith("/dashboard")) {
+      return requested;
+    }
+    return resolvePostFaydaPath(user?.role);
+  }, [propertyId, searchParams, user?.role]);
 
   const property = useMemo(
     () => (propertyId ? properties.find((p) => p.id === propertyId) ?? null : null),
@@ -94,10 +103,16 @@ function VerifyFaydaInner() {
         setStep("otp");
       }, "Contacting Fayda API…");
     } catch (err) {
-      setError(t("fayda", mapFaydaError((err as Error).message)));
+      setError(resolveVerifyError(err, t));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const fillDemoOtp = () => {
+    setCode(FAYDA_DEMO_CODE.split(""));
+    setError(null);
+    otpRefs.current[OTP_LENGTH - 1]?.focus();
   };
 
   const handleOtpChange = (idx: number, value: string) => {
@@ -142,11 +157,11 @@ function VerifyFaydaInner() {
     try {
       await withLoading(async () => {
         const result = await confirmFaydaCode(request.otpId, fullCode, info);
-        applyFaydaVerification(result);
+        await applyFaydaVerification(result, fullCode);
         setStep("done");
       }, "Verifying your identity…");
     } catch (err) {
-      setError(t("fayda", mapFaydaError((err as Error).message)));
+      setError(resolveVerifyError(err, t));
       setCode(Array(OTP_LENGTH).fill(""));
       otpRefs.current[0]?.focus();
     } finally {
@@ -166,7 +181,7 @@ function VerifyFaydaInner() {
         otpRefs.current[0]?.focus();
       }, "Resending verification code…");
     } catch (err) {
-      setError(t("fayda", mapFaydaError((err as Error).message)));
+      setError(resolveVerifyError(err, t));
     } finally {
       setSubmitting(false);
     }
@@ -341,6 +356,9 @@ function VerifyFaydaInner() {
               <p className="mt-1.5 text-xs text-slate-500">
                 {t("fayda", "faydaNumberHint")}
               </p>
+              <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
+                {t("fayda", "demoFanHint")}
+              </p>
             </div>
 
             {error && (
@@ -368,7 +386,10 @@ function VerifyFaydaInner() {
             </button>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              {t("fayda", "consent")}
+              {t(
+                "fayda",
+                user?.role === "landlord" ? "consentLandlord" : "consent",
+              )}
             </p>
           </form>
         )}
@@ -388,8 +409,15 @@ function VerifyFaydaInner() {
               </span>
             </p>
 
-            <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-xs px-3 py-2 mt-4">
-              {t("fayda", "demoCodeHint")}
+            <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-3 py-3 mt-4 space-y-2">
+              <p className="text-xs leading-relaxed">{t("fayda", "demoCodeHint")}</p>
+              <button
+                type="button"
+                onClick={fillDemoOtp}
+                className="text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-950"
+              >
+                {t("fayda", "demoOtpFill")} ({FAYDA_DEMO_CODE})
+              </button>
             </div>
 
             <div className="flex justify-center gap-2 sm:gap-3 mt-6">
@@ -544,6 +572,20 @@ function mapFaydaError(code: string): string {
     default:
       return "errGeneric";
   }
+}
+
+function resolveVerifyError(
+  err: unknown,
+  t: (namespace: "fayda" | "common" | "auth", key: string) => string,
+): string {
+  const raw = getErrorMessage(err);
+  const mapped = mapFaydaError(raw);
+  if (mapped !== "errGeneric") {
+    return t("fayda", mapped);
+  }
+  return formatErrorForUser(err, (ns, key) =>
+    t(ns as "fayda" | "common" | "auth", key),
+  ).message;
 }
 
 export default function VerifyFaydaPage() {

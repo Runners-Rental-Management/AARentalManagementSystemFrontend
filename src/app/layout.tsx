@@ -6,6 +6,7 @@ import { FavoritesProvider } from "@/context/favorites-context";
 import { RentalFlowProvider } from "@/context/rental-flow-context";
 import { PropertiesProvider } from "@/context/properties-context";
 import { LoadingProvider } from "@/context/loading-context";
+import { AlertProvider } from "@/context/alert-context";
 import { PageProgress } from "@/components/page-progress";
 import "./globals.css";
 
@@ -45,7 +46,9 @@ export default function RootLayout({
             <FavoritesProvider>
               <PropertiesProvider>
                 <RentalFlowProvider>
-                  <LanguageProvider>{children}</LanguageProvider>
+                  <LanguageProvider>
+                    <AlertProvider>{children}</AlertProvider>
+                  </LanguageProvider>
                 </RentalFlowProvider>
               </PropertiesProvider>
             </FavoritesProvider>

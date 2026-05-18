@@ -18,6 +18,7 @@ import {
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useLoading } from "@/context/loading-context";
+import { useAlert } from "@/context/alert-context";
 import { properties } from "@/lib/dummy-data";
 import type { UserRole } from "@/lib/types";
 
@@ -68,18 +69,25 @@ function LoginPageInner() {
   const { t, locale, setLocale } = useLanguage();
   const { login } = useAuth();
   const { withLoading } = useLoading();
+  const { showError } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
 
   const propertyIdParam = searchParams.get("propertyId");
+  const roleParam = searchParams.get("role");
 
   const selectedProperty = useMemo(
     () =>
       propertyIdParam ? properties.find((p) => p.id === propertyIdParam) : null,
     [propertyIdParam],
   );
-  const initialRole: UserRole | "" = selectedProperty ? "tenant" : "";
+
+  const roleFromUrl: UserRole | "" =
+    roleParam === "tenant" || roleParam === "landlord" ? roleParam : "";
+  const initialRole: UserRole | "" =
+    roleFromUrl || (selectedProperty ? "tenant" : "");
   const [selectedRole, setSelectedRole] = useState<UserRole | "">(initialRole);
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formError, setFormError] = useState<string | null>(null);
 
   const isLandlordWithRentIntent =
     selectedRole === "landlord" && !!selectedProperty;
@@ -87,16 +95,52 @@ function LoginPageInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRole || isBlockedRole) return;
-    await withLoading(async () => {
-      await login(selectedRole, formData.email, formData.password);
-    }, "Signing in…");
-    // If arriving from "Rent this home", go straight to the property (login = already verified)
-    if (selectedProperty && selectedRole === "tenant") {
-      router.push(`/dashboard/properties/${selectedProperty.id}`);
+    setFormError(null);
+    if (!selectedRole || isBlockedRole) {
+      setFormError(t("auth", "selectRole"));
       return;
     }
-    router.push("/dashboard");
+    const email = formData.email.trim();
+    const password = formData.password;
+    if (!email) {
+      setFormError(t("auth", "emailRequired"));
+      return;
+    }
+    if (password.length < 8) {
+      setFormError(t("auth", "passwordMinLength"));
+      return;
+    }
+    try {
+      const signedInUser = await withLoading(async () => {
+        return login({ role: selectedRole, email, password });
+      }, "Signing in…");
+
+      const needsFayda =
+        (signedInUser.role === "tenant" || signedInUser.role === "landlord") &&
+        !signedInUser.faydaVerified;
+
+      if (needsFayda) {
+        if (selectedProperty && signedInUser.role === "tenant") {
+          router.push(
+            `/dashboard/verify-fayda?propertyId=${selectedProperty.id}`,
+          );
+        } else {
+          router.push("/dashboard/verify-fayda");
+        }
+        return;
+      }
+
+      if (selectedProperty && signedInUser.role === "tenant") {
+        router.push(`/dashboard/properties/${selectedProperty.id}`);
+        return;
+      }
+      router.push("/dashboard");
+    } catch (err) {
+      showError(err, (ns, key) => t(ns as "auth" | "common", key), {
+        titleKey: "loginFailed",
+        namespace: "auth",
+      });
+    }
   };
 
   return (
@@ -244,12 +288,21 @@ function LoginPageInner() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {selectedRole ? (
+              <input type="hidden" name="role" value={selectedRole} readOnly />
+            ) : null}
+            {formError ? (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                {formError}
+              </p>
+            ) : null}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 {t("auth", "email")}
               </label>
               <input
                 type="email"
+                required
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
@@ -273,6 +326,8 @@ function LoginPageInner() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -313,8 +368,10 @@ function LoginPageInner() {
             <Link
               href={
                 propertyIdParam
-                  ? `/register?role=tenant&propertyId=${propertyIdParam}`
-                  : "/register"
+                  ? `/register?role=${selectedRole || "tenant"}&propertyId=${propertyIdParam}`
+                  : selectedRole
+                    ? `/register?role=${selectedRole}`
+                    : "/register"
               }
               className="text-primary-600 hover:text-primary-700 font-medium"
             >

@@ -4,8 +4,10 @@ import { Header } from "@/components/dashboard/header";
 import { PricingPanel } from "@/components/dashboard/pricing-panel";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
+import { useAlert } from "@/context/alert-context";
 import { useLoading } from "@/context/loading-context";
 import { useProperties } from "@/context/properties-context";
+import { formatErrorForUser } from "@/lib/api-error";
 import { SUB_CITIES, PROPERTY_TYPES, AMENITIES } from "@/lib/constants";
 import { computeListingRange, classifyRent } from "@/lib/addis-rent-benchmarks";
 import type { Property, HomeCondition } from "@/lib/types";
@@ -17,6 +19,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MIN_PHOTOS = 3;
 const MIN_OWNERSHIP = 1;
+/** Matches backend CreatePropertyDto @Length(20, 6000) */
+const MIN_DESCRIPTION = 20;
 
 type PropertyType = Property["propertyType"];
 
@@ -44,7 +48,8 @@ export default function RegisterPropertyPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { withLoading } = useLoading();
-  const { addProperty } = useProperties();
+  const { showError } = useAlert();
+  const { addProperty, userProperties, refreshProperties } = useProperties();
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [propertyType, setPropertyType] = useState<PropertyType | "">("");
@@ -248,29 +253,48 @@ export default function RegisterPropertyPage() {
       setSubmitError(t("properties", "acknowledgeNonTypicalRent"));
       return;
     }
+    if (description.trim().length < MIN_DESCRIPTION) {
+      setSubmitError(t("properties", "descriptionMinLength"));
+      return;
+    }
     if (!user || !propertyType) return;
 
-    await withLoading(async () => {
-      await addProperty({
-        title: title.trim(),
-        propertyType: propertyType as Property["propertyType"],
-        address: address.trim(),
-        subCity,
-        woreda: woreda.trim(),
-        bedrooms: parseInt(bedrooms || "0", 10),
-        bathrooms: parseInt(bathrooms || "0", 10),
-        area: areaNum,
-        amenities: selectedAmenities,
-        monthlyRent,
-        landlordId: user.id,
-        landlordName: `${user.firstName} ${user.lastName}`.trim() || "Landlord",
-        description: description.trim(),
-        homeCondition,
-        images: photoPreviews.filter((p): p is string => Boolean(p)),
-      });
-    }, "Submitting for verification…");
+    try {
+      await withLoading(async () => {
+        await addProperty({
+          title: title.trim(),
+          propertyType: propertyType as Property["propertyType"],
+          address: address.trim(),
+          subCity,
+          woreda: woreda.trim(),
+          bedrooms: parseInt(bedrooms || "0", 10),
+          bathrooms: parseInt(bathrooms || "0", 10),
+          area: areaNum,
+          amenities: selectedAmenities,
+          monthlyRent,
+          landlordId: user.id,
+          landlordName: `${user.firstName} ${user.lastName}`.trim() || "Landlord",
+          description: description.trim(),
+          homeCondition,
+          images: photoPreviews.filter((p): p is string => Boolean(p)),
+        });
+      }, "Submitting for verification…");
 
-    router.push("/dashboard/properties");
+      await refreshProperties();
+      router.push("/dashboard/properties");
+    } catch (err) {
+      const translate = (ns: string, key: string) =>
+        t(ns as "properties" | "common" | "auth", key);
+      const formatted = formatErrorForUser(err, translate, {
+        namespace: "properties",
+        titleKey: "submitFailed",
+      });
+      setSubmitError(formatted.message);
+      showError(err, translate, {
+        titleKey: "submitFailed",
+        namespace: "properties",
+      });
+    }
   };
 
   const photoLabels = [
@@ -278,6 +302,10 @@ export default function RegisterPropertyPage() {
     t("properties", "photoDirection2"),
     t("properties", "photoDirection3"),
   ];
+
+  const isFirstProperty =
+    user?.role === "landlord" &&
+    !userProperties.some((p) => p.landlordId === user.id);
 
   return (
     <>
@@ -292,6 +320,16 @@ export default function RegisterPropertyPage() {
         </Link>
 
         <div className="max-w-3xl">
+          {isFirstProperty && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-sm font-semibold text-amber-900">
+                {t("properties", "landlordOnboardingTitle")}
+              </p>
+              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                {t("properties", "landlordOnboardingDesc")}
+              </p>
+            </div>
+          )}
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h2 className="text-lg font-semibold text-slate-900 mb-1">{t("properties", "registerNew")}</h2>
             <p className="text-sm text-slate-500 mb-2">{t("properties", "registerDesc")}</p>
@@ -622,8 +660,12 @@ export default function RegisterPropertyPage() {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  minLength={MIN_DESCRIPTION}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm resize-none"
                 />
+                <p className="text-xs text-slate-500 mt-1">
+                  {t("properties", "descriptionHint")} ({description.trim().length}/{MIN_DESCRIPTION})
+                </p>
               </div>
 
               <div>

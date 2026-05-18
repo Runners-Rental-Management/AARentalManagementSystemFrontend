@@ -10,6 +10,7 @@ import {
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useLoading } from "@/context/loading-context";
+import { useAlert } from "@/context/alert-context";
 import { properties } from "@/lib/dummy-data";
 import type { UserRole } from "@/lib/types";
 
@@ -63,6 +64,7 @@ function RegisterPageInner() {
   const { t, locale, setLocale } = useLanguage();
   const { register } = useAuth();
   const { withLoading } = useLoading();
+  const { showError } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm]   = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -126,26 +128,33 @@ function RegisterPageInner() {
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    await withLoading(async () => {
-      await register(
-        selectedRole as UserRole,
-        formData.firstName.trim(),
-        formData.lastName.trim(),
-        formData.email.trim(),
-        formData.password,
-        formData.phone.trim()
-      );
-    }, "Creating your account…");
+    try {
+      await withLoading(async () => {
+        await register({
+          role: selectedRole as UserRole,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          phone: formData.phone.trim(),
+        });
+      }, "Creating your account…");
 
-    if (selectedRole === "tenant" && selectedProperty) {
-      router.push(`/dashboard/verify-fayda?propertyId=${selectedProperty.id}`);
-      return;
+      if (selectedProperty && selectedRole === "tenant") {
+        router.push(`/dashboard/verify-fayda?propertyId=${selectedProperty.id}`);
+        return;
+      }
+      if (selectedRole === "tenant" || selectedRole === "landlord") {
+        router.push("/dashboard/verify-fayda");
+        return;
+      }
+      router.push("/dashboard");
+    } catch (err) {
+      showError(err, (ns, key) => t(ns as "auth" | "common", key), {
+        titleKey: "registerFailed",
+        namespace: "auth",
+      });
     }
-    if (selectedRole === "tenant") {
-      router.push("/dashboard/verify-fayda");
-      return;
-    }
-    router.push("/dashboard");
   };
 
   // Re-validate on change once the user has attempted submit
@@ -264,6 +273,9 @@ function RegisterPageInner() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4 mt-5" noValidate>
+            {selectedRole ? (
+              <input type="hidden" name="role" value={selectedRole} readOnly />
+            ) : null}
 
             {/* Name row */}
             <div className="grid grid-cols-2 gap-4">
@@ -455,7 +467,13 @@ function RegisterPageInner() {
           <p className="text-center text-sm text-slate-500 mt-6">
             {t("auth", "hasAccount")}{" "}
             <Link
-              href={propertyIdParam ? `/login?propertyId=${propertyIdParam}` : "/login"}
+              href={
+                propertyIdParam
+                  ? `/login?role=${selectedRole || "tenant"}&propertyId=${propertyIdParam}`
+                  : selectedRole
+                    ? `/login?role=${selectedRole}`
+                    : "/login"
+              }
               className="text-primary-600 hover:text-primary-700 font-medium"
             >
               {t("auth", "signInLink")}
