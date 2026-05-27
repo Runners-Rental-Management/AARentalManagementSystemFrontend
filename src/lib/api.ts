@@ -1,5 +1,5 @@
 import { ApiError } from "@/lib/api-error";
-import type { Property, RentAdjustment, User, UserRole } from "@/lib/types";
+import type { Property, RentAdjustment, TenantPublicProfile, User, UserRole } from "@/lib/types";
 import type { TenancyAgreement } from "@/lib/types";
 import type { Dispute } from "@/lib/types";
 
@@ -242,6 +242,47 @@ export function apiVerifyFayda(token: string, input: VerifyFaydaInput) {
   });
 }
 
+export async function apiLookupTenantByFayda(token: string, faydaNumber: string) {
+  const clean = faydaNumber.replace(/\s/g, "");
+  const raw = await apiRequest<Record<string, unknown>>(
+    `/users/tenants/lookup?faydaNumber=${encodeURIComponent(clean)}`,
+    { token },
+  );
+  return mapTenantPublicProfile(raw);
+}
+
+export async function apiGetTenantProfile(token: string, tenantId: string) {
+  const raw = await apiRequest<Record<string, unknown>>(
+    `/users/tenants/${tenantId}`,
+    { token },
+  );
+  return mapTenantPublicProfile(raw);
+}
+
+function mapTenantPublicProfile(raw: Record<string, unknown>): TenantPublicProfile {
+  return {
+    id: String(raw.id),
+    firstName: String(raw.firstName ?? ""),
+    lastName: String(raw.lastName ?? ""),
+    fatherName: raw.fatherName ? String(raw.fatherName) : undefined,
+    grandfatherName: raw.grandfatherName ? String(raw.grandfatherName) : undefined,
+    fullName: String(raw.fullName ?? ""),
+    phone: String(raw.phone ?? ""),
+    maskedPhone: String(raw.maskedPhone ?? ""),
+    address: raw.address ? String(raw.address) : undefined,
+    role: "tenant",
+    isVerified: Boolean(raw.isVerified),
+    faydaVerified: Boolean(raw.faydaVerified),
+    faydaVerifiedAt: raw.faydaVerifiedAt
+      ? toIsoDate(raw.faydaVerifiedAt)
+      : undefined,
+    maskedFaydaNumber:
+      raw.maskedFaydaNumber != null ? String(raw.maskedFaydaNumber) : null,
+    createdAt: toIsoDate(raw.createdAt),
+    agreementCountAsTenant: Number(raw.agreementCountAsTenant ?? 0),
+  };
+}
+
 function toIsoDate(value: unknown): string {
   if (typeof value !== "string") return new Date().toISOString();
   const date = new Date(value);
@@ -270,6 +311,8 @@ type BackendProperty = {
   createdAt?: string;
   verifiedAt?: string;
   homeCondition?: Property["homeCondition"];
+  isPostedToExplore?: boolean;
+  postedToExploreAt?: string;
 };
 
 export function mapBackendProperty(raw: BackendProperty): Property {
@@ -298,6 +341,10 @@ export function mapBackendProperty(raw: BackendProperty): Property {
     createdAt: toIsoDate(raw.createdAt),
     verifiedAt: raw.verifiedAt ? toIsoDate(raw.verifiedAt) : undefined,
     homeCondition: raw.homeCondition ?? undefined,
+    isPostedToExplore: Boolean(raw.isPostedToExplore),
+    postedToExploreAt: raw.postedToExploreAt
+      ? toIsoDate(raw.postedToExploreAt)
+      : undefined,
   };
 }
 
@@ -328,6 +375,14 @@ export async function apiListPublicProperties(
 
 export async function apiGetProperty(token: string, id: string) {
   const raw = await apiRequest<BackendProperty>(`/properties/${id}`, { token });
+  return mapBackendProperty(raw);
+}
+
+export async function apiPostPropertyToExplore(token: string, id: string) {
+  const raw = await apiRequest<BackendProperty>(`/properties/${id}/post-to-explore`, {
+    method: "PATCH",
+    token,
+  });
   return mapBackendProperty(raw);
 }
 
@@ -481,6 +536,34 @@ export async function apiCreateAgreement(
     method: "POST",
     token,
     body: payload,
+  });
+  return mapBackendAgreement(result);
+}
+
+export async function apiTenantRequestAgreement(
+  token: string,
+  payload: { propertyId: string; utilities?: string[] },
+) {
+  const result = await apiRequest<BackendAgreement>("/agreements/tenant-request", {
+    method: "POST",
+    token,
+    body: payload,
+  });
+  return mapBackendAgreement(result);
+}
+
+export async function apiTenantSignAgreement(token: string, id: string) {
+  const result = await apiRequest<BackendAgreement>(`/agreements/${id}/tenant-sign`, {
+    method: "PATCH",
+    token,
+  });
+  return mapBackendAgreement(result);
+}
+
+export async function apiLandlordSignAgreement(token: string, id: string) {
+  const result = await apiRequest<BackendAgreement>(`/agreements/${id}/landlord-sign`, {
+    method: "PATCH",
+    token,
   });
   return mapBackendAgreement(result);
 }

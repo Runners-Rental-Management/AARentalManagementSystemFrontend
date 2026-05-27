@@ -19,6 +19,26 @@ export interface User {
   faydaVerifiedAt?: string;
 }
 
+/** Public tenant profile visible to landlords (via Fayda lookup or profile page). */
+export interface TenantPublicProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fatherName?: string;
+  grandfatherName?: string;
+  fullName: string;
+  phone: string;
+  maskedPhone: string;
+  address?: string;
+  role: 'tenant';
+  isVerified: boolean;
+  faydaVerified: boolean;
+  faydaVerifiedAt?: string;
+  maskedFaydaNumber?: string | null;
+  createdAt: string;
+  agreementCountAsTenant: number;
+}
+
 export type HomeCondition =
   | "new_build"
   | "excellent"
@@ -45,6 +65,8 @@ export interface Property {
   description: string;
   createdAt: string;
   verifiedAt?: string;
+  isPostedToExplore?: boolean;
+  postedToExploreAt?: string;
   /** Reported condition — used for RAG-assisted pricing at registration */
   homeCondition?: HomeCondition;
 }

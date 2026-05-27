@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/context/auth-context";
-import { apiGetProperty, apiListAgreements, getAccessToken } from "@/lib/api";
+import { apiGetProperty, apiListAgreements, apiPostPropertyToExplore, getAccessToken } from "@/lib/api";
 import type { Property, TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
@@ -49,6 +49,7 @@ export default function PropertyDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<"" | "termination" | "upscaling" | "posted">("");
   const [submitted, setSubmitted] = useState(false);
+  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     const token = getAccessToken();
@@ -117,6 +118,21 @@ export default function PropertyDetailPage() {
 
   const isOccupied = property.status === "rented";
   const isApproved = property.status === "available";
+
+  const handlePostToExplore = async () => {
+    const token = getAccessToken();
+    if (!token || !property || property.isPostedToExplore) return;
+    setPosting(true);
+    try {
+      const updated = await apiPostPropertyToExplore(token, property.id);
+      setProperty(updated);
+      setModal("posted");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to post property");
+    } finally {
+      setPosting(false);
+    }
+  };
 
   return (
     <>
@@ -375,12 +391,27 @@ export default function PropertyDetailPage() {
               {isOwner && isApproved && (
                 <div className="mt-5 space-y-3">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Landlord Actions</p>
-                  <button
-                    onClick={() => setModal("posted")}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-sm font-medium transition-all"
-                  >
-                    <Globe className="w-4 h-4" /> Post to Explore
-                  </button>
+                  {property.isPostedToExplore ? (
+                    <button
+                      disabled
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-medium cursor-default"
+                    >
+                      <CheckCircle2 className="w-4 h-4" /> Posted
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handlePostToExplore}
+                      disabled={posting}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-60 text-sm font-medium transition-all"
+                    >
+                      {posting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Globe className="w-4 h-4" />
+                      )}
+                      Post to Explore
+                    </button>
+                  )}
                   <Link
                     href={`/dashboard/properties/${property.id}/rent-to-tenant`}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-all"

@@ -230,6 +230,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         id,
         status: "tenant_signed",
         tenantSignedAt: now(),
+        initiatedByLandlord: false,
         ...(tenantSignatureDataUrl ? { tenantSignatureDataUrl } : {}),
       };
       setAgreements((prev) => {

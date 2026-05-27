@@ -1,6 +1,7 @@
 "use client";
 
 import { Header } from "@/components/dashboard/header";
+import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { getAccessToken, apiListAgreements } from "@/lib/api";
@@ -791,6 +792,11 @@ export default function AgreementsPage() {
     ? liveAgreements.filter((a) => a.tenantId === userId && a.status === "landlord_initiated")
     : [];
 
+  /* Tenant-signed contracts waiting for landlord counter-signature */
+  const pendingLandlordSign = role === "landlord"
+    ? liveAgreements.filter((a) => a.landlordId === userId && a.status === "tenant_signed")
+    : [];
+
   /* Incoming extension requests for tenant to sign */
   const incomingExtensions: ExtensionRequest[] = role === "tenant"
     ? extensionRequests.filter((e) => e.tenantId === userId && e.status === "pending_tenant_sign")
@@ -909,6 +915,47 @@ export default function AgreementsPage() {
                     <FileSignature className="w-4 h-4" /> Review &amp; Sign
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Tenant-signed contracts awaiting landlord counter-signature */}
+        {pendingLandlordSign.length > 0 && (
+          <div className="mb-6 space-y-3">
+            <p className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <FileSignature className="w-4 h-4 text-amber-500" />
+              Awaiting Your Counter-Signature ({pendingLandlordSign.length})
+            </p>
+            {pendingLandlordSign.map((req) => (
+              <div key={req.id} className="bg-white border-2 border-amber-200 rounded-2xl p-5">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                    <Building2 className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900">{req.propertyTitle}</p>
+                    <p className="text-sm text-slate-500">{req.propertyAddress}</p>
+                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-600">
+                      <span className="flex items-center gap-1"><User className="w-3 h-3" /> {req.tenantName}</span>
+                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Signed {new Date(req.tenantSignedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-primary-700">{formatCurrency(req.monthlyRent)}/mo</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Advance: {formatCurrency(req.advanceAmount)}</p>
+                  </div>
+                </div>
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 mb-4">
+                  {req.tenantName} has signed this rental contract. Review it and counter-sign to forward the agreement to DARA, or reject to cancel.
+                </div>
+                <ViewTenantProfileLink tenantId={req.tenantId} className="mb-4 inline-flex" />
+                <Link
+                  href={`/dashboard/agreements/live/${req.id}`}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors"
+                >
+                  <FileSignature className="w-4 h-4" /> Review &amp; Counter-Sign
+                </Link>
               </div>
             ))}
           </div>
@@ -1075,6 +1122,13 @@ export default function AgreementsPage() {
                             <AlertTriangle className="w-3 h-3" /> Termination
                           </button>
                         </div>
+                      ) : role === "landlord" && a.status === "tenant_signed" ? (
+                        <Link
+                          href={`/dashboard/agreements/live/${a.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition-colors whitespace-nowrap"
+                        >
+                          <FileSignature className="w-3 h-3" /> Counter-Sign
+                        </Link>
                       ) : (
                         <Link
                           href={`/dashboard/agreements/live/${a.id}`}

@@ -26,6 +26,7 @@ import {
   ScrollText,
   Shield,
   Gavel,
+  UserSearch,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
@@ -53,6 +54,14 @@ const navItems = [
     labelKey: "myProperties",
     href: "/dashboard/properties",
     icon: Building2,
+    roles: ["landlord"],
+  },
+
+  // -- Landlord: Find tenant by Fayda --
+  {
+    labelKey: "findTenant",
+    href: "/dashboard/tenants",
+    icon: UserSearch,
     roles: ["landlord"],
   },
 

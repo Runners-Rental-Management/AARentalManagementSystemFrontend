@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BookOpen,
+  Building2,
   CheckCircle2,
   ChevronDown,
   Download,
@@ -18,12 +19,11 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import { useRentalFlow } from "@/context/rental-flow-context";
 import { useLoading } from "@/context/loading-context";
 import { useLanguage } from "@/context/language-context";
-import { properties } from "@/lib/dummy-data";
+import { apiGetProperty, apiTenantRequestAgreement, getAccessToken } from "@/lib/api";
+import type { Property } from "@/lib/types";
 import { ContractBody } from "@/components/dashboard/contract-body";
-import { exportCanvasSignaturePng } from "@/lib/procedural-signature";
 
 /* ------------------------------------------------------------------ */
 /*  Canvas e-signature pad                                             */
@@ -165,19 +165,22 @@ function SignaturePad({
 export default function ContractPage() {
   const params = useParams();
   const router = useRouter();
+  const id = params.id as string;
   const { user } = useAuth();
-  const { createAgreement } = useRentalFlow();
   const { withLoading } = useLoading();
   const { locale, t } = useLanguage();
   const ct = (key: string) => t("contract", key);
 
-  const property = properties.find((p) => p.id === params.id);
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [agreed, setAgreed] = useState(false);
   const [hasSig, setHasSig] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [liveAgreementId, setLiveAgreementId] = useState<string | null>(null);
+  const [agreementId, setAgreementId] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [hasReadContract, setHasReadContract] = useState(false);
   const [scrollPct, setScrollPct] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null!);
@@ -206,19 +209,52 @@ export default function ContractPage() {
   const tenantAddress = user?.address ?? "Addis Ababa";
 
   useEffect(() => {
-    if (submitted && liveAgreementId) {
+    const token = getAccessToken();
+    if (!token || !id) return;
+    setLoading(true);
+    setLoadError(null);
+    apiGetProperty(token, id)
+      .then(setProperty)
+      .catch((e) =>
+        setLoadError(e instanceof Error ? e.message : "Property not found"),
+      )
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (submitted && agreementId) {
       const id = window.setTimeout(
-        () => router.replace(`/dashboard/agreements/live/${liveAgreementId}`),
+        () => router.replace(`/dashboard/agreements/${agreementId}`),
         2200
       );
       return () => window.clearTimeout(id);
     }
-  }, [submitted, liveAgreementId, router]);
+  }, [submitted, agreementId, router]);
 
-  if (!property) {
+  if (loading) {
     return (
       <main className="flex-1 p-6 flex items-center justify-center">
-        <p className="text-slate-500">Property not found.</p>
+        <div className="flex flex-col items-center gap-3 text-slate-400">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <p className="text-sm">Loading property…</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (loadError || !property) {
+    return (
+      <main className="flex-1 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-600 font-medium">{loadError ?? "Property not found."}</p>
+          <Link
+            href={`/dashboard/properties/${id}`}
+            className="mt-3 inline-block text-primary-600 text-sm hover:underline"
+          >
+            Back to Property
+          </Link>
+        </div>
       </main>
     );
   }
@@ -233,26 +269,25 @@ export default function ContractPage() {
 
   const handleSubmit = async () => {
     if (!agreed || !hasSig || !user) return;
+    const token = getAccessToken();
+    if (!token) return;
     setSubmitting(true);
-    await withLoading(async () => {
-      await new Promise((r) => setTimeout(r, 1400));
-      const tenantSignatureDataUrl = exportCanvasSignaturePng(canvasRef.current);
-      const id = createAgreement({
-        propertyId: property.id,
-        propertyTitle: property.title,
-        propertyAddress: `${property.address}, ${property.subCity} Sub-City`,
-        landlordId: property.landlordId,
-        landlordName: property.landlordName,
-        tenantId: user.id,
-        tenantName,
-        monthlyRent: property.monthlyRent,
-        advanceAmount: property.monthlyRent * advanceMonths,
-        ...(tenantSignatureDataUrl ? { tenantSignatureDataUrl } : {}),
-      });
-      setLiveAgreementId(id);
-    }, "Submitting your contract…");
-    setSubmitting(false);
-    setSubmitted(true);
+    setSubmitError(null);
+    try {
+      await withLoading(async () => {
+        const agreement = await apiTenantRequestAgreement(token, {
+          propertyId: property.id,
+        });
+        setAgreementId(agreement.id);
+      }, "Submitting your contract…");
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Failed to submit contract",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -492,6 +527,12 @@ export default function ContractPage() {
                         ? ct("lockSig")
                         : ct("lockCheck")}
                   </span>
+                </div>
+              )}
+
+              {submitError && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {submitError}
                 </div>
               )}
 

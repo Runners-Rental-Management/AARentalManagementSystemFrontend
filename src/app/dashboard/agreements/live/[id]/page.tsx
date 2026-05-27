@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 /* ── helpers ── */
 function amountToWords(amount: number): string {
@@ -45,37 +45,50 @@ import {
   Printer,
   ShieldCheck,
   Smartphone,
+  FileSignature,
   User,
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import { useRentalFlow, type LiveAgreement, type LiveStatus } from "@/context/rental-flow-context";
+import { useRentalFlow, type LiveAgreement } from "@/context/rental-flow-context";
 import { useLoading } from "@/context/loading-context";
 import { users } from "@/lib/dummy-data";
 import { proceduralSignatureDataUrl } from "@/lib/procedural-signature";
+import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 
 /* ------------------------------------------------------------------ */
-/*  Stage pipeline                                                     */
+/*  Stage pipeline (order depends on who initiated)                  */
 /* ------------------------------------------------------------------ */
 
-const STAGES: { status: LiveStatus; label: string; who: string }[] = [
-  { status: "landlord_initiated", label: "Landlord Signed",           who: "Landlord" },
-  { status: "tenant_signed",      label: "Tenant Signed",             who: "Tenant" },
-  { status: "landlord_signed",    label: "Both Parties Signed",       who: "Landlord" },
-  { status: "dara_approved",      label: "DARA Approved",             who: "DARA Officer" },
-  { status: "paid",               label: "Payment Confirmed",         who: "Tenant" },
-];
+type StageDef = { label: string; who: string };
 
-const STATUS_ORDER: Record<LiveStatus, number> = {
-  landlord_initiated: 0,
-  tenant_signed:      1,
-  landlord_signed:    2,
-  dara_approved:      3,
-  paid:               4,
-  rejected:           -1,
-  tenant_cancelled:   -1,
-  landlord_cancelled: -1,
-};
+function getAgreementStages(agreement: LiveAgreement): StageDef[] {
+  if (agreement.initiatedByLandlord) {
+    return [
+      { label: "Landlord Signed", who: "Landlord" },
+      { label: "Tenant Signed", who: "Tenant" },
+      { label: "DARA Approved", who: "DARA Officer" },
+      { label: "Payment Confirmed", who: "Tenant" },
+    ];
+  }
+  return [
+    { label: "Tenant Signed", who: "Tenant" },
+    { label: "Landlord Signed", who: "Landlord" },
+    { label: "DARA Approved", who: "DARA Officer" },
+    { label: "Payment Confirmed", who: "Tenant" },
+  ];
+}
+
+/** Active stage index; when status is `paid`, all stages are complete. */
+function getAgreementStageIndex(agreement: LiveAgreement): number {
+  const { status, initiatedByLandlord } = agreement;
+  if (status === "paid") return 4;
+  if (status === "dara_approved") return 3;
+  if (status === "landlord_signed") return 2;
+  if (initiatedByLandlord && status === "landlord_initiated") return 0;
+  if (!initiatedByLandlord && status === "tenant_signed") return 0;
+  return 0;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Payment methods                                                    */
@@ -134,19 +147,24 @@ function fmtCur(n: number) {
 /*  Stage tracker                                                      */
 /* ------------------------------------------------------------------ */
 
-function StageTracker({ current }: { current: LiveStatus }) {
-  const idx = STATUS_ORDER[current];
+function StageTracker({ agreement }: { agreement: LiveAgreement }) {
+  const stages = getAgreementStages(agreement);
+  const idx = getAgreementStageIndex(agreement);
+  const allDone = agreement.status === "paid";
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
       <h3 className="text-sm font-semibold text-slate-700 mb-5">
         Agreement Progress
+        <span className="ml-2 text-xs font-normal text-slate-400">
+          {agreement.initiatedByLandlord ? "Landlord → Tenant → DARA" : "Tenant → Landlord → DARA"}
+        </span>
       </h3>
       <div className="flex items-start gap-0">
-        {STAGES.map((stage, i) => {
-          const done = i <= idx;
-          const active = i === idx;
+        {stages.map((stage, i) => {
+          const done = allDone || i < idx;
+          const active = !allDone && i === idx;
           return (
-            <div key={stage.status} className="flex items-center flex-1">
+            <div key={`${stage.label}-${i}`} className="flex items-center flex-1">
               <div className="flex flex-col items-center min-w-0">
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
@@ -182,7 +200,7 @@ function StageTracker({ current }: { current: LiveStatus }) {
                   {stage.who}
                 </p>
               </div>
-              {i < STAGES.length - 1 && (
+              {i < stages.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 mt-[-22px] transition-colors ${
                     i < idx ? "bg-emerald-400" : "bg-slate-200"
@@ -755,7 +773,7 @@ export default function LiveAgreementPage() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [phoneVisible, setPhoneVisible] = useState(false);
   const [daraLoading, setDaraLoading] = useState(false);
-  const [autoSigning, setAutoSigning] = useState(false);
+  const [landlordSigning, setLandlordSigning] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showLandlordCancelConfirm, setShowLandlordCancelConfirm] = useState(false);
 
@@ -765,24 +783,17 @@ export default function LiveAgreementPage() {
 
   const myNotifs = notifs.filter((n) => n.agreementId === params.id);
 
-  /* Auto landlord counter-sign — useRef guard prevents StrictMode double-fire */
-  const autoSignFiredRef = useRef(false);
-  useEffect(() => {
-    if (!agreement || agreement.status !== "tenant_signed") return;
-    if (autoSignFiredRef.current) return;
-    autoSignFiredRef.current = true;
-    setAutoSigning(true);
-    const t = window.setTimeout(() => {
+  const handleLandlordSign = useCallback(async () => {
+    if (!agreement) return;
+    setLandlordSigning(true);
+    await withLoading(async () => {
+      await new Promise((r) => setTimeout(r, 800));
       const sig = proceduralSignatureDataUrl(agreement.landlordName, "landlord");
       landlordSign(agreement.id, sig);
-      notifs
-        .filter((n) => n.agreementId === agreement.id)
-        .forEach((n) => markRead(n.id));
-      setAutoSigning(false);
-    }, 4000);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agreement?.id, agreement?.status]);
+      myNotifs.forEach((n) => markRead(n.id));
+    }, "Recording your counter-signature…");
+    setLandlordSigning(false);
+  }, [agreement, landlordSign, markRead, myNotifs, withLoading]);
 
   const doDaraApprove = useCallback(async () => {
     if (!agreement) return;
@@ -824,7 +835,8 @@ export default function LiveAgreementPage() {
   const isTenant = role === "tenant";
   const isLandlord = role === "landlord";
   const isAuthority = role === "dara_agent" || role === "admin" || role === "system_admin";
-  const statusIdx = STATUS_ORDER[agreement.status];
+  const stageIdx = getAgreementStageIndex(agreement);
+  const progressStages = getAgreementStages(agreement);
 
   const landlordPhone = getLandlordPhone(agreement.landlordId, agreement.id);
   const landlordUser = users.find((u) => u.id === agreement.landlordId);
@@ -984,7 +996,7 @@ export default function LiveAgreementPage() {
           </div>
 
           <div className="mb-4">
-            <StageTracker current={agreement.status} />
+            <StageTracker agreement={agreement} />
           </div>
 
           {/* Tenant status banner */}
@@ -1060,7 +1072,7 @@ export default function LiveAgreementPage() {
                 </p>
                 <p className="text-xs text-slate-600">
                   {agreement.status === "landlord_initiated" && `${agreement.tenantName} has received your contract and must sign it.`}
-                  {agreement.status === "tenant_signed" && "The tenant has signed. Counter-signature is being applied."}
+                  {agreement.status === "tenant_signed" && "Review the tenant's signature and counter-sign or reject."}
                   {agreement.status === "landlord_signed" && "Both parties have signed. A DARA officer is reviewing compliance."}
                   {agreement.status === "dara_approved" && "DARA approved the agreement. Waiting for tenant advance payment."}
                   {agreement.status === "paid" && "Advance payment received. The rental is now fully active."}
@@ -1081,29 +1093,56 @@ export default function LiveAgreementPage() {
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-5">
 
-              {/* ① Auto landlord signing in progress */}
-              {agreement.status === "tenant_signed" && autoSigning && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+              {/* Tenant signed — landlord must counter-sign */}
+              {agreement.status === "tenant_signed" && isLandlord && (
+                <div className="bg-white rounded-2xl border-2 border-amber-200 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
-                      <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+                      <FileSignature className="w-5 h-5 text-amber-600" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h2 className="font-bold text-slate-900 mb-1">
-                        Landlord is reviewing the contract…
+                        Tenant Signed — Your Action Required
                       </h2>
-                      <p className="text-sm text-slate-600">
-                        {agreement.landlordName} has been notified and is
-                        reviewing the agreement terms. Counter-signature will be
-                        applied shortly.
+                      <p className="text-sm text-slate-600 mb-4">
+                        <strong>{agreement.tenantName}</strong> has signed the rental contract
+                        for <strong>{agreement.propertyTitle}</strong>. Review the terms, then
+                        counter-sign to send the agreement to DARA for verification, or reject
+                        to cancel the request.
                       </p>
+                      <ViewTenantProfileLink
+                        tenantId={agreement.tenantId}
+                        className="mb-4 inline-flex"
+                        label="View tenant profile"
+                      />
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                          onClick={handleLandlordSign}
+                          disabled={landlordSigning}
+                          className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+                        >
+                          {landlordSigning ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <FileSignature className="w-4 h-4" />
+                          )}
+                          Counter-Sign Agreement
+                        </button>
+                        <button
+                          onClick={() => setShowLandlordCancelConfirm(true)}
+                          className="inline-flex items-center justify-center gap-2 border border-red-300 text-red-700 hover:bg-red-50 font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Reject Agreement
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* ① Tenant signed — waiting (fallback if auto-sign hasn't fired yet) */}
-              {agreement.status === "tenant_signed" && !autoSigning && (
+              {/* Tenant signed — tenant waiting for landlord */}
+              {agreement.status === "tenant_signed" && isTenant && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
@@ -1114,14 +1153,61 @@ export default function LiveAgreementPage() {
                         Awaiting Landlord Counter-Signature
                       </h2>
                       <p className="text-sm text-slate-600">
-                        The landlord has been notified and will counter-sign shortly.
+                        {agreement.landlordName} has been notified and must review and
+                        counter-sign before DARA can verify the agreement.
                       </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* ② Landlord signed — DARA must act */}
+              {/* Landlord initiated — tenant must sign */}
+              {agreement.status === "landlord_initiated" && isTenant && (
+                <div className="bg-white rounded-2xl border-2 border-violet-200 p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-2xl bg-violet-100 flex items-center justify-center shrink-0">
+                      <FileSignature className="w-5 h-5 text-violet-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="font-bold text-slate-900 mb-1">
+                        Landlord Signed — Your Action Required
+                      </h2>
+                      <p className="text-sm text-slate-600 mb-4">
+                        {agreement.landlordName} has signed this contract and sent it to you.
+                        Review the full agreement and sign to proceed to DARA verification.
+                      </p>
+                      <Link
+                        href={`/dashboard/agreements/live/${agreement.id}/sign`}
+                        className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+                      >
+                        <FileSignature className="w-4 h-4" />
+                        Review & Sign Contract
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {agreement.status === "landlord_initiated" && isLandlord && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-2xl bg-violet-100 flex items-center justify-center shrink-0">
+                      <Clock className="w-5 h-5 text-violet-600" />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-slate-900 mb-1">
+                        Awaiting Tenant Signature
+                      </h2>
+                      <p className="text-sm text-slate-600">
+                        You signed first. {agreement.tenantName} must review and sign the
+                        contract before it goes to DARA.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Both signed — DARA must act */}
               {agreement.status === "landlord_signed" && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-6">
                   <div className="flex items-start gap-4">
@@ -1370,24 +1456,47 @@ export default function LiveAgreementPage() {
                   Activity Timeline
                 </h3>
                 <ol className="relative border-l border-slate-200 space-y-4 ml-3">
-                  <li className="pl-5">
-                    <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5 top-0.5" />
-                    <p className="text-sm font-medium text-slate-900">
-                      Tenant signed the agreement
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {fmtDate(agreement.tenantSignedAt)} · {agreement.tenantName}
-                    </p>
-                  </li>
-                  {agreement.landlordSignedAt && (
+                  {agreement.initiatedByLandlord && agreement.landlordSignedAt && (
+                    <li className="pl-5">
+                      <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5 top-0.5" />
+                      <p className="text-sm font-medium text-slate-900">
+                        Landlord signed the agreement
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {fmtDate(agreement.landlordSignedAt)} · {agreement.landlordName}
+                      </p>
+                    </li>
+                  )}
+                  {!agreement.initiatedByLandlord && agreement.tenantSignedAt && (
+                    <li className="pl-5">
+                      <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5 top-0.5" />
+                      <p className="text-sm font-medium text-slate-900">
+                        Tenant signed the agreement
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {fmtDate(agreement.tenantSignedAt)} · {agreement.tenantName}
+                      </p>
+                    </li>
+                  )}
+                  {agreement.initiatedByLandlord && agreement.tenantSignedAt && (
+                    <li className="pl-5">
+                      <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5" />
+                      <p className="text-sm font-medium text-slate-900">
+                        Tenant signed the agreement
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {fmtDate(agreement.tenantSignedAt)} · {agreement.tenantName}
+                      </p>
+                    </li>
+                  )}
+                  {!agreement.initiatedByLandlord && agreement.landlordSignedAt && (
                     <li className="pl-5">
                       <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5" />
                       <p className="text-sm font-medium text-slate-900">
                         Landlord counter-signed
                       </p>
                       <p className="text-xs text-slate-500">
-                        {fmtDate(agreement.landlordSignedAt)} ·{" "}
-                        {agreement.landlordName}
+                        {fmtDate(agreement.landlordSignedAt)} · {agreement.landlordName}
                       </p>
                     </li>
                   )}
@@ -1415,11 +1524,22 @@ export default function LiveAgreementPage() {
                       </p>
                     </li>
                   )}
-                  {!agreement.landlordSignedAt && (
+                  {!agreement.landlordSignedAt &&
+                    !agreement.initiatedByLandlord &&
+                    agreement.status === "tenant_signed" && (
                     <li className="pl-5 opacity-40">
                       <div className="absolute w-3 h-3 bg-slate-300 rounded-full -left-1.5" />
                       <p className="text-sm text-slate-500">
                         Waiting for landlord counter-signature…
+                      </p>
+                    </li>
+                  )}
+                  {agreement.initiatedByLandlord &&
+                    agreement.status === "landlord_initiated" && (
+                    <li className="pl-5 opacity-40">
+                      <div className="absolute w-3 h-3 bg-slate-300 rounded-full -left-1.5" />
+                      <p className="text-sm text-slate-500">
+                        Waiting for tenant signature…
                       </p>
                     </li>
                   )}
@@ -1451,19 +1571,31 @@ export default function LiveAgreementPage() {
                 </p>
                 <div
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${
-                    statusIdx === 3
+                    agreement.status === "paid"
                       ? "bg-emerald-100 text-emerald-700"
-                      : statusIdx === 2
-                        ? "bg-blue-100 text-blue-700"
+                      : stageIdx >= 2
+                        ? "bg-indigo-100 text-indigo-700"
                         : "bg-amber-100 text-amber-700"
                   }`}
                 >
-                  {statusIdx === 3 ? (
+                  {agreement.status === "paid" ? (
                     <CheckCircle2 className="w-4 h-4" />
                   ) : (
                     <Clock className="w-4 h-4" />
                   )}
-                  {STAGES[statusIdx].label}
+                  {agreement.status === "paid"
+                    ? "Payment Confirmed"
+                    : agreement.status === "dara_approved"
+                      ? "Payment Required"
+                      : agreement.status === "landlord_signed"
+                        ? "Pending DARA Verification"
+                        : agreement.status === "tenant_signed"
+                          ? agreement.initiatedByLandlord
+                            ? progressStages[1]?.label ?? "Tenant Signed"
+                            : progressStages[0]?.label ?? "Tenant Signed"
+                          : agreement.status === "landlord_initiated"
+                            ? progressStages[0]?.label ?? "Landlord Signed"
+                            : progressStages[Math.min(stageIdx, progressStages.length - 1)]?.label ?? "In Progress"}
                 </div>
               </div>
 
@@ -1511,6 +1643,12 @@ export default function LiveAgreementPage() {
                       {agreement.tenantName}
                     </p>
                     <p className="text-xs text-slate-500">Tenant</p>
+                    {isLandlord && (
+                      <ViewTenantProfileLink
+                        tenantId={agreement.tenantId}
+                        className="mt-1"
+                      />
+                    )}
                   </div>
                 </div>
               </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { Header } from "@/components/dashboard/header";
+import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { getAccessToken, apiGetAgreementById } from "@/lib/api";
+import { getAccessToken, apiGetAgreementById, apiLandlordSignAgreement, apiTenantSignAgreement } from "@/lib/api";
 import type { TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
@@ -14,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 /* ─── small helpers ─── */
 function amountToWords(n: number): string {
@@ -433,6 +434,14 @@ export default function AgreementDetailPage() {
   const agreementId = String(params.id ?? "");
   const [showExtension,   setShowExtension]   = useState(false);
   const [showTermination, setShowTermination] = useState(false);
+  const [signing, setSigning] = useState(false);
+  const [signError, setSignError] = useState<string | null>(null);
+
+  const reloadAgreement = useCallback(() => {
+    const token = getAccessToken();
+    if (!token || !agreementId) return Promise.resolve();
+    return apiGetAgreementById(token, agreementId).then((data) => setAgreement(data));
+  }, [agreementId]);
 
   useEffect(() => {
     const token = getAccessToken();
@@ -702,6 +711,12 @@ export default function AgreementDetailPage() {
                     {agreement.tenantName}
                   </p>
                   <p className="text-xs text-slate-500">Registered Tenant</p>
+                  {role === "landlord" && (
+                    <ViewTenantProfileLink
+                      tenantId={agreement.tenantId}
+                      className="mt-1"
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -728,6 +743,99 @@ export default function AgreementDetailPage() {
                 </div>
               </Link>
             </div>
+
+            {/* Landlord counter-sign when tenant signed first */}
+            {agreement.status === "draft" &&
+              role === "landlord" &&
+              agreement.tenantSignedAt && (
+              <div className="bg-white rounded-xl border border-indigo-200 p-6 space-y-3">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Counter-Sign Agreement
+                </h3>
+                <p className="text-xs text-slate-500">
+                  The tenant has signed this contract. Review the terms and counter-sign to submit for authority verification.
+                </p>
+                {signError && (
+                  <p className="text-xs text-red-600">{signError}</p>
+                )}
+                <button
+                  disabled={signing}
+                  onClick={async () => {
+                    const token = getAccessToken();
+                    if (!token) return;
+                    setSigning(true);
+                    setSignError(null);
+                    try {
+                      await apiLandlordSignAgreement(token, agreement.id);
+                      await reloadAgreement();
+                    } catch (err) {
+                      setSignError(
+                        err instanceof Error ? err.message : "Counter-sign failed",
+                      );
+                    } finally {
+                      setSigning(false);
+                    }
+                  }}
+                  className="w-full px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-slate-300 transition-colors flex items-center justify-center gap-2"
+                >
+                  {signing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                  Counter-Sign Agreement
+                </button>
+              </div>
+            )}
+
+            {/* Tenant sign when landlord initiated */}
+            {agreement.status === "pending_tenant_signature" && role === "tenant" && (
+              <div className="bg-white rounded-xl border border-emerald-200 p-6 space-y-3">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Sign Agreement
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Your landlord has sent you this agreement. Sign to submit it for authority verification.
+                </p>
+                {signError && (
+                  <p className="text-xs text-red-600">{signError}</p>
+                )}
+                <button
+                  disabled={signing}
+                  onClick={async () => {
+                    const token = getAccessToken();
+                    if (!token) return;
+                    setSigning(true);
+                    setSignError(null);
+                    try {
+                      await apiTenantSignAgreement(token, agreement.id);
+                      await reloadAgreement();
+                    } catch (err) {
+                      setSignError(
+                        err instanceof Error ? err.message : "Sign failed",
+                      );
+                    } finally {
+                      setSigning(false);
+                    }
+                  }}
+                  className="w-full px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:bg-slate-300 transition-colors flex items-center justify-center gap-2"
+                >
+                  {signing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  Sign Agreement
+                </button>
+              </div>
+            )}
+
+            {/* Tenant waiting for landlord */}
+            {agreement.status === "draft" && role === "tenant" && agreement.tenantSignedAt && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Awaiting Landlord Counter-Signature</p>
+                    <p className="text-xs text-amber-600 mt-1">
+                      You have signed this agreement. The landlord has been notified to review and counter-sign.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Tenant & Landlord: Extension / Termination */}
             {agreement.status === "active" && (role === "tenant" || role === "landlord") && (

@@ -17,6 +17,8 @@ import { useLanguage } from "@/context/language-context";
 import { properties } from "@/lib/dummy-data";
 import { formatCurrency } from "@/lib/utils";
 import { lookupTenantByFaydaNumber, DEMO_FAYDA_HINTS, type TenantLookupResult } from "@/lib/fayda-lookup";
+import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
+import { getAccessToken } from "@/lib/api";
 import { ContractBody } from "@/components/dashboard/contract-body";
 import { exportCanvasSignaturePng } from "@/lib/procedural-signature";
 
@@ -202,11 +204,20 @@ export default function RentToTenantPage() {
     setLookupError("");
     setLookupLoading(true);
     try {
-      const result = await lookupTenantByFaydaNumber(clean);
+      const token = getAccessToken();
+      const result = await lookupTenantByFaydaNumber(clean, token);
+      if (!result) {
+        setLookupError(t("contract", "fanNotFound"));
+        return;
+      }
       setFoundTenant(result);
       setStep("confirm_tenant");
-    } catch {
-      setLookupError(t("contract", "fanNotFound"));
+    } catch (e) {
+      setLookupError(
+        e instanceof Error && e.message === "invalid_fayda_number"
+          ? t("contract", "invalidFan")
+          : t("contract", "fanNotFound"),
+      );
     } finally {
       setLookupLoading(false);
     }
@@ -367,9 +378,9 @@ export default function RentToTenantPage() {
                 <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
                   <UserCheck className="w-6 h-6 text-emerald-600" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900">{foundTenant.fullName}</p>
-                  <p className="text-sm text-slate-500 font-mono">FAN: {foundTenant.faydaNumber}</p>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900">{tenant.fullName}</p>
+                    <p className="text-sm text-slate-500 font-mono">FAN: {foundTenant.faydaNumber}</p>
                   <div className="flex items-center gap-1.5 mt-1">
                     <Phone className="w-3.5 h-3.5 text-slate-400" />
                     <p className="text-sm text-slate-500">{foundTenant.maskedPhone}</p>
@@ -377,6 +388,11 @@ export default function RentToTenantPage() {
                       {locale === "am" ? "ፋይዳ ተረጋግጧል" : "Fayda Verified"}
                     </span>
                   </div>
+                  <ViewTenantProfileLink
+                    tenantId={foundTenant.userId}
+                    className="mt-2"
+                    label={t("explore", "viewProfile")}
+                  />
                 </div>
               </div>
 
