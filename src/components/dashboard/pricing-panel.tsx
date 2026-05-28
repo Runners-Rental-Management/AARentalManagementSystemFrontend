@@ -17,14 +17,11 @@ import {
   classifyRent,
   type ListingRange,
 } from "@/lib/addis-rent-benchmarks";
+import { useLanguage } from "@/context/language-context";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-function fmtETB(n: number) {
-  return `${Math.round(n).toLocaleString()} ETB`;
-}
 
 function pct(value: number, min: number, max: number) {
   if (max === min) return 0;
@@ -56,7 +53,9 @@ export function PricingPanel({
   value,
   onChange,
 }: PricingPanelProps) {
+  const { t, tVar, formatCurrency } = useLanguage();
   const [policyOpen, setPolicyOpen] = useState(true);
+  const fmtETB = (n: number) => formatCurrency(n);
 
   const classification = useMemo(() => classifyRent(value, range), [value, range]);
 
@@ -71,40 +70,40 @@ export function PricingPanel({
           ring: "ring-emerald-300",
           chip: "bg-emerald-100 text-emerald-700 border-emerald-200",
           icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-          label: "Within government-approved band",
-          note: "This price aligns with the published indicative range for this area.",
+          label: t("components", "withinGovBand"),
+          note: t("components", "withinGovNote"),
         };
       case "below_band":
         return {
           ring: "ring-sky-300",
           chip: "bg-sky-100 text-sky-700 border-sky-200",
           icon: <TrendingDown className="w-3.5 h-3.5" />,
-          label: "Below recommended band",
-          note: "Tenants will love this, but you may be undercharging vs. the regulator's indicative floor.",
+          label: t("components", "belowRecommended"),
+          note: t("components", "belowRecommendedTenantNote"),
         };
       case "above_band":
         return {
           ring: "ring-amber-300",
           chip: "bg-amber-100 text-amber-800 border-amber-200",
           icon: <TrendingUp className="w-3.5 h-3.5" />,
-          label: "Above recommended band — DARA review",
-          note: "This rent exceeds the indicative ceiling. The DARA officer will manually review the listing.",
+          label: t("components", "aboveRecommended"),
+          note: t("components", "aboveRecommendedDaraNote"),
         };
       case "below_floor":
         return {
           ring: "ring-rose-300",
           chip: "bg-rose-100 text-rose-700 border-rose-200",
           icon: <TrendingDown className="w-3.5 h-3.5" />,
-          label: "Below absolute floor",
-          note: "This price is far below market expectations and cannot be submitted.",
+          label: t("components", "belowAbsoluteFloor"),
+          note: t("components", "belowAbsoluteFloorNote"),
         };
       case "above_ceiling":
         return {
           ring: "ring-rose-300",
           chip: "bg-rose-100 text-rose-700 border-rose-200",
           icon: <TrendingUp className="w-3.5 h-3.5" />,
-          label: "Above absolute ceiling",
-          note: "This price exceeds the policy ceiling and cannot be submitted.",
+          label: t("components", "aboveAbsoluteCeiling"),
+          note: t("components", "aboveAbsoluteCeilingNote"),
         };
     }
   })();
@@ -119,16 +118,19 @@ export function PricingPanel({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-white font-bold text-sm">
-              Government Pricing Range
+              {t("components", "govPricingRange")}
             </p>
             <span className="inline-flex items-center gap-1 bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
               <ShieldCheck className="w-3 h-3" />
-              Proclamation 1320/2016
+              {t("components", "proclamationRef")}
             </span>
           </div>
           <p className="text-emerald-50 text-xs mt-0.5">
-            Annual indicative band for {propertyType}s in {subCity} ·{" "}
-            {areaSqm.toLocaleString()} m²
+            {tVar("components", "annualBandFor", {
+              type: propertyType,
+              subCity,
+              area: areaSqm.toLocaleString(),
+            })}
           </p>
         </div>
       </div>
@@ -139,7 +141,7 @@ export function PricingPanel({
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-3">
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-              Floor
+              {t("components", "floor")}
             </p>
             <p className="text-base font-bold text-stone-700 mt-0.5">
               {fmtETB(range.floor)}
@@ -148,10 +150,10 @@ export function PricingPanel({
           <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 py-3 relative">
             <span className="absolute -top-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
               <Sparkles className="w-2.5 h-2.5" />
-              Suggested
+              {t("components", "suggested")}
             </span>
             <p className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">
-              Sweet Spot
+              {t("components", "sweetSpot")}
             </p>
             <p className="text-base font-bold text-emerald-800 mt-0.5">
               {fmtETB(range.mid)}
@@ -159,7 +161,7 @@ export function PricingPanel({
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-3">
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-              Ceiling
+              {t("components", "ceiling")}
             </p>
             <p className="text-base font-bold text-stone-700 mt-0.5">
               {fmtETB(range.ceiling)}
@@ -171,7 +173,7 @@ export function PricingPanel({
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-semibold text-stone-700">
-              Set Monthly Rent
+              {t("components", "setMonthlyRent")}
             </label>
             <button
               type="button"
@@ -179,7 +181,7 @@ export function PricingPanel({
               className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
             >
               <Sparkles className="w-3 h-3" />
-              Use suggested
+              {t("components", "useSuggested")}
             </button>
           </div>
 
@@ -270,7 +272,7 @@ export function PricingPanel({
                 className="text-3xl font-bold text-stone-900 bg-transparent outline-none w-44 tabular-nums"
               />
               <span className="text-sm font-semibold text-stone-500">
-                ETB / month
+                {t("common", "etbPerMonth")}
               </span>
               <span
                 className={`ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${tone.chip}`}
@@ -295,10 +297,10 @@ export function PricingPanel({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-stone-800">
-                Why this range?
+                {t("components", "whyThisRange")}
               </p>
               <p className="text-xs text-stone-500">
-                Ethiopian rent control policy basis & calculation
+                {t("components", "policyBasis")}
               </p>
             </div>
             <ChevronDown
@@ -312,17 +314,19 @@ export function PricingPanel({
               {/* Step 1 — base band (sub-city × type) */}
               <div className="rounded-lg bg-white border border-stone-200 px-3 py-2.5">
                 <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1.5">
-                  Step 1 · Base Band
+                  {t("components", "step1BaseBand")}
                 </p>
                 <div className="text-xs text-stone-700 leading-relaxed flex items-start gap-2">
                   <Building2 className="w-4 h-4 text-stone-400 mt-0.5 shrink-0" />
                   <div>
-                    Regulator&apos;s base band for{" "}
-                    <strong>{propertyType}s in {subCity}</strong>:{" "}
+                    {tVar("components", "regulatorBaseBand", {
+                      type: `${propertyType}s`,
+                      subCity,
+                    })}{" "}
                     <span className="font-mono font-semibold text-stone-900">
                       {fmtETB(range.baseMin)} – {fmtETB(range.baseMax)}
                     </span>
-                    <span className="text-stone-500"> / month (typical-size unit)</span>
+                    <span className="text-stone-500">{t("components", "perMonthTypical")}</span>
                   </div>
                 </div>
               </div>
@@ -330,17 +334,14 @@ export function PricingPanel({
               {/* Step 2 — area scaler */}
               <div className="rounded-lg bg-white border border-stone-200 px-3 py-2.5">
                 <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1.5">
-                  Step 2 · Area Adjustment
+                  {t("components", "step2AreaAdj")}
                 </p>
                 <div className="text-xs text-stone-700 leading-relaxed flex items-start gap-2">
                   <Info className="w-4 h-4 text-stone-400 mt-0.5 shrink-0" />
                   <div>
-                    Your unit is{" "}
-                    <span className="font-mono font-semibold">{areaSqm} m²</span>.
-                    A square-root area factor (≈ ×{range.areaFactor}) is applied
-                    so larger / smaller units scale realistically — not linearly —
-                    matching observed Addis market behaviour where{" "}
-                    <strong>location and finishing matter more than raw m²</strong>.
+                    {t("components", "yourUnitIs")}{" "}
+                    <span className="font-mono font-semibold">{areaSqm} m²</span>.{" "}
+                    {tVar("components", "areaFactorNote", { factor: range.areaFactor })}
                   </div>
                 </div>
               </div>
@@ -348,7 +349,7 @@ export function PricingPanel({
               {/* Step 3 — final range */}
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5">
                 <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-1.5">
-                  Step 3 · Your Allowed Range
+                  {t("components", "step3Allowed")}
                 </p>
                 <div className="text-xs text-stone-800 leading-relaxed flex items-start gap-2">
                   <Info className="w-4 h-4 text-emerald-700 mt-0.5 shrink-0" />
@@ -365,15 +366,17 @@ export function PricingPanel({
                       {fmtETB(range.recommendedMax)}
                     </span>
                     <p className="text-[11px] text-stone-500 mt-1">
-                      Equivalent per-m²: {range.perSqmMin.toLocaleString()}–
-                      {range.perSqmMax.toLocaleString()} ETB / m²
+                      {tVar("components", "equivPerSqm", {
+                        min: range.perSqmMin.toLocaleString(),
+                        max: range.perSqmMax.toLocaleString(),
+                      })}
                     </p>
                   </div>
                 </div>
               </div>
 
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider pt-1">
-                Legal Basis
+                {t("components", "legalBasis")}
               </p>
               <ul className="space-y-2">
                 {range.citations.map((c) => (

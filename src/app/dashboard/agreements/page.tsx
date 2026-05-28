@@ -1,6 +1,6 @@
 "use client";
 
-import { Header } from "@/components/dashboard/header";
+import { PageHeader } from "@/components/dashboard/ui";
 import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
@@ -824,8 +824,9 @@ export default function AgreementsPage() {
         />
       )}
 
-      <Header title={t("agreements", "title")} />
-      <main className="flex-1 p-6 overflow-y-auto">
+      <div className="space-y-6 animate-fade-in-up">
+      <PageHeader title={t("agreements", "title")} />
+      <div>
 
         {/* Incoming extension requests for tenant */}
         {incomingExtensions.length > 0 && (
@@ -1220,7 +1221,8 @@ export default function AgreementsPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
+      </div>
     </>
   );
 }

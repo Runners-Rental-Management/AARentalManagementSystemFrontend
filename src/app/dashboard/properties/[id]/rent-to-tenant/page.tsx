@@ -173,7 +173,7 @@ export default function RentToTenantPage() {
   if (!property) {
     return (
       <>
-        <Header title="Rent to Specific Tenant" />
+        <Header title={t("common", "rentToSpecificTenant")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">Property not found.</p>
         </main>
@@ -185,7 +185,7 @@ export default function RentToTenantPage() {
   if (!isOwner) {
     return (
       <>
-        <Header title="Rent to Specific Tenant" />
+        <Header title={t("common", "rentToSpecificTenant")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">You do not own this property.</p>
         </main>
@@ -265,7 +265,7 @@ export default function RentToTenantPage() {
   /* ── Render ─────────────────────────────────────────────── */
   return (
     <>
-      <Header title="Rent to Specific Tenant" />
+      <Header title={t("common", "rentToSpecificTenant")} />
       <main className="flex-1 p-6 overflow-y-auto">
         <Link
           href={`/dashboard/properties/${property.id}`}

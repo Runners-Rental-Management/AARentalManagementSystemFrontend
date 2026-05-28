@@ -2,6 +2,7 @@
 
 import { AlertCircle, X } from "lucide-react";
 import { useEffect } from "react";
+import { useLanguage } from "@/context/language-context";
 
 type AlertDialogProps = {
   open: boolean;
@@ -11,6 +12,8 @@ type AlertDialogProps = {
 };
 
 export function AlertDialog({ open, title, message, onClose }: AlertDialogProps) {
+  const { t } = useLanguage();
+
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -27,7 +30,7 @@ export function AlertDialog({ open, title, message, onClose }: AlertDialogProps)
       <button
         type="button"
         className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm"
-        aria-label="Close dialog"
+        aria-label={t("common", "closeDialog")}
         onClick={onClose}
       />
       <div
@@ -53,7 +56,7 @@ export function AlertDialog({ open, title, message, onClose }: AlertDialogProps)
             type="button"
             onClick={onClose}
             className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
-            aria-label="Close"
+            aria-label={t("common", "close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -64,7 +67,7 @@ export function AlertDialog({ open, title, message, onClose }: AlertDialogProps)
             onClick={onClose}
             className="rounded-lg bg-primary-700 px-4 py-2 text-sm font-medium text-white hover:bg-primary-800"
           >
-            OK
+            {t("common", "ok")}
           </button>
         </div>
       </div>

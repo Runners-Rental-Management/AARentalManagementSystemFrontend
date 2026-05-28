@@ -1,6 +1,13 @@
 "use client";
 
-import { Header } from "@/components/dashboard/header";
+import { LandlordDashboardView } from "@/components/dashboard/landlord-dashboard-view";
+import {
+  PageHeader,
+  StatCard,
+  ActivitySidebar,
+  EmptyState,
+  type ActivitySection,
+} from "@/components/dashboard/ui";
 import { useLanguage } from "@/context/language-context";
 import {
   Building2,
@@ -11,7 +18,6 @@ import {
   CreditCard,
   Compass,
   ArrowRight,
-  FolderOpen,
   Bell,
   Heart,
   MapPin,
@@ -30,12 +36,12 @@ import {
   apiListRentAdjustments,
   getAccessToken,
 } from "@/lib/api";
-import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
+import { formatCurrency, getStatusColor } from "@/lib/utils";
 import { PropertyCoverImage } from "@/components/property-cover-image";
 import type { Property, RentAdjustment, TenancyAgreement } from "@/lib/types";
 
 export default function DashboardPage() {
-  const { t } = useLanguage();
+  const { t, formatStatus } = useLanguage();
   const { user } = useAuth();
   const { count: favCount } = useFavorites();
   const router = useRouter();
@@ -104,21 +110,11 @@ export default function DashboardPage() {
   const myAgreementsAsTenant = landlordAgreements.filter((a) => a.tenantId === userId);
   const availableProperties = landlordProperties.filter((p) => p.status === "available");
 
-  const titleKey =
-    role === "admin"
-      ? "titleAdmin"
-      : role === "landlord"
-        ? "titleLandlord"
-        : "title";
-
-  // ====== TENANT EXPERIENCE — WELCOMING LANDING ======
+  // ====== TENANT EXPERIENCE ======
   if (role === "tenant") {
     const myPendingPayments = myAgreementsAsTenant.filter((a) =>
       ["pending_tenant_signature", "pending_verification", "pending_dara_verification"].includes(a.status)
     );
-    const myDocs: Array<{ id: string }> = [];
-    const unreadNotifs = 0;
-
     const featured = [...availableProperties]
       .sort((a, b) => a.monthlyRent - b.monthlyRent)
       .slice(0, 6);
@@ -143,24 +139,6 @@ export default function DashboardPage() {
         soft: "bg-amber-50",
       },
       {
-        labelKey: "documentsChip",
-        count: myDocs.length,
-        countKey: "uploaded",
-        href: "/dashboard/documents",
-        icon: FolderOpen,
-        gradient: "from-violet-500 to-purple-600",
-        soft: "bg-violet-50",
-      },
-      {
-        labelKey: "notificationsChip",
-        count: unreadNotifs,
-        countKey: "unread",
-        href: "/dashboard/notifications",
-        icon: Bell,
-        gradient: "from-sky-500 to-blue-600",
-        soft: "bg-sky-50",
-      },
-      {
         labelKey: "favoritesChip",
         count: favCount,
         countKey: "savedHomes",
@@ -171,60 +149,77 @@ export default function DashboardPage() {
       },
     ] as const;
 
+    const hour = new Date().getHours();
+    const greetingKey =
+      hour < 12 ? "goodMorning" : hour < 17 ? "goodAfternoon" : "goodEvening";
+    const dateLabel = new Date().toLocaleDateString(undefined, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const tenantSidebar: ActivitySection[] = [
+      {
+        title: t("nav", "notifications"),
+        icon: Bell,
+        href: "/dashboard/notifications",
+        viewAllLabel: t("dashboard", "viewAll"),
+        emptyLabel: t("dashboardUi", "nonePending"),
+        items: [],
+      },
+      {
+        title: t("dashboard", "recentAgreements"),
+        icon: FileText,
+        href: "/dashboard/agreements",
+        viewAllLabel: t("dashboard", "viewAll"),
+        emptyLabel: t("dashboardUi", "noAgreementsYet"),
+        items: myAgreementsAsTenant.slice(0, 4).map((a) => ({
+          id: a.id,
+          title: a.propertyTitle,
+          meta: `${formatCurrency(a.monthlyRent)} / mo`,
+          href: `/dashboard/agreements/${a.id}`,
+          badge: formatStatus(a.status),
+        })),
+      },
+    ];
+
     return (
-      <main className="flex-1">
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <h1 className="text-2xl sm:text-[1.875rem] font-medium leading-snug tracking-tight text-stone-900 antialiased">
-            <span className="text-stone-400 font-normal">
-              {t("dashboard", "welcomeTenantHeadline1")}
-            </span>{" "}
-            <span className="font-semibold bg-gradient-to-r from-stone-900 via-stone-800 to-stone-600 bg-clip-text text-transparent">
-              {user?.firstName ?? ""}
+      <div className="space-y-8 animate-fade-in-up">
+        <PageHeader
+          greeting={`${t("dashboardUi", greetingKey)}, ${user?.firstName ?? ""} 👋`}
+          title={t("dashboard", "title")}
+          subtitle={t("dashboardUi", "tenantSubtitle")}
+          dateLabel={dateLabel}
+          badge={
+            <span className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-800 ring-1 ring-teal-200/60">
+              {t("roles", "tenant")}
             </span>
-          </h1>
-        </section>
+          }
+        />
 
-        {/* Shortcuts */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
-          <div className="flex items-end justify-between mb-5">
-            <h2 className="text-xl sm:text-2xl font-bold text-stone-900">
-              {t("dashboard", "yourShortcuts")}
-            </h2>
-          </div>
-          <div className="stagger grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-            {shortcuts.map((s) => (
-              <Link
-                key={s.labelKey}
-                href={s.href}
-                className="group relative bg-white rounded-2xl border border-stone-200 p-4 hover:border-primary-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-              >
-                <div
-                  className={`absolute -top-10 -right-10 w-24 h-24 rounded-full bg-gradient-to-br ${s.gradient} opacity-10 group-hover:opacity-20 group-hover:scale-125 transition-all duration-500`}
-                />
-                <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center shadow-sm mb-3 transition-transform group-hover:scale-110 group-hover:rotate-3`}
-                >
-                  <s.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-sm font-semibold text-stone-900">
-                  {t("dashboard", s.labelKey)}
-                </div>
-                <div className="text-xs text-stone-500 mt-0.5">
-                  {typeof s.count === "number" && s.count > 0 ? `${s.count} ` : ""}
-                  {t("dashboard", s.countKey)}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {shortcuts.map((s) => (
+            <StatCard
+              key={s.labelKey}
+              title={t("dashboard", s.labelKey)}
+              value={typeof s.count === "number" ? s.count : 0}
+              subtitle={t("dashboard", s.countKey)}
+              icon={s.icon}
+              gradient={s.gradient}
+              href={s.href}
+              trend={s.labelKey === "agreementsChip" ? 5 : 8}
+              trendLabel={t("dashboardUi", "thisMonth")}
+            />
+          ))}
+        </div>
 
-         {/* Recent activity + tip */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16">
-          <div className="grid lg:grid-cols-3 gap-5">
-            {/* Recent agreements */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-stone-200 overflow-hidden animate-fade-in-up">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100">
-                <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+        <section>
+            <div className="theme-panel overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 dark:border-orange-500/15">
+                <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wide">
                   {t("dashboard", "recentAgreements")}
                 </h3>
                 <Link
@@ -236,18 +231,14 @@ export default function DashboardPage() {
               </div>
               <div className="divide-y divide-stone-100">
                 {myAgreementsAsTenant.length === 0 ? (
-                  <div className="px-6 py-12 text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
-                      <FileText className="w-6 h-6 text-stone-400" />
-                    </div>
-                    <p className="text-sm text-stone-500 mb-4">No agreements yet.</p>
-                    <Link
-                      href="/explore"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800"
-                    >
-                      <Compass className="w-4 h-4" />
-                      {t("dashboard", "startExploring")}
-                    </Link>
+                  <div className="p-4">
+                    <EmptyState
+                      icon={FileText}
+                      title={t("dashboardUi", "noAgreementsTitle")}
+                      description={t("dashboardUi", "noAgreementsDesc")}
+                      actionLabel={t("dashboard", "startExploring")}
+                      actionHref="/explore"
+                    />
                   </div>
                 ) : (
                   myAgreementsAsTenant.slice(0, 4).map((a) => (
@@ -274,23 +265,9 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-
-            {/* Tip card */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-6 animate-fade-in-up">
-              <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/10 animate-blob" />
-              <Heart className="w-8 h-8 mb-4 fill-white text-white animate-bounce-subtle" />
-              <h3 className="text-lg font-bold mb-2 leading-tight">
-                {t("dashboard", "quickTipTitle")}
-              </h3>
-              <p className="text-white/90 text-sm leading-relaxed">
-                {t("dashboard", "quickTipDesc")}
-              </p>
-            </div>
-          </div>
         </section>
-        
-        {/* Trending homes */}
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <section>
           <div className="flex items-end justify-between mb-5">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-stone-900">
@@ -323,7 +300,7 @@ export default function DashboardPage() {
                 <Link
                   key={p.id}
                   href={`/dashboard/properties/${p.id}`}
-                  className="group shrink-0 w-72 snap-start bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-500"
+                  className="group shrink-0 w-72 snap-start theme-panel overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-500 dark:hover:shadow-orange-900/20"
                   style={{ animation: `fade-in-up 0.6s ${idx * 0.06}s both` }}
                 >
                   <div className="relative h-44 overflow-hidden bg-stone-900">
@@ -405,9 +382,10 @@ export default function DashboardPage() {
             </Link>
           </div>
         </section>
-
-       
-      </main>
+          </div>
+          <ActivitySidebar sections={tenantSidebar} className="lg:sticky lg:top-20 lg:self-start" />
+        </div>
+      </div>
     );
   }
 
@@ -420,151 +398,17 @@ export default function DashboardPage() {
     );
   }
 
-  return (
-    <>
-      <Header title={t("dashboard", titleKey)} />
-      <main className="flex-1 p-6 overflow-y-auto">
-        {/* (Admin/DARA blocks removed — authority roles redirect to /dashboard/analytics) */}
-        {false && role === "admin" && null}
+  if (role === "landlord") {
+    return (
+      <LandlordDashboardView
+        properties={landlordProperties.filter((p) => p.landlordId === userId)}
+        agreements={landlordAgreements.filter((a) => a.landlordId === userId)}
+        rentAdjustments={landlordRentAdjustments}
+        loading={landlordDashboardLoading}
+        error={landlordDashboardError}
+      />
+    );
+  }
 
-        {/* Landlord Dashboard */}
-        {role === "landlord" && (() => {
-          const landlordActiveAgreements = landlordAgreements.filter(
-            (agreement) => agreement.status === "active" || agreement.status === "extended"
-          );
-          const landlordPendingAgreementActions = landlordAgreements.filter((agreement) =>
-            [
-              "pending_tenant_signature",
-              "pending_verification",
-              "pending_dara_verification",
-            ].includes(agreement.status)
-          );
-
-          const stats = [
-            {
-              title: t("dashboard", "myProperties"),
-              value: landlordProperties.length,
-              sub: `${landlordProperties.filter((p) => p.status === "available").length} available`,
-              icon: Building2,
-              href: "/dashboard/properties",
-              tone: "bg-blue-50 text-blue-700",
-            },
-            {
-              title: t("dashboard", "myAgreements"),
-              value: landlordAgreements.filter((a) => a.status === "active").length,
-              sub: `${landlordAgreements.length} total`,
-              icon: FileText,
-              href: "/dashboard/agreements",
-              tone: "bg-emerald-50 text-emerald-700",
-            },
-            {
-              title: t("dashboard", "myRentAdjustments"),
-              value: landlordRentAdjustments.filter((r) =>
-                ["pending", "under_review"].includes(r.status)
-              ).length,
-              sub: `${landlordRentAdjustments.length} total`,
-              icon: TrendingUp,
-              href: "/dashboard/rent-adjustment",
-              tone: "bg-violet-50 text-violet-700",
-            },
-            {
-              title: t("nav", "payments"),
-              value: landlordActiveAgreements.length,
-              sub: `${landlordPendingAgreementActions.length} pending actions`,
-              icon: CreditCard,
-              href: "/dashboard/payments",
-              tone: "bg-cyan-50 text-cyan-700",
-            },
-          ];
-
-          return (
-            <div className="space-y-6">
-              <div className="px-4">
-                {landlordDashboardLoading && (
-                  <div className="text-xs text-stone-500 mb-3">Loading landlord dashboard...</div>
-                )}
-                {landlordDashboardError && (
-                  <div className="text-xs text-rose-600 mb-3">{landlordDashboardError}</div>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  {stats.map((stat) => (
-                    <Link
-                      key={stat.href}
-                      href={stat.href}
-                      className="bg-white rounded-xl border border-stone-200 p-4 hover:shadow-md transition-shadow"
-                    >
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stat.tone}`}>
-                        <stat.icon className="w-5 h-5" />
-                      </div>
-                      <p className="text-2xl font-bold text-stone-900 mt-3">{stat.value}</p>
-                      <p className="text-sm font-medium text-stone-700">{stat.title}</p>
-                      <p className="text-xs text-stone-500 mt-1">{stat.sub}</p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid lg:grid-cols-3 gap-4 px-4 pb-6">
-                <div className="bg-white rounded-xl border border-stone-200">
-                  <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-stone-900">Recent agreements</h3>
-                    <Link href="/dashboard/agreements" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
-                      View all
-                    </Link>
-                  </div>
-                  <div className="divide-y divide-stone-100">
-                    {landlordAgreements.slice(0, 4).map((agreement) => (
-                      <Link
-                        key={agreement.id}
-                        href={`/dashboard/agreements/${agreement.id}`}
-                        className="block px-4 py-3 hover:bg-stone-50"
-                      >
-                        <p className="text-sm font-medium text-stone-900 truncate">
-                          {agreement.propertyTitle}
-                        </p>
-                        <p className="text-xs text-stone-500">
-                          {formatCurrency(agreement.monthlyRent)} / mo
-                        </p>
-                      </Link>
-                    ))}
-                    {landlordAgreements.length === 0 && (
-                      <p className="px-4 py-6 text-xs text-stone-500">No agreements yet.</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl border border-stone-200">
-                  <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-stone-900">Recent rent adjustments</h3>
-                    <Link href="/dashboard/rent-adjustment" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
-                      View all
-                    </Link>
-                  </div>
-                  <div className="divide-y divide-stone-100">
-                    {landlordRentAdjustments.slice(0, 4).map((adjustment) => (
-                      <Link
-                        key={adjustment.id}
-                        href="/dashboard/rent-adjustment"
-                        className="block px-4 py-3 hover:bg-stone-50"
-                      >
-                        <p className="text-sm font-medium text-stone-900 truncate">
-                          {adjustment.propertyTitle}
-                        </p>
-                        <p className="text-xs text-stone-500">
-                          {formatCurrency(adjustment.currentRent)} {"->"} {formatCurrency(adjustment.proposedRent)}
-                        </p>
-                      </Link>
-                    ))}
-                    {landlordRentAdjustments.length === 0 && (
-                      <p className="px-4 py-6 text-xs text-stone-500">No rent adjustments yet.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-      </main>
-    </>
-  );
+  return null;
 }

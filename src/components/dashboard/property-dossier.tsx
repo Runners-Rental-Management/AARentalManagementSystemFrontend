@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Building2, MapPin, Paperclip, Sparkles } from "lucide-react";
 import type { Property } from "@/lib/types";
 import type { LiveStatus } from "@/context/rental-flow-context";
+import { useLanguage } from "@/context/language-context";
 
 /* ------------------------------------------------------------------ */
 /*  File-number generator — deterministic from property id             */
@@ -34,81 +35,6 @@ function fileNumberFor(p: Property): string {
   return `DARA/${sub}/${year}/${seq}`;
 }
 
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-/* ------------------------------------------------------------------ */
-/*  Status → stamp metadata                                            */
-/* ------------------------------------------------------------------ */
-
-const STAMP: Record<
-  string,
-  { label: string; cls: string; rot: string }
-> = {
-  pending_verification: {
-    label: "Pending Review",
-    cls: "stamp-pending",
-    rot: "-7deg",
-  },
-  available: { label: "Open for Rent",    cls: "stamp-available", rot: "-5deg"  },
-  rented:    { label: "Occupied",         cls: "stamp-rented",    rot: "4deg"   },
-  rejected:  { label: "Rejected",         cls: "stamp-rejected",  rot: "-9deg"  },
-};
-
-/* ------------------------------------------------------------------ */
-/*  Live agreement status → banner metadata                           */
-/* ------------------------------------------------------------------ */
-
-const LIVE_BANNER: Partial<Record<LiveStatus, { label: string; sub: string; cls: string }>> = {
-  landlord_initiated: {
-    label: "Pending Tenant Approval",
-    sub:   "Awaiting tenant signature",
-    cls:   "bg-violet-100 text-violet-800 border-violet-300",
-  },
-  tenant_signed: {
-    label: "Pending Landlord Signature",
-    sub:   "Awaiting landlord counter-sign",
-    cls:   "bg-amber-100 text-amber-800 border-amber-300",
-  },
-  landlord_signed: {
-    label: "Pending Officer Verification",
-    sub:   "DARA is reviewing compliance",
-    cls:   "bg-primary-100 text-primary-800 border-primary-300",
-  },
-  dara_approved: {
-    label: "Awaiting Advance Payment",
-    sub:   "Tenant payment pending",
-    cls:   "bg-emerald-100 text-emerald-800 border-emerald-300",
-  },
-  paid: {
-    label: "Rented — Active",
-    sub:   "Advance payment confirmed",
-    cls:   "bg-primary-100 text-primary-800 border-primary-300",
-  },
-  tenant_cancelled: {
-    label: "Withdrawn by Tenant",
-    sub:   "Tenant cancelled before payment",
-    cls:   "bg-red-100 text-red-800 border-red-300",
-  },
-  landlord_cancelled: {
-    label: "Cancelled by You",
-    sub:   "Tenant & DARA have been notified",
-    cls:   "bg-red-100 text-red-800 border-red-300",
-  },
-  rejected: {
-    label: "Declined by Tenant",
-    sub:   "Tenant declined the contract",
-    cls:   "bg-red-100 text-red-800 border-red-300",
-  },
-};
-
 /* ------------------------------------------------------------------ */
 /*  Dossier card                                                       */
 /* ------------------------------------------------------------------ */
@@ -123,10 +49,72 @@ interface Props {
 }
 
 export function PropertyDossier({ property, isJustSubmitted = false, index = 0, liveStatus }: Props) {
-  const stamp = STAMP[property.status] ?? STAMP.available;
-  const liveBanner = liveStatus ? LIVE_BANNER[liveStatus] : null;
+  const { t, formatCurrency, formatDate } = useLanguage();
+
+  const stampMeta: Record<string, { label: string; cls: string; rot: string }> = {
+    pending_verification: {
+      label: t("components", "pendingReview"),
+      cls: "stamp-pending",
+      rot: "-7deg",
+    },
+    available: {
+      label: t("components", "openForRent"),
+      cls: "stamp-available",
+      rot: "-5deg",
+    },
+    rented: { label: t("components", "occupied"), cls: "stamp-rented", rot: "4deg" },
+    rejected: { label: t("components", "rejected"), cls: "stamp-rejected", rot: "-9deg" },
+  };
+
+  const liveBannerMeta: Partial<
+    Record<LiveStatus, { label: string; sub: string; cls: string }>
+  > = {
+    landlord_initiated: {
+      label: t("components", "pendingTenantApproval"),
+      sub: t("components", "awaitingTenantSignature"),
+      cls: "bg-violet-100 text-violet-800 border-violet-300",
+    },
+    tenant_signed: {
+      label: t("components", "pendingLandlordSign"),
+      sub: t("components", "awaitingLandlordCounterSign"),
+      cls: "bg-amber-100 text-amber-800 border-amber-300",
+    },
+    landlord_signed: {
+      label: t("components", "pendingOfficerVerification"),
+      sub: t("components", "daraReviewingCompliance"),
+      cls: "bg-primary-100 text-primary-800 border-primary-300",
+    },
+    dara_approved: {
+      label: t("components", "awaitingAdvance"),
+      sub: t("components", "tenantPaymentPending"),
+      cls: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    },
+    paid: {
+      label: t("components", "rentedActive"),
+      sub: t("components", "advancePaymentConfirmed"),
+      cls: "bg-primary-100 text-primary-800 border-primary-300",
+    },
+    tenant_cancelled: {
+      label: t("components", "withdrawnByTenant"),
+      sub: t("components", "tenantCancelledBeforePayment"),
+      cls: "bg-red-100 text-red-800 border-red-300",
+    },
+    landlord_cancelled: {
+      label: t("components", "cancelledByYou"),
+      sub: t("components", "tenantDaraNotified"),
+      cls: "bg-red-100 text-red-800 border-red-300",
+    },
+    rejected: {
+      label: t("components", "declinedByTenant"),
+      sub: t("components", "tenantDeclinedContract"),
+      cls: "bg-red-100 text-red-800 border-red-300",
+    },
+  };
+
+  const stamp = stampMeta[property.status] ?? stampMeta.available;
+  const liveBanner = liveStatus ? liveBannerMeta[liveStatus] : null;
   const fileNo = fileNumberFor(property);
-  const filed = fmtDate(property.createdAt);
+  const filed = formatDate(property.createdAt);
 
   // Subtle, deterministic per-card tilt for "stack of papers" feel
   const tilts = ["-0.6deg", "0.4deg", "-0.3deg", "0.7deg", "-0.5deg", "0.2deg"];
@@ -148,7 +136,7 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
             {fileNo}
           </span>
           <span className="typewriter text-[9px] font-bold text-stone-600 shrink-0">
-            FILED · {filed}
+            {t("components", "filedPrefix")} {filed}
           </span>
         </div>
 
@@ -185,7 +173,7 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
             {/* Type-written subject */}
             <div className="min-w-0 pt-0.5">
               <p className="typewriter text-[9px] font-bold tracking-widest text-stone-500 uppercase mb-1">
-                Subject
+                {t("components", "subject")}
               </p>
               <p className="typewriter text-sm font-bold text-stone-900 leading-snug line-clamp-2 min-h-[2.35rem]">
                 {property.title}
@@ -199,18 +187,18 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
 
           {/* Form-style key/value rows */}
           <dl className="space-y-1.5 typewriter text-[11px] text-stone-800 border-t border-dashed border-stone-300 pt-2.5 min-h-[104px]">
-            <Row label="Property" value={property.propertyType.toUpperCase()} />
+            <Row label={t("components", "property")} value={property.propertyType.toUpperCase()} />
             <Row
-              label="Sub-City"
-              value={`${property.subCity} · Woreda ${property.woreda}`}
+              label={t("components", "subCity")}
+              value={`${property.subCity} · ${t("components", "woreda")} ${property.woreda}`}
             />
             <Row
-              label="Specs"
+              label={t("components", "specs")}
               value={`${property.bedrooms} BR · ${property.bathrooms} BA · ${property.area} m²`}
             />
             <Row
-              label="Rent"
-              value={`${property.monthlyRent.toLocaleString()} ETB / mo`}
+              label={t("components", "rent")}
+              value={`${formatCurrency(property.monthlyRent)} / mo`}
               accent
             />
           </dl>
@@ -219,7 +207,7 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
           {isJustSubmitted && (
             <div className="absolute top-2 right-2 inline-flex items-center gap-1 bg-primary-600 text-white text-[9px] font-bold px-2 py-0.5 rounded tracking-wider shadow-sm">
               <Sparkles className="w-2.5 h-2.5" />
-              NEW
+              {t("components", "new")}
             </div>
           )}
 
@@ -236,7 +224,7 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
           {/* Footer meta + stamp (no overlap) */}
           <div className="mt-3 pt-2 border-t border-dashed border-stone-300 flex items-center justify-between gap-2">
             <span className="typewriter text-[10px] text-stone-500">
-              DARA REVIEW TRACK
+              {t("components", "daraReviewTrack")}
             </span>
             <div
               className={`stamp ${stamp.cls} animate-stamp text-[10px]`}

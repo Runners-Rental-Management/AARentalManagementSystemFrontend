@@ -7,6 +7,7 @@ import { ArrowLeft, Building2, Loader2 } from "lucide-react";
 import { Header } from "@/components/dashboard/header";
 import { TenantPublicProfileView } from "@/components/dashboard/tenant-public-profile";
 import { useAuth } from "@/context/auth-context";
+import { useLanguage } from "@/context/language-context";
 import { apiGetTenantProfile, getAccessToken } from "@/lib/api";
 import type { TenantPublicProfile } from "@/lib/types";
 
@@ -14,6 +15,7 @@ export default function TenantProfilePage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const tenantId = params.id as string;
 
   const [tenant, setTenant] = useState<TenantPublicProfile | null>(null);
@@ -39,7 +41,7 @@ export default function TenantProfilePage() {
 
   return (
     <>
-      <Header title="Tenant Profile" />
+      <Header title={t("common", "tenantProfile")} />
       <main className="flex-1 p-6 overflow-y-auto">
         <Link
           href="/dashboard/tenants"

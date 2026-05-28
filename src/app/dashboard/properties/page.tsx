@@ -1,27 +1,26 @@
 "use client";
 
-import { Header } from "@/components/dashboard/header";
 import { PropertyDossier } from "@/components/dashboard/property-dossier";
+import {
+  EmptyState,
+  FilterBar,
+  PageHeader,
+  PropertyListCard,
+} from "@/components/dashboard/ui";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useProperties } from "@/context/properties-context";
 import { useRentalFlow } from "@/context/rental-flow-context";
-import {
-  Archive,
-  Clock,
-  Filter,
-  FolderArchive,
-  Plus,
-  Search,
-  Sparkles,
-} from "lucide-react";
+import { Clock, LayoutGrid, List, Plus, Sparkles, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function PropertiesPage() {
   const { t } = useLanguage();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"cards" | "dossier">("cards");
   const { user } = useAuth();
   const { userProperties, isLoading } = useProperties();
   const { getPropertyLiveStatus } = useRentalFlow();
@@ -47,7 +46,6 @@ export default function PropertiesPage() {
 
   const showRegisterButton = role === "landlord";
 
-  /* User-submitted ids for the current landlord — used to mark "just submitted" cards */
   const myUserSubmittedIds = useMemo(
     () => new Set(userProperties.filter((p) => p.landlordId === userId).map((p) => p.id)),
     [userProperties, userId]
@@ -64,100 +62,127 @@ export default function PropertiesPage() {
   );
 
   return (
-    <>
-      <Header title={t("properties", "title")} />
-      <main className="flex-1 p-6 overflow-y-auto">
-        {/* Pending submissions banner */}
-        {role === "landlord" && myPendingCount > 0 && (
-          <div className="mb-5 rounded-2xl border border-primary-200/70 bg-gradient-to-r from-primary-50 via-stone-50 to-cyan-50 px-5 py-4 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5 text-primary-700" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-stone-900">
-                {myPendingCount === 1
-                  ? "1 property pending verification"
-                  : `${myPendingCount} properties pending verification`}
-              </p>
-              <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
-                Your submission has been forwarded to a DARA officer for compliance
-                review. You&apos;ll be notified once it&apos;s approved and goes live.
-              </p>
-            </div>
-            <span className="hidden sm:inline-flex items-center gap-1.5 bg-white border border-primary-200 text-primary-700 text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0">
-              <Sparkles className="w-3 h-3" />
-              Just submitted
-            </span>
-          </div>
-        )}
-
-        {/* Actions bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
-            <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
-              <Search className="w-4 h-4 text-stone-400" />
-              <input
-                type="text"
-                placeholder={t("properties", "searchPlaceholder")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent text-sm outline-none flex-1"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-stone-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white outline-none"
-              >
-                <option value="all">{t("properties", "allStatus")}</option>
-                <option value="available">{t("properties", "available")}</option>
-                <option value="rented">{t("properties", "rented")}</option>
-                <option value="pending_verification">{t("properties", "pending")}</option>
-                <option value="rejected">{t("properties", "rejected")}</option>
-              </select>
-            </div>
-          </div>
-          {showRegisterButton && (
+    <div className="space-y-6 animate-fade-in-up">
+      <PageHeader
+        title={t("properties", "title")}
+        subtitle={
+          role === "landlord"
+            ? t("dashboardUi", "landlordSubtitle")
+            : t("dashboardUi", "tenantSubtitle")
+        }
+        actions={
+          showRegisterButton ? (
             <Link
               href="/dashboard/properties/register"
-              className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-primary-700"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               {t("properties", "registerProperty")}
             </Link>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
 
-        {/* ── Filing-cabinet caption ── */}
-        <div className="flex items-center gap-2 mb-4 text-xs text-stone-500 dark:text-stone-400 typewriter tracking-wider uppercase">
-          <FolderArchive className="w-3.5 h-3.5" />
-          <span>
-            DARA Property Registry · {filtered.length}{" "}
-            {filtered.length === 1 ? "dossier" : "dossiers"} on file
+      {role === "landlord" && myPendingCount > 0 && (
+        <div className="dashboard-glass flex items-start gap-4 rounded-[18px] px-5 py-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-100">
+            <Clock className="h-5 w-5 text-primary-700" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-stone-900">
+              {myPendingCount === 1
+                ? "1 property pending verification"
+                : `${myPendingCount} properties pending verification`}
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-stone-600">
+              Your submission has been forwarded to a DARA officer for compliance
+              review.
+            </p>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-primary-700">
+            <Sparkles className="h-3 w-3" />
+            Just submitted
           </span>
-          <span className="flex-1 border-t border-dashed border-stone-300 dark:border-stone-700 ml-2" />
         </div>
+      )}
 
-        {/* ── Dossier shelf ── */}
-        <div
-          className="rounded-2xl p-4 sm:p-6 border border-stone-300/80 dark:border-stone-700 relative overflow-hidden bg-gradient-to-b from-stone-50 to-stone-100 dark:from-stone-900 dark:to-stone-900/80"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(90deg, rgba(100,116,139,0.06) 0 1px, transparent 1px 20px)",
-          }}
-        >
-          {/* Wood-grain shelf strip on top */}
-          <div
-            className="absolute top-0 left-0 right-0 h-1.5"
-            style={{
-              background:
-                "linear-gradient(90deg, #334155 0%, #64748b 50%, #334155 100%)",
-            }}
-          />
+      <FilterBar
+        searchPlaceholder={t("properties", "searchPlaceholder")}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        filters={
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-primary-300"
+          >
+            <option value="all">{t("properties", "allStatus")}</option>
+            <option value="available">{t("properties", "available")}</option>
+            <option value="rented">{t("properties", "rented")}</option>
+            <option value="pending_verification">{t("properties", "pending")}</option>
+            <option value="rejected">{t("properties", "rejected")}</option>
+          </select>
+        }
+        actions={
+          <div className="flex rounded-xl border border-stone-200 bg-white p-0.5 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setViewMode("cards")}
+              className={cn(
+                "rounded-lg p-2 transition-colors",
+                viewMode === "cards" ? "bg-primary-50 text-primary-700" : "text-stone-500"
+              )}
+              title={t("dashboardUi", "cardView")}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("dossier")}
+              className={cn(
+                "rounded-lg p-2 transition-colors",
+                viewMode === "dossier" ? "bg-primary-50 text-primary-700" : "text-stone-500"
+              )}
+              title={t("dashboardUi", "listView")}
+            >
+              <List className="h-4 w-4" />
+            </button>
+          </div>
+        }
+      />
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 pt-2">
+      {isLoading ? (
+        <p className="text-center py-16 text-sm text-stone-500">
+          {t("dashboardUi", "loading")}
+        </p>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title={t("properties", "noProperties")}
+          description={t("dashboardUi", "noAgreementsDesc")}
+          actionLabel={
+            showRegisterButton ? t("properties", "registerProperty") : undefined
+          }
+          actionHref={showRegisterButton ? "/dashboard/properties/register" : undefined}
+        />
+      ) : viewMode === "cards" ? (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((property) => (
+            <PropertyListCard
+              key={property.id}
+              property={property}
+              href={`/dashboard/properties/${property.id}`}
+              occupancyLabel={
+                property.status === "rented"
+                  ? t("dashboardUi", "occupied")
+                  : t("dashboardUi", "vacant")
+              }
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="ui-panel rounded-[20px] p-4 sm:p-6">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
             {filtered.map((property, idx) => (
               <PropertyDossier
                 key={property.id}
@@ -168,26 +193,8 @@ export default function PropertiesPage() {
               />
             ))}
           </div>
-
-          {isLoading ? (
-            <div className="text-center py-16">
-              <p className="text-sm text-stone-500">Loading properties...</p>
-            </div>
-          ) : filtered.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-full bg-stone-100 dark:bg-stone-800 mx-auto flex items-center justify-center mb-3 border border-stone-300 dark:border-stone-700">
-                <Archive className="w-8 h-8 text-stone-600 dark:text-stone-300" />
-              </div>
-              <p className="typewriter text-sm font-bold text-stone-800 dark:text-stone-100 tracking-wider uppercase">
-                Cabinet Empty
-              </p>
-              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-                {t("properties", "noProperties")}
-              </p>
-            </div>
-          )}
         </div>
-      </main>
-    </>
+      )}
+    </div>
   );
 }

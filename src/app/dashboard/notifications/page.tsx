@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Header } from "@/components/dashboard/header";
+import { PageHeader } from "@/components/dashboard/ui";
 import { useLanguage } from "@/context/language-context";
 import {
   apiListNotifications,
@@ -88,10 +88,15 @@ export default function NotificationsPage() {
   };
 
   return (
-    <>
-      <Header title={t("notificationsPage", "title")} />
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in-up">
+      <PageHeader
+        title={t("notificationsPage", "title")}
+        subtitle={
+          unreadCount > 0
+            ? `${unreadCount} unread`
+            : undefined
+        }
+      />
           {loading ? (
             <div className="flex justify-center py-20">
               <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
@@ -200,8 +205,6 @@ export default function NotificationsPage() {
               )}
             </>
           )}
-        </div>
-      </main>
-    </>
+    </div>
   );
 }

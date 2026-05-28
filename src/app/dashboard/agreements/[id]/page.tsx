@@ -735,7 +735,7 @@ export default function AgreementDetailPage() {
   if (loading) {
     return (
       <>
-        <Header title="Agreement Details" />
+        <Header title={t("agreements", "agreementDetails")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">Loading agreement...</p>
         </main>
@@ -746,7 +746,7 @@ export default function AgreementDetailPage() {
   if (!agreement) {
     return (
       <>
-        <Header title="Agreement Not Found" />
+        <Header title={t("agreementsDetail", "agreementNotFound")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">Agreement not found.</p>
         </main>

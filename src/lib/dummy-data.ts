@@ -868,7 +868,7 @@ export const notifications: Notification[] = [
     title: 'New Dispute Filed',
     message: 'Tigist Haile has filed a complaint against Abebe Kebede for unauthorized rent increase.',
     type: 'warning',
-    category: 'dispute',
+    category: 'system',
     isRead: false,
     createdAt: '2025-06-01T10:30:00',
     link: '/dashboard/disputes',
@@ -912,7 +912,7 @@ export const notifications: Notification[] = [
     title: 'Dispute Escalated',
     message: 'The deposit withholding case (D-005) has been escalated and requires immediate attention.',
     type: 'error',
-    category: 'dispute',
+    category: 'system',
     isRead: false,
     createdAt: '2025-06-12T11:45:00',
     link: '/dashboard/disputes',
@@ -942,9 +942,9 @@ export const rentPayments: RentPayment[] = [
 
 export const supportingDocuments: SupportingDocument[] = [
   { id: 'doc1', uploaderId: 'u3', uploaderName: 'Tigist Haile', relatedEntityType: 'agreement', relatedEntityId: 'a1', relatedEntityTitle: 'Modern 2BR Apartment in Bole', fileName: 'kebele_id_front.pdf', fileType: 'pdf', fileSize: 245000, uploadedAt: '2025-02-20', description: 'Kebele ID front side' },
-  { id: 'doc2', uploaderId: 'u3', uploaderName: 'Tigist Haile', relatedEntityType: 'dispute', relatedEntityId: 'd1', relatedEntityTitle: 'Unauthorized rent increase demand', fileName: 'text_messages_proof.pdf', fileType: 'pdf', fileSize: 512000, uploadedAt: '2025-06-01', description: 'Screenshots of threatening messages' },
+  { id: 'doc2', uploaderId: 'u3', uploaderName: 'Tigist Haile', relatedEntityType: 'agreement', relatedEntityId: 'd1', relatedEntityTitle: 'Unauthorized rent increase demand', fileName: 'text_messages_proof.pdf', fileType: 'pdf', fileSize: 512000, uploadedAt: '2025-06-01', description: 'Screenshots of threatening messages' },
   { id: 'doc3', uploaderId: 'u2', uploaderName: 'Abebe Kebede', relatedEntityType: 'property', relatedEntityId: 'p1', relatedEntityTitle: 'Modern 2BR Apartment in Bole', fileName: 'ownership_certificate.pdf', fileType: 'pdf', fileSize: 1024000, uploadedAt: '2025-02-15', description: 'Property ownership certificate' },
-  { id: 'doc4', uploaderId: 'u5', uploaderName: 'Sara Getachew', relatedEntityType: 'dispute', relatedEntityId: 'd2', relatedEntityTitle: 'Broken water heater not repaired', fileName: 'photos_damage.zip', fileType: 'zip', fileSize: 3450000, uploadedAt: '2025-06-10', description: 'Photos of broken water heater' },
+  { id: 'doc4', uploaderId: 'u5', uploaderName: 'Sara Getachew', relatedEntityType: 'agreement', relatedEntityId: 'd2', relatedEntityTitle: 'Broken water heater not repaired', fileName: 'photos_damage.zip', fileType: 'zip', fileSize: 3450000, uploadedAt: '2025-06-10', description: 'Photos of broken water heater' },
   { id: 'doc5', uploaderId: 'u2', uploaderName: 'Abebe Kebede', relatedEntityType: 'rent_adjustment', relatedEntityId: 'ra1', relatedEntityTitle: 'Rent adjustment for Bole apartment', fileName: 'maintenance_receipts.pdf', fileType: 'pdf', fileSize: 780000, uploadedAt: '2025-06-01', description: 'Maintenance cost receipts' },
   { id: 'doc6', uploaderId: 'u4', uploaderName: 'Dawit Tadesse', relatedEntityType: 'property', relatedEntityId: 'p2', relatedEntityTitle: 'Spacious 3BR House in Yeka', fileName: 'house_title_deed.pdf', fileType: 'pdf', fileSize: 920000, uploadedAt: '2025-03-10', description: 'Title deed for Yeka house' },
 ];
@@ -961,10 +961,10 @@ export const auditLogs: AuditLog[] = [
 ];
 
 export const penaltyNotices: PenaltyNotice[] = [
-  { id: 'pn1', issuedTo: 'u2', issuedToName: 'Abebe Kebede', issuedBy: 'u6', issuedByName: 'Mulugeta Assefa', disputeId: 'd1', type: 'warning', reason: 'Unauthorized rent increase demand on tenant Tigist Haile. First formal warning issued.', status: 'issued', issuedAt: '2025-06-05' },
-  { id: 'pn2', issuedTo: 'u2', issuedToName: 'Abebe Kebede', issuedBy: 'u6', issuedByName: 'Mulugeta Assefa', disputeId: 'd3', type: 'fine', reason: 'Attempted wrongful eviction of tenant Meron Tadesse. Fine imposed as per proclamation.', amount: 25000, status: 'acknowledged', issuedAt: '2025-06-08', deadline: '2025-07-08' },
-  { id: 'pn3', issuedTo: 'u2', issuedToName: 'Abebe Kebede', issuedBy: 'u1', issuedByName: 'Yohannes Mesay', disputeId: 'd5', type: 'legal_action', reason: 'Repeated deposit withholding complaints. Case referred for legal proceedings.', status: 'enforced', issuedAt: '2025-06-12' },
-  { id: 'pn4', issuedTo: 'u3', issuedToName: 'Tigist Haile', issuedBy: 'u6', issuedByName: 'Mulugeta Assefa', disputeId: 'd4', agreementId: 'a1', type: 'warning', reason: 'Subletting without landlord permission. Formal warning issued.', status: 'acknowledged', issuedAt: '2025-05-10' },
+  { id: 'pn1', issuedTo: 'u2', issuedToName: 'Abebe Kebede', issuedBy: 'u6', issuedByName: 'Mulugeta Assefa', agreementId: 'd1', type: 'warning', reason: 'Unauthorized rent increase demand on tenant Tigist Haile. First formal warning issued.', status: 'issued', issuedAt: '2025-06-05' },
+  { id: 'pn2', issuedTo: 'u2', issuedToName: 'Abebe Kebede', issuedBy: 'u6', issuedByName: 'Mulugeta Assefa', agreementId: 'd3', type: 'fine', reason: 'Attempted wrongful eviction of tenant Meron Tadesse. Fine imposed as per proclamation.', amount: 25000, status: 'acknowledged', issuedAt: '2025-06-08', deadline: '2025-07-08' },
+  { id: 'pn3', issuedTo: 'u2', issuedToName: 'Abebe Kebede', issuedBy: 'u1', issuedByName: 'Yohannes Mesay', agreementId: 'd5', type: 'legal_action', reason: 'Repeated deposit withholding complaints. Case referred for legal proceedings.', status: 'enforced', issuedAt: '2025-06-12' },
+  { id: 'pn4', issuedTo: 'u3', issuedToName: 'Tigist Haile', issuedBy: 'u6', issuedByName: 'Mulugeta Assefa', agreementId: 'a1', type: 'warning', reason: 'Subletting without landlord permission. Formal warning issued.', status: 'acknowledged', issuedAt: '2025-05-10' },
 ];
 
 export const systemParameters: SystemParameter[] = [

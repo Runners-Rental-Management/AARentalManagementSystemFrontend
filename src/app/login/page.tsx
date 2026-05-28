@@ -7,7 +7,6 @@ import {
   Eye,
   EyeOff,
   LogIn,
-  Globe,
   User,
   Home,
   ArrowLeft,
@@ -15,6 +14,8 @@ import {
   Heart,
   ShieldX,
 } from "lucide-react";
+import { LanguageToggle } from "@/components/language-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useLoading } from "@/context/loading-context";
@@ -66,7 +67,7 @@ const COLOR_MAP: Record<
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, locale, setLocale } = useLanguage();
+  const { t } = useLanguage();
   const { login, isAuthenticated } = useAuth();
   const { withLoading } = useLoading();
   const { showError } = useAlert();
@@ -125,7 +126,7 @@ function LoginPageInner() {
     try {
       const signedInUser = await withLoading(async () => {
         return login({ role: selectedRole, email, password });
-      }, "Signing in…");
+      }, t("authorityAuth", "signingIn"));
 
       if (selectedProperty && signedInUser.role === "tenant") {
         router.push(`/dashboard/properties/${selectedProperty.id}`);
@@ -186,13 +187,8 @@ function LoginPageInner() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setLocale(locale === "en" ? "am" : "en")}
-                className="text-sm font-medium text-stone-700 hover:text-primary-600 px-3 py-1.5 border border-stone-200 rounded-lg flex items-center gap-1.5"
-              >
-                <Globe className="w-4 h-4" />
-                {locale === "en" ? "አማርኛ" : "English"}
-              </button>
+              <ThemeToggle />
+              <LanguageToggle />
             </div>
           </div>
 

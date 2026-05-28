@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { Download, Eraser } from "lucide-react";
+import { useLanguage } from "@/context/language-context";
 
 export function SignaturePad({
   canvasRef,
@@ -10,6 +11,7 @@ export function SignaturePad({
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   onSigned: (signed: boolean) => void;
 }) {
+  const { t } = useLanguage();
   const drawing = useRef(false);
   const hasStrokes = useRef(false);
 
@@ -105,7 +107,7 @@ export function SignaturePad({
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none">
           <div className="w-48 h-px bg-stone-300" />
           <p className="text-center text-[10px] text-stone-400 mt-0.5 tracking-wide">
-            SIGN HERE
+            {t("components", "signHere")}
           </p>
         </div>
       </div>
@@ -115,14 +117,14 @@ export function SignaturePad({
           onClick={clear}
           className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-rose-600 transition-colors"
         >
-          <Eraser className="w-3.5 h-3.5" /> Clear
+          <Eraser className="w-3.5 h-3.5" /> {t("components", "clear")}
         </button>
         <button
           type="button"
           onClick={exportSig}
           className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-primary-600 transition-colors"
         >
-          <Download className="w-3.5 h-3.5" /> Export as PNG
+          <Download className="w-3.5 h-3.5" /> {t("components", "exportPng")}
         </button>
       </div>
     </div>

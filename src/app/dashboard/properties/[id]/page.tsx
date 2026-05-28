@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/context/auth-context";
+import { useLanguage } from "@/context/language-context";
 import { apiGetProperty, apiListAgreements, getAccessToken } from "@/lib/api";
 import type { Property, TenancyAgreement } from "@/lib/types";
-import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
+import { getStatusColor } from "@/lib/utils";
 import {
   Building2, MapPin, BedDouble, Bath, Ruler, User, Calendar,
   ArrowLeft, CheckCircle2, FileText, FileSignature, ArrowRight,
@@ -40,6 +41,7 @@ function Modal({
 
 export default function PropertyDetailPage() {
   const { user } = useAuth();
+  const { t, formatCurrency, formatDate, formatStatus } = useLanguage();
   const params = useParams();
   const id = params.id as string;
 
@@ -69,7 +71,7 @@ export default function PropertyDetailPage() {
   if (loading) {
     return (
       <>
-        <Header title="Property Details" />
+        <Header title={t("properties", "propertyDetails")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-stone-400">
             <Loader2 className="w-8 h-8 animate-spin" />
@@ -83,7 +85,7 @@ export default function PropertyDetailPage() {
   if (error || !property) {
     return (
       <>
-        <Header title="Property Not Found" />
+        <Header title={t("common", "propertyNotFound")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <div className="text-center">
             <Building2 className="w-12 h-12 text-stone-300 mx-auto mb-3" />
@@ -120,7 +122,7 @@ export default function PropertyDetailPage() {
 
   return (
     <>
-      <Header title="Property Details" />
+      <Header title={t("properties", "propertyDetails")} />
 
       {modal === "termination" && (
         <Modal title="Request Lease Termination" onClose={() => { setModal(""); setSubmitted(false); }}>

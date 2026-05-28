@@ -77,7 +77,7 @@ export default function LandlordCounterSignPage() {
   if (!agreement) {
     return (
       <>
-        <Header title={locale === "am" ? "Counter-Sign" : "Counter-Sign Contract"} />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">Agreement not found.</p>
         </main>
@@ -88,7 +88,7 @@ export default function LandlordCounterSignPage() {
   if (user?.role !== "landlord") {
     return (
       <>
-        <Header title="Counter-Sign Contract" />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">Only the landlord can counter-sign this agreement.</p>
         </main>
@@ -99,7 +99,7 @@ export default function LandlordCounterSignPage() {
   if (agreement.status !== "tenant_signed") {
     return (
       <>
-        <Header title={locale === "am" ? "Counter-Sign" : "Counter-Sign Contract"} />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <div className="text-center max-w-md">
             <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
@@ -124,7 +124,7 @@ export default function LandlordCounterSignPage() {
   if (submitted) {
     return (
       <>
-        <Header title={locale === "am" ? "Counter-Sign" : "Counter-Sign Contract"} />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-emerald-50 to-white p-8">
           <div className="text-center max-w-md">
             <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
@@ -160,7 +160,7 @@ export default function LandlordCounterSignPage() {
 
   return (
     <>
-      <Header title={locale === "am" ? "Counter-Sign" : "Counter-Sign Contract"} />
+      <Header title={t("common", "counterSignContract")} />
       <main className="flex-1 bg-stone-50 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link

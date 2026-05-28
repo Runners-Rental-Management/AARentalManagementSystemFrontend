@@ -13,7 +13,8 @@ import {
   User,
 } from "lucide-react";
 import type { TenantPublicProfile } from "@/lib/types";
-import { formatDate, getInitials } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
+import { useLanguage } from "@/context/language-context";
 
 function ReadOnlyField({
   icon: Icon,
@@ -44,6 +45,8 @@ export function TenantPublicProfileView({
   tenant: TenantPublicProfile;
   actions?: React.ReactNode;
 }) {
+  const { t, formatDate } = useLanguage();
+
   return (
     <div className="max-w-3xl space-y-6">
       <div className="bg-white rounded-2xl border border-stone-200 p-6">
@@ -53,22 +56,22 @@ export function TenantPublicProfileView({
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-stone-900">{tenant.fullName}</h2>
-            <p className="text-sm text-stone-500">Registered Tenant</p>
+            <p className="text-sm text-stone-500">{t("components", "registeredTenant")}</p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
               {tenant.faydaVerified ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
                   <BadgeCheck className="w-3.5 h-3.5" />
-                  Fayda Verified
+                  {t("components", "faydaVerified")}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
                   <Clock className="w-3.5 h-3.5" />
-                  Identity Unverified
+                  {t("components", "identityUnverified")}
                 </span>
               )}
               <span className="inline-flex items-center gap-1.5 text-xs text-stone-500">
                 <Calendar className="w-3.5 h-3.5" />
-                Member since {formatDate(tenant.createdAt)}
+                {t("components", "memberSince")} {formatDate(tenant.createdAt)}
               </span>
             </div>
           </div>
@@ -83,30 +86,30 @@ export function TenantPublicProfileView({
               <Fingerprint className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-stone-900">Fayda Identity</h3>
-              <p className="text-xs text-stone-500">Verified via National ID registry</p>
+              <h3 className="text-sm font-bold text-stone-900">{t("components", "faydaIdentity")}</h3>
+              <p className="text-xs text-stone-500">{t("components", "verifiedNationalId")}</p>
             </div>
           </div>
           {tenant.faydaVerified && (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Verified
+              {t("components", "verified")}
             </span>
           )}
         </div>
         <div className="p-6 space-y-5">
           <div className="grid sm:grid-cols-3 gap-4">
-            <ReadOnlyField icon={User} label="First Name" value={tenant.firstName} />
-            <ReadOnlyField icon={User} label="Father's Name" value={tenant.fatherName} />
+            <ReadOnlyField icon={User} label={t("components", "firstName")} value={tenant.firstName} />
+            <ReadOnlyField icon={User} label={t("components", "fathersName")} value={tenant.fatherName} />
             <ReadOnlyField
               icon={User}
-              label="Grandfather's Name"
+              label={t("fayda", "grandfatherName")}
               value={tenant.grandfatherName}
             />
           </div>
           <ReadOnlyField
             icon={Fingerprint}
-            label="Fayda Number (masked)"
+            label={t("fayda", "faydaNumber")}
             value={tenant.maskedFaydaNumber ?? undefined}
           />
           {tenant.faydaVerifiedAt && (
@@ -122,10 +125,10 @@ export function TenantPublicProfileView({
       </div>
 
       <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-stone-900">Contact & Activity</h3>
+        <h3 className="text-sm font-semibold text-stone-900">{t("components", "contactActivity")}</h3>
         <div className="grid sm:grid-cols-2 gap-4">
-          <ReadOnlyField icon={Phone} label="Phone" value={tenant.phone} />
-          <ReadOnlyField icon={MapPin} label="Address" value={tenant.address} />
+          <ReadOnlyField icon={Phone} label={t("components", "phone")} value={tenant.phone} />
+          <ReadOnlyField icon={MapPin} label={t("components", "address")} value={tenant.address} />
         </div>
         <p className="text-xs text-stone-500">
           This tenant has {tenant.agreementCountAsTenant} recorded agreement
@@ -139,12 +142,14 @@ export function TenantPublicProfileView({
 export function ViewTenantProfileLink({
   tenantId,
   className = "",
-  label = "View profile",
+  label,
 }: {
   tenantId: string;
   className?: string;
   label?: string;
 }) {
+  const { t } = useLanguage();
+  const linkLabel = label ?? t("components", "viewProfile");
   if (!tenantId || tenantId.startsWith("fayda_")) return null;
 
   return (
@@ -153,7 +158,7 @@ export function ViewTenantProfileLink({
       className={`inline-flex items-center gap-1 text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline ${className}`}
     >
       <User className="w-3.5 h-3.5" />
-      {label}
+      {linkLabel}
     </Link>
   );
 }

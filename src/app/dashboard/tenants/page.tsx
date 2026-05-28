@@ -76,7 +76,7 @@ export default function FindTenantPage() {
 
   return (
     <>
-      <Header title="Find Tenant" />
+      <Header title={t("nav", "findTenant")} />
       <main className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-5">

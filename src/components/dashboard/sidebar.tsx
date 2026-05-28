@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Building2,
   FileText,
-  TrendingUp,
   BarChart3,
   Bell,
   Users,
@@ -19,10 +18,8 @@ import {
   ChevronRight,
   Globe,
   CreditCard,
-  FolderOpen,
   ScrollText,
   Shield,
-  UserSearch,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
@@ -36,21 +33,9 @@ const navItems = [
     roles: ["admin", "landlord", "tenant"],
   },
   {
-    labelKey: "browseProperties",
-    href: "/dashboard/properties",
-    icon: Building2,
-    roles: ["tenant"],
-  },
-  {
     labelKey: "myProperties",
     href: "/dashboard/properties",
     icon: Building2,
-    roles: ["landlord"],
-  },
-  {
-    labelKey: "findTenant",
-    href: "/dashboard/tenants",
-    icon: UserSearch,
     roles: ["landlord"],
   },
   {
@@ -60,21 +45,9 @@ const navItems = [
     roles: ["landlord", "tenant"],
   },
   {
-    labelKey: "requestRentAdjustment",
-    href: "/dashboard/rent-adjustment",
-    icon: TrendingUp,
-    roles: ["landlord"],
-  },
-  {
     labelKey: "payments",
     href: "/dashboard/payments",
     icon: CreditCard,
-    roles: ["landlord", "tenant"],
-  },
-  {
-    labelKey: "documents",
-    href: "/dashboard/documents",
-    icon: FolderOpen,
     roles: ["landlord", "tenant"],
   },
   {

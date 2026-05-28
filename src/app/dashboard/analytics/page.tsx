@@ -54,7 +54,7 @@ export default function AnalyticsPage() {
   if (!user || !isAuthorised) {
     return (
       <>
-        <Header title="Rental Market Analytics" />
+        <Header title={t("analyticsPage", "title")} />
         <main className="flex-1 p-6 overflow-y-auto flex items-center justify-center">
           <div className="text-center max-w-sm">
             <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">

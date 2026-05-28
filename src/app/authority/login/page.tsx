@@ -10,9 +10,9 @@ import {
   LogIn,
   ShieldCheck,
   ArrowLeft,
-  Globe,
   Lock,
 } from "lucide-react";
+import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useLoading } from "@/context/loading-context";
@@ -20,7 +20,7 @@ import { useAlert } from "@/context/alert-context";
 
 export default function AuthorityLoginPage() {
   const router = useRouter();
-  const { t, locale, setLocale } = useLanguage();
+  const { t } = useLanguage();
   const { login, isAuthenticated, user } = useAuth();
   const { withLoading } = useLoading();
   const { showError } = useAlert();
@@ -41,29 +41,34 @@ export default function AuthorityLoginPage() {
     setFormError(null);
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setFormError("Official email is required.");
+      setFormError(t("authorityAuth", "officialEmailRequired"));
       return;
     }
     if (password.length < 8) {
-      setFormError("Password must be at least 8 characters.");
+      setFormError(t("authorityAuth", "passwordMinLength"));
       return;
     }
     try {
       await withLoading(async () => {
         await login({ role: "admin", email: trimmedEmail, password });
-      }, "Authenticating…");
+      }, t("authorityAuth", "authenticating"));
       router.push("/dashboard/authority");
     } catch (err) {
-      showError(err, (ns, key) => t(ns as "auth" | "common", key), {
+      showError(err, (ns, key) => t(ns as "auth" | "common" | "authorityAuth", key), {
         titleKey: "loginFailed",
         namespace: "auth",
       });
     }
   };
 
+  const bullets = [
+    t("authorityAuth", "bulletProclamation"),
+    t("authorityAuth", "bulletRentBand"),
+    t("authorityAuth", "bulletVerification"),
+  ];
+
   return (
     <div className="min-h-screen bg-stone-950 flex">
-      {/* Left decorative panel */}
       <div className="hidden lg:flex lg:w-5/12 relative overflow-hidden flex-col justify-between p-12">
         <div className="absolute inset-0 bg-primary-950" />
         <div
@@ -84,28 +89,24 @@ export default function AuthorityLoginPage() {
             </div>
             <div>
               <p className="text-white font-bold text-base leading-none">DARA</p>
-              <p className="text-white/50 text-xs">Authority Portal</p>
+              <p className="text-white/50 text-xs">{t("authorityAuth", "portalTitle")}</p>
             </div>
           </div>
 
           <h2 className="text-4xl font-bold text-white leading-tight mb-4">
-            Government
+            {t("authorityAuth", "government")}
             <br />
             <span className="bg-gradient-to-r from-primary-400 to-blue-300 bg-clip-text text-transparent">
-              Authority Access
+              {t("authorityAuth", "authorityAccess")}
             </span>
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-xs">
-            Secure portal for the Addis Ababa Residential Rental Administration Authority to manage compliance and verify agreements.
+            {t("authorityAuth", "securePortalDesc")}
           </p>
         </div>
 
         <div className="relative z-10 space-y-3">
-          {[
-            "Proclamation No. 1320/2016 (E.C.) — Residential Rent Control",
-            "Annual indicative rent band management",
-            "Agreement verification & dispute resolution",
-          ].map((item) => (
+          {bullets.map((item) => (
             <div key={item} className="flex items-start gap-2">
               <ShieldCheck className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" />
               <p className="text-white/50 text-xs">{item}</p>
@@ -114,49 +115,43 @@ export default function AuthorityLoginPage() {
         </div>
       </div>
 
-      {/* Right login panel */}
       <div className="flex-1 flex items-center justify-center p-8 bg-stone-900">
         <div className="w-full max-w-md">
-          {/* Header bar */}
           <div className="flex items-center justify-between mb-10">
             <Link
               href="/login"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Resident login
+              {t("authorityAuth", "residentLogin")}
             </Link>
-            <button
-              onClick={() => setLocale(locale === "en" ? "am" : "en")}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-400 hover:text-white px-3 py-1.5 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
-            >
-              <Globe className="w-4 h-4" />
-              {locale === "en" ? "አማርኛ" : "English"}
-            </button>
+            <LanguageToggle className="[&_button:not([aria-pressed=true])]:text-stone-400 [&_button:not([aria-pressed=true])]:hover:text-white [&_.border-stone-200]:border-white/10 [&_.bg-stone-50]:bg-white/5" />
           </div>
 
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
             <Lock className="w-3.5 h-3.5" />
-            Restricted — Authorised Personnel Only
+            {t("authorityAuth", "restrictedBadge")}
           </div>
 
-          {/* Authority identity card */}
           <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-5 mb-8">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-600 to-blue-700 flex items-center justify-center shadow-lg shadow-primary-500/20 shrink-0">
               <ShieldCheck className="w-7 h-7 text-white" />
             </div>
             <div>
-              <p className="text-white font-bold text-base">Government Authority</p>
+              <p className="text-white font-bold text-base">
+                {t("authorityAuth", "governmentAuthority")}
+              </p>
               <p className="text-stone-400 text-xs mt-0.5 leading-snug">
-                Addis Ababa Residential Rental Administration
+                {t("authorityAuth", "daraFullName")}
               </p>
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-white mb-1">Authority Sign In</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">
+            {t("authorityAuth", "authoritySignIn")}
+          </h1>
           <p className="text-stone-400 text-sm mb-7">
-            Enter your official credentials to access the administration dashboard.
+            {t("authorityAuth", "signInSubtitle")}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -168,15 +163,15 @@ export default function AuthorityLoginPage() {
             ) : null}
             <div>
               <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
-                Role
+                {t("authorityAuth", "role")}
               </label>
               <div className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm">
-                Location-based Admin
+                {t("authorityAuth", "locationAdmin")}
               </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
-                Official Email
+                {t("authorityAuth", "officialEmail")}
               </label>
               <input
                 type="email"
@@ -189,7 +184,7 @@ export default function AuthorityLoginPage() {
 
             <div>
               <label className="block text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1.5">
-                Password
+                {t("auth", "password")}
               </label>
               <div className="relative">
                 <input
@@ -214,14 +209,14 @@ export default function AuthorityLoginPage() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-500 hover:to-blue-500 text-white shadow-lg shadow-primary-500/20 hover:shadow-primary-500/30 transition-all mt-2"
             >
               <LogIn className="w-4 h-4" />
-              Sign In to Authority Portal
+              {t("authorityAuth", "signInToPortal")}
             </button>
           </form>
 
           <p className="text-center text-xs text-stone-600 mt-8">
-            This portal is restricted to authorised government personnel.
+            {t("authorityAuth", "footerLegal")}
             <br />
-            Unauthorised access is a violation of Proclamation 1320/2016.
+            {t("authorityAuth", "footerProclamation")}
           </p>
         </div>
       </div>

@@ -90,7 +90,7 @@ export default function BackendLandlordCounterSignPage() {
   if (loading) {
     return (
       <>
-        <Header title="Counter-Sign Contract" />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
         </main>
@@ -101,7 +101,7 @@ export default function BackendLandlordCounterSignPage() {
   if (!agreement) {
     return (
       <>
-        <Header title="Counter-Sign Contract" />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">Agreement not found.</p>
         </main>
@@ -112,7 +112,7 @@ export default function BackendLandlordCounterSignPage() {
   if (user?.role !== "landlord" || user.id !== agreement.landlordId) {
     return (
       <>
-        <Header title="Counter-Sign Contract" />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <p className="text-stone-500">Only the property landlord can counter-sign.</p>
         </main>
@@ -126,7 +126,7 @@ export default function BackendLandlordCounterSignPage() {
   if (!canCounterSign) {
     return (
       <>
-        <Header title="Counter-Sign Contract" />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 p-6 flex items-center justify-center">
           <div className="text-center max-w-md">
             <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
@@ -149,7 +149,7 @@ export default function BackendLandlordCounterSignPage() {
   if (submitted) {
     return (
       <>
-        <Header title="Counter-Sign Contract" />
+        <Header title={t("common", "counterSignContract")} />
         <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-emerald-50 to-white p-8">
           <div className="text-center max-w-md">
             <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
@@ -194,7 +194,7 @@ export default function BackendLandlordCounterSignPage() {
 
   return (
     <>
-      <Header title="Counter-Sign Contract" />
+      <Header title={t("common", "counterSignContract")} />
       <main className="flex-1 bg-stone-50 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link

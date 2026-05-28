@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { OnboardingRedirect } from "@/components/dashboard/onboarding-redirect";
+import { DashboardShell } from "@/components/dashboard/shell/dashboard-shell";
 import { TopNav } from "@/components/dashboard/top-nav";
 import { AuthorityNavDropdown } from "@/components/dashboard/authority-nav-dropdown";
 import { useAuth } from "@/context/auth-context";
@@ -40,23 +41,18 @@ export default function DashboardLayout({
     <div
       className={cn(
         "dashboard-shell min-h-screen",
-        authorityUi ? "bg-surface" : "bg-surface-muted"
+        authorityUi ? "bg-surface dark:bg-[#050505]" : "bg-surface-muted dark:bg-[#050505]"
       )}
     >
       <OnboardingRedirect />
       {authorityUi ? (
-        <AuthorityNavDropdown />
+        <>
+          <AuthorityNavDropdown />
+          <div className="flex flex-col min-h-screen pt-11">{children}</div>
+        </>
       ) : (
-        <TopNav />
+        <DashboardShell>{children}</DashboardShell>
       )}
-      <div
-        className={cn(
-          "flex flex-col",
-          authorityUi ? "min-h-screen pt-11" : "min-h-[calc(100vh-4rem)]"
-        )}
-      >
-        {children}
-      </div>
     </div>
   );
 }
