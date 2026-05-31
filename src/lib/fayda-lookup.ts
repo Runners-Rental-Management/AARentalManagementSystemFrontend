@@ -16,6 +16,12 @@ export interface TenantLookupResult {
 
 const FAN_REGEX = /^\d{16}$/;
 
+/** Seeded FANs for landlord tenant lookup demos. */
+export const DEMO_FAYDA_HINTS = [
+  { label: "Demo tenant A", fan: "1234567890123456" },
+  { label: "Demo tenant B", fan: "9876543210987654" },
+] as const;
+
 export async function lookupTenantByFaydaNumber(
   fan: string,
   token?: string | null,
@@ -46,8 +52,3 @@ export async function lookupTenantByFaydaNumber(
     throw error;
   }
 }
-
-/** Seeded demo tenant FAN for local testing (tenant@aarental.local). */
-export const DEMO_FAYDA_HINTS = [
-  { label: "Tigist Haile (seed tenant)", fan: "9876543210987654" },
-];

@@ -779,7 +779,8 @@ export const translations = {
       stepOtp: '2. Confirm code',
       stepDone: '3. Done',
       infoFormTitle: 'Your legal names',
-      infoFormDesc: 'Enter your names exactly as they appear on your Fayda card. The system will match them with the registry.',
+      infoFormDesc: 'Enter your names exactly as they appear on your Fayda card. Your first name and father\'s name must match the name on your account registration.',
+      infoFormAccountNames: 'On your account: {firstName} · {fatherName}',
       firstName: 'First name',
       firstNamePlaceholder: 'e.g. Selam',
       fatherName: "Father's name",
@@ -798,9 +799,9 @@ export const translations = {
       fanAlreadyRegistered: 'This Fayda number is already linked to another account.',
       otpTitle: 'Enter the 6-digit code',
       otpDesc: 'We sent a one-time verification code to',
+      demoOtpFill: 'Fill demo code',
       demoCodeHint:
         'This is a demo — no SMS is sent. The verification code is always 123456. Enter it in all six boxes (or use the button below).',
-      demoOtpFill: 'Fill demo code',
       demoFanHint:
         'Use any unique 16-digit FAN. Avoid seed demo numbers 1234567890123456 and 9876543210987654 (already used by test accounts). Example: 1111222233334444',
       expiresIn: 'Code expires in',
@@ -816,6 +817,14 @@ export const translations = {
       errInvalidFatherName: "Please enter a valid father's name.",
       errInvalidGrandfatherName: "Please enter a valid grandfather's name.",
       errInvalidFaydaNumber: 'FAN must be exactly 16 digits.',
+      nameMismatchTitle: 'Names do not match your account',
+      nameMismatchIntro:
+        'The legal names on your Fayda card must match what you used when you registered on this platform.',
+      nameMismatchFirst:
+        'First name does not match. On your account: "{expected}". You entered: "{entered}".',
+      nameMismatchFather:
+        "Father's name does not match. On your account: \"{expected}\". You entered: \"{entered}\".",
+      nameMismatchRegisteredAs: 'Registered on this account',
       errIncompleteCode: 'Please enter all 6 digits of the code.',
       errIncorrectCode: 'That code is not correct. Try again.',
       errSessionExpired: 'Your verification session expired. Please request a new code.',
@@ -1656,7 +1665,8 @@ export const translations = {
       stepOtp: '2. ኮድ ያረጋግጡ',
       stepDone: '3. ተጠናቅቋል',
       infoFormTitle: 'ሕጋዊ ስሞችዎ',
-      infoFormDesc: 'ስሞችዎን በፋይዳ መታወቂያዎ ላይ እንደተጻፉት በትክክል ያስገቡ።',
+      infoFormDesc: 'ስሞችዎን በፋይዳ መታወቂያዎ ላይ እንደተጻፉት በትክክል ያስገቡ። የመጀመሪያ ስም እና የአባት ስም ከመለያዎ መመዝገብ ጋር መዛመድ አለባቸው።',
+      infoFormAccountNames: 'በመለያዎ ላይ፡ {firstName} · {fatherName}',
       firstName: 'የመጀመሪያ ስም',
       firstNamePlaceholder: 'ምሳሌ፡ ሰላም',
       fatherName: 'የአባት ስም',
@@ -1675,9 +1685,9 @@ export const translations = {
       fanAlreadyRegistered: 'ይህ የፋይዳ ቁጥር አስቀድሞ ከሌላ መለያ ጋር ተገናኝቷል።',
       otpTitle: '6 አሃዝ ኮዱን ያስገቡ',
       otpDesc: 'የአንድ ጊዜ ኮድ ላክንልዎት ወደ',
+      demoOtpFill: 'የማሳያ ኮድ ሙላ',
       demoCodeHint:
-        'ይህ ሙከራ ነው — SMS አይላክም። የማረጋገጫ ኮዱ ሁልጊዜ 123456 ነው። በሳዎቹ ሳይስ ሳጥኖች ያስገቡ (ወይም ከታች ያለውን ቁልፍ ይጫኑ)።',
-      demoOtpFill: 'የሙከራ ኮድ ሙላ',
+        'ይህ ሙከራ ነው — SMS አይላክም። የማረጋገጫ ኮዱ ሁልጊዜ 123456 ነው። በሳዦቹ ሳይስ ሳጥኖች ያስገቡ (ወይም ከታች ያለውን ቁልፍ ይጫኑ)።',
       demoFanHint:
         'ልዩ የሆነ 16 አሃዝ FAN ይጠቀሙ። 1234567890123456 እና 9876543210987654 (የሙከራ መለያዎች) አይጠቀሙ። ምሳሌ፡ 1111222233334444',
       expiresIn: 'ኮዱ የሚያልቅበት',
@@ -1693,6 +1703,14 @@ export const translations = {
       errInvalidFatherName: 'እባክዎ ትክክለኛ የአባት ስም ያስገቡ።',
       errInvalidGrandfatherName: 'እባክዎ ትክክለኛ የአያት ስም ያስገቡ።',
       errInvalidFaydaNumber: 'FAN በትክክል 16 አሃዞች መሆን አለበት።',
+      nameMismatchTitle: 'ስሞች ከመለያዎ ጋር አይዛመዱም',
+      nameMismatchIntro:
+        'በፋይዳ መታወቂያዎ ላይ ያሉት ሕጋዊ ስሞች በዚህ መድረክ ሲመዘገቡ የተጠቀሙት ስሞች መሆን አለባቸው።',
+      nameMismatchFirst:
+        'የመጀመሪያ ስም አይዛመድም። በመለያዎ ላይ፡ "{expected}"። ያስገቡት፡ "{entered}"።',
+      nameMismatchFather:
+        'የአባት ስም አይዛመድም። በመለያዎ ላይ፡ "{expected}"። ያስገቡት፡ "{entered}"።',
+      nameMismatchRegisteredAs: 'በመለያዎ ላይ የተመዘገበ',
       errIncompleteCode: 'እባክዎ ሁሉንም 6 አሃዞች ያስገቡ።',
       errIncorrectCode: 'ኮዱ ትክክል አይደለም። እንደገና ይሞክሩ።',
       errSessionExpired: 'የማረጋገጫ ጊዜዎ አልፏል። አዲስ ኮድ ይጠይቁ።',

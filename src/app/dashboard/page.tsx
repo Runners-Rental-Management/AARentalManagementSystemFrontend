@@ -151,15 +151,6 @@ export default function DashboardPage() {
         soft: "bg-amber-50",
       },
       {
-        labelKey: "disputesChip",
-        count: myDisputes.filter((d) => !["resolved", "closed"].includes(d.status)).length,
-        countKey: "openNow",
-        href: "/dashboard/disputes",
-        icon: AlertTriangle,
-        gradient: "from-rose-500 to-pink-600",
-        soft: "bg-rose-50",
-      },
-      {
         labelKey: "documentsChip",
         count: myDocs.length,
         countKey: "uploaded",

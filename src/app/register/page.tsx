@@ -141,11 +141,13 @@ function RegisterPageInner() {
       }, "Creating your account…");
 
       if (selectedProperty && selectedRole === "tenant") {
-        router.push(`/dashboard/verify-fayda?propertyId=${selectedProperty.id}`);
+        router.push(
+          `/dashboard/verify-fayda?from=register&propertyId=${selectedProperty.id}`,
+        );
         return;
       }
       if (selectedRole === "tenant" || selectedRole === "landlord") {
-        router.push("/dashboard/verify-fayda");
+        router.push("/dashboard/verify-fayda?from=register");
         return;
       }
       router.push("/dashboard");

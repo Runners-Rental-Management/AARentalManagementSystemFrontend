@@ -54,8 +54,11 @@ export function formatErrorForUser(
   if (lower.includes("fayda number is already registered")) {
     return { title, message: t("fayda", "fanAlreadyRegistered") };
   }
-  if (lower.includes("incorrect verification code")) {
+  if (lower.includes("incorrect verification cod`e")) {
     return { title, message: t("fayda", "errIncorrectCode") };
+  }
+  if (lower.includes("fayda names do not match")) {
+    return { title: t("fayda", "nameMismatchTitle"), message: t("fayda", "nameMismatchIntro") };
   }
 
   return { title, message: raw };

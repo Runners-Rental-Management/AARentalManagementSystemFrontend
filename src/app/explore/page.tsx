@@ -227,10 +227,6 @@ export default function ExplorePage() {
       router.push(`/register?role=tenant&propertyId=${propertyId}`);
       return;
     }
-    if (!user?.faydaVerified) {
-      router.push(`/dashboard/verify-fayda?propertyId=${propertyId}`);
-      return;
-    }
     router.push(`/dashboard/properties/${propertyId}`);
   };
 

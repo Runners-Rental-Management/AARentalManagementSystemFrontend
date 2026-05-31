@@ -73,12 +73,12 @@ const navItems = [
     roles: ["landlord", "tenant"],
   },
 
-  // -- Tenant & Landlord: Report Violation / Track Dispute Status --
+  // -- Landlord: Report Violation / Track Dispute Status --
   {
     labelKey: "disputes",
     href: "/dashboard/disputes",
     icon: AlertTriangle,
-    roles: ["landlord", "tenant"],
+    roles: ["landlord"],
   },
 
   // -- Landlord: Request Rent Adjustment --

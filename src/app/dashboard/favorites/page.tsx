@@ -56,10 +56,6 @@ export default function FavoritesPage() {
       router.push(`/register?role=tenant&propertyId=${id}`);
       return;
     }
-    if (!user?.faydaVerified) {
-      router.push(`/dashboard/verify-fayda?propertyId=${id}`);
-      return;
-    }
     router.push(`/dashboard/properties/${id}`);
   };
 

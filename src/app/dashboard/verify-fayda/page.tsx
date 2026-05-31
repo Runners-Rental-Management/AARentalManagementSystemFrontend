@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -25,6 +25,11 @@ import {
   type FaydaPersonalInfo,
   type FaydaRequestResult,
 } from "@/lib/fayda-api";
+import {
+  compareFaydaNamesToAccount,
+  formatNameMismatchMessage,
+  getRegisteredNameSnapshot,
+} from "@/lib/fayda-account-name";
 import { formatErrorForUser, getErrorMessage } from "@/lib/api-error";
 import { resolvePostFaydaPath } from "@/lib/onboarding-paths";
 
@@ -39,6 +44,7 @@ function VerifyFaydaInner() {
   const { user, applyFaydaVerification } = useAuth();
   const { withLoading } = useLoading();
 
+  const fromRegistration = searchParams.get("from") === "register";
   const propertyId = searchParams.get("propertyId");
   const nextHref = useMemo(() => {
     if (propertyId && user?.role === "tenant") {
@@ -60,7 +66,7 @@ function VerifyFaydaInner() {
 
   const [info, setInfo] = useState<FaydaPersonalInfo>({
     firstName: user?.firstName ?? "",
-    fatherName: user?.fatherName ?? "",
+    fatherName: user?.fatherName ?? user?.lastName ?? "",
     grandfatherName: user?.grandfatherName ?? "",
     faydaNumber: user?.faydaNumber ?? "",
   });
@@ -72,6 +78,41 @@ function VerifyFaydaInner() {
   const [code, setCode] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [secondsLeft, setSecondsLeft] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const registeredNames = useMemo(
+    () => (user ? getRegisteredNameSnapshot(user) : null),
+    [user],
+  );
+
+  const nameMismatches = useMemo(() => {
+    if (!user) return [];
+    return compareFaydaNamesToAccount(info, user);
+  }, [info, user]);
+
+  const assertAccountNamesMatch = useCallback((): boolean => {
+    if (!user) return true;
+    const mismatches = compareFaydaNamesToAccount(info, user);
+    if (mismatches.length === 0) {
+      return true;
+    }
+    setError(formatNameMismatchMessage(mismatches, (key) => t("fayda", key)));
+    return false;
+  }, [info, user, t]);
+
+  /** Fayda verification is only shown during registration, not after login. */
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+    if (user.faydaVerified) {
+      router.replace(nextHref);
+      return;
+    }
+    if (!fromRegistration) {
+      router.replace("/dashboard");
+    }
+  }, [user, user?.faydaVerified, fromRegistration, router, nextHref]);
 
   useEffect(() => {
     if (step !== "otp" || secondsLeft <= 0) return;
@@ -93,6 +134,7 @@ function VerifyFaydaInner() {
   const handleSubmitInfo = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!assertAccountNamesMatch()) return;
     setSubmitting(true);
     try {
       await withLoading(async () => {
@@ -148,6 +190,7 @@ function VerifyFaydaInner() {
     e.preventDefault();
     if (!request) return;
     setError(null);
+    if (!assertAccountNamesMatch()) return;
     const fullCode = code.join("");
     if (fullCode.length !== OTP_LENGTH) {
       setError(t("fayda", "errIncompleteCode"));
@@ -171,6 +214,7 @@ function VerifyFaydaInner() {
 
   const handleResend = async () => {
     setError(null);
+    if (!assertAccountNamesMatch()) return;
     setSubmitting(true);
     try {
       await withLoading(async () => {
@@ -191,6 +235,18 @@ function VerifyFaydaInner() {
     1,
     "0"
   )}:${String(secondsLeft % 60).padStart(2, "0")}`;
+
+  if (
+    !user ||
+    user.faydaVerified ||
+    !fromRegistration
+  ) {
+    return (
+      <main className="flex-1 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 bg-gradient-to-br from-slate-50 via-white to-primary-50/40">
@@ -304,19 +360,46 @@ function VerifyFaydaInner() {
             <p className="text-sm text-slate-600">
               {t("fayda", "infoFormDesc")}
             </p>
+            {registeredNames && (
+              <p className="text-sm text-slate-700 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                {t("fayda", "infoFormAccountNames")
+                  .replace("{firstName}", registeredNames.firstName)
+                  .replace("{fatherName}", registeredNames.fatherName)}
+              </p>
+            )}
+
+            {nameMismatches.length > 0 && (
+              <div
+                role="alert"
+                className="rounded-xl border border-amber-300 bg-amber-50 text-amber-950 px-4 py-3 text-sm space-y-1"
+              >
+                <p className="font-semibold">{t("fayda", "nameMismatchTitle")}</p>
+                <p className="text-xs leading-relaxed">
+                  {formatNameMismatchMessage(nameMismatches, (key) =>
+                    t("fayda", key),
+                  )}
+                </p>
+              </div>
+            )}
 
             <div className="grid sm:grid-cols-3 gap-4">
               <Field
                 label={t("fayda", "firstName")}
                 value={info.firstName}
-                onChange={(v) => setInfo({ ...info, firstName: v })}
+                onChange={(v) => {
+                  setInfo({ ...info, firstName: v });
+                  setError(null);
+                }}
                 placeholder={t("fayda", "firstNamePlaceholder")}
                 required
               />
               <Field
                 label={t("fayda", "fatherName")}
                 value={info.fatherName}
-                onChange={(v) => setInfo({ ...info, fatherName: v })}
+                onChange={(v) => {
+                  setInfo({ ...info, fatherName: v });
+                  setError(null);
+                }}
                 placeholder={t("fayda", "fatherNamePlaceholder")}
                 required
               />
@@ -356,7 +439,7 @@ function VerifyFaydaInner() {
               <p className="mt-1.5 text-xs text-slate-500">
                 {t("fayda", "faydaNumberHint")}
               </p>
-              <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
+              <p className="mt-2 text-xs text-slate-500">
                 {t("fayda", "demoFanHint")}
               </p>
             </div>
@@ -369,7 +452,7 @@ function VerifyFaydaInner() {
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || nameMismatches.length > 0}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
               {submitting ? (
@@ -409,12 +492,12 @@ function VerifyFaydaInner() {
               </span>
             </p>
 
-            <div className="rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-3 py-3 mt-4 space-y-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 text-slate-700 px-3 py-3 mt-4 space-y-2">
               <p className="text-xs leading-relaxed">{t("fayda", "demoCodeHint")}</p>
               <button
                 type="button"
                 onClick={fillDemoOtp}
-                className="text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-950"
+                className="text-xs font-semibold text-primary-700 underline underline-offset-2 hover:text-primary-800"
               >
                 {t("fayda", "demoOtpFill")} ({FAYDA_DEMO_CODE})
               </button>

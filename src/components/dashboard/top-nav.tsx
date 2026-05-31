@@ -53,7 +53,6 @@ function toNavRole(role: string | undefined): NavRole {
 const ALL_ITEMS: NavItem[] = [
   { labelKey: "favorites", href: "/dashboard/favorites", icon: Heart, roles: ["tenant"] },
   { labelKey: "myAgreements", href: "/dashboard/agreements", icon: FileText, roles: ["tenant"] },
-  { labelKey: "disputes", href: "/dashboard/disputes", icon: AlertTriangle, roles: ["tenant"] },
   { labelKey: "payments", href: "/dashboard/payments", icon: CreditCard, roles: ["tenant"] },
   { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["dara_agent", "admin"] },
   { labelKey: "userManagement", href: "/dashboard/admin/users", icon: Users, roles: ["admin"] },
@@ -68,7 +67,7 @@ const ALL_ITEMS: NavItem[] = [
 
 // Per-role primary nav shown inline ("More" holds analytics & extras for authority)
 const PRIMARY: Record<string, string[]> = {
-  tenant: ["favorites", "myAgreements", "payments", "disputes"],
+  tenant: ["favorites", "myAgreements", "payments"],
   admin: ["userManagement", "systemParameters", "auditLogs", "rolesPermissions"],
   dara_agent: ["verifyAgreements", "reviewViolations", "approveRentAdjustment", "penaltyNotices"],
 };

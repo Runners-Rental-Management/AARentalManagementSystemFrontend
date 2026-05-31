@@ -115,21 +115,6 @@ function LoginPageInner() {
         return login({ role: selectedRole, email, password });
       }, "Signing in…");
 
-      const needsFayda =
-        (signedInUser.role === "tenant" || signedInUser.role === "landlord") &&
-        !signedInUser.faydaVerified;
-
-      if (needsFayda) {
-        if (selectedProperty && signedInUser.role === "tenant") {
-          router.push(
-            `/dashboard/verify-fayda?propertyId=${selectedProperty.id}`,
-          );
-        } else {
-          router.push("/dashboard/verify-fayda");
-        }
-        return;
-      }
-
       if (selectedProperty && signedInUser.role === "tenant") {
         router.push(`/dashboard/properties/${selectedProperty.id}`);
         return;

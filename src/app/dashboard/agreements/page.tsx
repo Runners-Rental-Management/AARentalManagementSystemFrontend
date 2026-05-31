@@ -802,7 +802,7 @@ export default function AgreementsPage() {
     ? extensionRequests.filter((e) => e.tenantId === userId && e.status === "pending_tenant_sign")
     : [];
 
-  const showNewAgreementButton = role === "landlord" || role === "tenant";
+  const showNewAgreementButton = role === "landlord";
   const totalCount = liveFiltered.length + staticFiltered.length;
 
   return (

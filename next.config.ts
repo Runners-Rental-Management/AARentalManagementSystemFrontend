@@ -6,7 +6,7 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const backendProxyTarget =
   process.env.BACKEND_PROXY_TARGET?.replace(/\/$/, "") ??
-  "http://127.0.0.1:3000";
+  "http://127.0.0.1:3001";
 
 const nextConfig: NextConfig = {
   turbopack: {

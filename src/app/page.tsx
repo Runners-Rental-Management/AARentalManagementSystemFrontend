@@ -35,14 +35,14 @@ export default function LandingPage() {
               </span>
             </Link>
 
-            <div className="flex flex-1 items-center justify-center md:absolute md:left-1/2 md:-translate-x-1/2">
+            {/* <div className="flex flex-1 items-center justify-center md:absolute md:left-1/2 md:-translate-x-1/2">
               <Link
                 href="/explore"
                 className="text-sm text-slate-700 hover:text-primary-600 transition-colors font-semibold px-4 py-2 rounded-full hover:bg-primary-50"
               >
                 {t("landing", "explore")}
               </Link>
-            </div>
+            </div> */}
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <button

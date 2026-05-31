@@ -4,15 +4,12 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { useProperties } from "@/context/properties-context";
-import {
-  isFaydaOnboardingPath,
-  isLandlordPropertyOnboardingPath,
-} from "@/lib/onboarding-paths";
+import { isLandlordPropertyOnboardingPath } from "@/lib/onboarding-paths";
 
 /**
- * Redirects tenant/landlord users through required onboarding:
- * 1. Fayda (FAN) verification
- * 2. Landlords: at least one registered property
+ * Redirects landlords without a property to register their first listing.
+ * Fayda verification runs on /dashboard/verify-fayda after signup (must stay
+ * allowlisted here so landlords are not bounced to property register first).
  */
 export function OnboardingRedirect() {
   const { user, isAuthenticated } = useAuth();
@@ -23,18 +20,7 @@ export function OnboardingRedirect() {
   useEffect(() => {
     if (!isAuthenticated || !user) return;
 
-    const role = user.role;
-    if (role !== "tenant" && role !== "landlord") return;
-
-    if (!user.faydaVerified) {
-      if (!isFaydaOnboardingPath(pathname)) {
-        const next = encodeURIComponent(pathname);
-        router.replace(`/dashboard/verify-fayda?next=${next}`);
-      }
-      return;
-    }
-
-    if (role === "landlord") {
+    if (user.role === "landlord") {
       if (isLoading) return;
       const hasProperty = userProperties.some((p) => p.landlordId === user.id);
       if (!hasProperty && !isLandlordPropertyOnboardingPath(pathname)) {
