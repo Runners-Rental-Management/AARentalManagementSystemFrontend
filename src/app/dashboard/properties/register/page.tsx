@@ -205,7 +205,7 @@ export default function RegisterPropertyPage() {
       <main className="flex-1 p-6 overflow-y-auto">
         <Link
           href="/dashboard/properties"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary-600 mb-4"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary-600 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
           {t("properties", "backToProperties")}
@@ -222,39 +222,39 @@ export default function RegisterPropertyPage() {
               </p>
             </div>
           )}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900 mb-1">{t("properties", "registerNew")}</h2>
-            <p className="text-sm text-slate-500 mb-2">{t("properties", "registerDesc")}</p>
-            <p className="text-xs text-slate-500 leading-relaxed border-l-2 border-primary-200 pl-3 mb-6">
+          <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-stone-900 mb-1">{t("properties", "registerNew")}</h2>
+            <p className="text-sm text-stone-500 mb-2">{t("properties", "registerDesc")}</p>
+            <p className="text-xs text-stone-500 leading-relaxed border-l-2 border-primary-200 pl-3 mb-6">
               {t("properties", "registerBenchmarkFootnote")}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   {t("properties", "basicInfo")}
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       {t("properties", "propertyTitle")}
                     </label>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                       placeholder={t("properties", "propertyTitle")}
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       {t("properties", "propertyType")}
                     </label>
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType((e.target.value || "") as PropertyType | "")}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     >
                       <option value="">{t("properties", "selectType")}</option>
                       {PROPERTY_TYPES.map((pt) => (
@@ -263,7 +263,7 @@ export default function RegisterPropertyPage() {
                         </option>
                       ))}
                     </select>
-                    <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    <p className="text-[11px] text-stone-500 mt-1.5 leading-relaxed">
                       Choose a clear title and property type so tenants can find your listing easily.
                     </p>
                   </div>
@@ -271,29 +271,29 @@ export default function RegisterPropertyPage() {
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   {t("properties", "location")}
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       {t("properties", "streetAddress")}
                     </label>
                     <input
                       type="text"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       {t("properties", "subCity")}
                     </label>
                     <select
                       value={subCity}
                       onChange={(e) => setSubCity(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     >
                       <option value="">{t("properties", "selectSubCity")}</option>
                       {SUB_CITIES.map((sc) => (
@@ -304,12 +304,12 @@ export default function RegisterPropertyPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "woreda")}</label>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">{t("properties", "woreda")}</label>
                     <input
                       type="text"
                       value={woreda}
                       onChange={(e) => setWoreda(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                       placeholder="03"
                     />
                   </div>
@@ -317,43 +317,43 @@ export default function RegisterPropertyPage() {
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   {t("properties", "propertyDetails")}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "bedrooms")}</label>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">{t("properties", "bedrooms")}</label>
                     <input
                       type="number"
                       min={0}
                       value={bedrooms}
                       onChange={(e) => setBedrooms(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "bathrooms")}</label>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">{t("properties", "bathrooms")}</label>
                     <input
                       type="number"
                       min={0}
                       value={bathrooms}
                       onChange={(e) => setBathrooms(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "area")} (m²)</label>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">{t("properties", "area")} (m²)</label>
                     <input
                       type="number"
                       min={1}
                       value={area}
                       onChange={(e) => setArea(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                   </div>
                 </div>
                 <div className="mt-4 sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-stone-700 mb-1">
                     {t("properties", "homeCondition")}
                   </label>
                   <select
@@ -361,7 +361,7 @@ export default function RegisterPropertyPage() {
                     onChange={(e) =>
                       setHomeCondition(e.target.value as HomeCondition)
                     }
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                   >
                     {HOME_CONDITION_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -369,7 +369,7 @@ export default function RegisterPropertyPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                  <p className="text-[11px] text-stone-500 mt-1.5 leading-relaxed">
                     {t("properties", "homeConditionHint")}
                   </p>
                 </div>
@@ -377,19 +377,19 @@ export default function RegisterPropertyPage() {
 
               {/* ── Monthly rent ── */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   Monthly Rent
                 </h3>
                 <div className="max-w-md mx-auto">
                   <label
                     htmlFor="monthly-rent"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-stone-700 mb-2"
                   >
                     Set your monthly rent
                   </label>
-                  <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20">
+                  <div className="rounded-xl border border-stone-200 bg-white shadow-sm overflow-hidden transition-all focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20">
                     <div className="flex items-center gap-3 px-4 py-3.5">
-                      <span className="text-sm font-semibold text-slate-400 shrink-0">
+                      <span className="text-sm font-semibold text-stone-400 shrink-0">
                         ETB
                       </span>
                       <input
@@ -403,38 +403,38 @@ export default function RegisterPropertyPage() {
                           setMonthlyRent(Number.isFinite(n) && n > 0 ? n : 0);
                         }}
                         placeholder="0"
-                        className="flex-1 min-w-0 text-2xl font-bold text-slate-900 bg-transparent outline-none tabular-nums placeholder:text-slate-300"
+                        className="flex-1 min-w-0 text-2xl font-bold text-stone-900 bg-transparent outline-none tabular-nums placeholder:text-stone-300"
                       />
-                      <span className="text-sm font-medium text-slate-500 shrink-0">
+                      <span className="text-sm font-medium text-stone-500 shrink-0">
                         / month
                       </span>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  <p className="text-xs text-stone-500 mt-2 leading-relaxed">
                     Enter the amount you want to charge tenants each month.
                   </p>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   {t("properties", "propertyPhotos")}
                 </h3>
-                <p className="text-xs text-slate-500 mb-4">{t("properties", "propertyPhotosDesc")}</p>
+                <p className="text-xs text-stone-500 mb-4">{t("properties", "propertyPhotosDesc")}</p>
                 <div className="grid sm:grid-cols-3 gap-4">
                   {[0, 1, 2].map((i) => (
-                    <div key={i} className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50">
-                      <div className="aspect-[4/3] relative bg-slate-200">
+                    <div key={i} className="rounded-xl border border-stone-200 overflow-hidden bg-stone-50">
+                      <div className="aspect-[4/3] relative bg-stone-200">
                         {photoPreviews[i] ? (
                           <img src={photoPreviews[i]!} alt="" className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-2 text-center">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-400 p-2 text-center">
                             <ImageIcon className="w-8 h-8 mb-1 opacity-60" />
-                            <span className="text-[10px] font-medium text-slate-500 leading-tight">{photoLabels[i]}</span>
+                            <span className="text-[10px] font-medium text-stone-500 leading-tight">{photoLabels[i]}</span>
                           </div>
                         )}
                       </div>
-                      <div className="p-2 border-t border-slate-100 bg-white">
+                      <div className="p-2 border-t border-stone-100 bg-white">
                         <label className="cursor-pointer">
                           <span className="inline-flex items-center justify-center gap-1 w-full py-2 text-xs font-semibold text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
                             <Upload className="w-3.5 h-3.5" />
@@ -457,7 +457,7 @@ export default function RegisterPropertyPage() {
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   {t("properties", "amenities")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -469,7 +469,7 @@ export default function RegisterPropertyPage() {
                       className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
                         selectedAmenities.includes(amenity)
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                          : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
                       }`}
                     >
                       {amenity}
@@ -479,27 +479,27 @@ export default function RegisterPropertyPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">{t("properties", "description")}</label>
+                <label className="block text-sm font-medium text-stone-700 mb-1">{t("properties", "description")}</label>
                 <textarea
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   minLength={MIN_DESCRIPTION}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm resize-none"
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-stone-500 mt-1">
                   {t("properties", "descriptionHint")} ({description.trim().length}/{MIN_DESCRIPTION})
                 </p>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   {t("properties", "ownershipProofTitle")}
                 </h3>
-                <p className="text-xs text-slate-600 mb-3">{t("properties", "ownershipProofDesc")}</p>
-                <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center bg-slate-50/50">
-                  <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500 mb-3">{t("properties", "ownershipProofHint")}</p>
+                <p className="text-xs text-stone-600 mb-3">{t("properties", "ownershipProofDesc")}</p>
+                <div className="border-2 border-dashed border-stone-300 rounded-xl p-6 text-center bg-stone-50/50">
+                  <Upload className="w-8 h-8 text-stone-400 mx-auto mb-2" />
+                  <p className="text-xs text-stone-500 mb-3">{t("properties", "ownershipProofHint")}</p>
                   <label className="inline-flex items-center gap-1.5 text-sm text-primary-600 font-medium hover:text-primary-700 cursor-pointer">
                     <Plus className="w-4 h-4" />
                     {t("properties", "browseFiles")}
@@ -517,9 +517,9 @@ export default function RegisterPropertyPage() {
                     {ownershipFiles.map((f, idx) => (
                       <li
                         key={`${f.name}-${idx}`}
-                        className="flex items-center justify-between text-sm bg-white border border-slate-200 rounded-lg px-3 py-2"
+                        className="flex items-center justify-between text-sm bg-white border border-stone-200 rounded-lg px-3 py-2"
                       >
-                        <span className="truncate text-slate-700">{f.name}</span>
+                        <span className="truncate text-stone-700">{f.name}</span>
                         <button
                           type="button"
                           onClick={() => removeOwnership(idx)}
@@ -538,13 +538,13 @@ export default function RegisterPropertyPage() {
 
               {submitError && <p className="text-sm text-rose-600">{submitError}</p>}
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-stone-100">
                 {submitDisabled && (
-                  <p className="text-xs text-slate-500 sm:mr-auto">{t("properties", "submitBlocked")}</p>
+                  <p className="text-xs text-stone-500 sm:mr-auto">{t("properties", "submitBlocked")}</p>
                 )}
                 <Link
                   href="/dashboard/properties"
-                  className="px-5 py-2.5 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-center"
+                  className="px-5 py-2.5 text-sm font-medium text-stone-600 border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors text-center"
                 >
                   {t("properties", "cancel")}
                 </Link>

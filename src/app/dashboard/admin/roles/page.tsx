@@ -53,7 +53,7 @@ const PERM_MATRIX: Record<Role, Record<string, PermValue>> = {
 function PermIcon({ value }: { value: PermValue }) {
   if (value === "no") {
     return (
-      <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-slate-100 text-slate-400">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-stone-100 text-stone-400">
         <X className="w-3.5 h-3.5" />
       </span>
     );
@@ -85,16 +85,16 @@ export default function RolesPage() {
       <Header title={t("admin", "rolesPermissions")} />
       <main className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-5xl mx-auto space-y-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-white rounded-xl border border-stone-200 p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
                 <Shield className="w-5 h-5 text-primary-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-lg font-semibold text-stone-900">
                   {t("admin", "rolesPermissions")}
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-stone-500">
                   Tenant, landlord, and authority admin capabilities
                 </p>
               </div>
@@ -103,14 +103,14 @@ export default function RolesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 font-medium text-slate-500">
+                  <tr className="border-b border-stone-200">
+                    <th className="text-left py-3 px-4 font-medium text-stone-500">
                       Permission
                     </th>
                     {ROLES.map((role) => (
-                      <th key={role} className="text-center py-3 px-4 font-medium text-slate-500">
+                      <th key={role} className="text-center py-3 px-4 font-medium text-stone-500">
                         {t("roles", role)}
-                        <span className="block text-xs font-normal text-slate-400">
+                        <span className="block text-xs font-normal text-stone-400">
                           ({roleCounts.find((r) => r.role === role)?.count ?? 0})
                         </span>
                       </th>
@@ -119,8 +119,8 @@ export default function RolesPage() {
                 </thead>
                 <tbody>
                   {PERMISSIONS.map((perm) => (
-                    <tr key={perm.key} className="border-b border-slate-100">
-                      <td className="py-3 px-4 text-slate-700">
+                    <tr key={perm.key} className="border-b border-stone-100">
+                      <td className="py-3 px-4 text-stone-700">
                         {t("admin", perm.labelKey)}
                       </td>
                       {ROLES.map((role) => (

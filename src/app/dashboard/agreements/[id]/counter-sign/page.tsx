@@ -92,7 +92,7 @@ export default function BackendLandlordCounterSignPage() {
       <>
         <Header title="Counter-Sign Contract" />
         <main className="flex-1 p-6 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
         </main>
       </>
     );
@@ -103,7 +103,7 @@ export default function BackendLandlordCounterSignPage() {
       <>
         <Header title="Counter-Sign Contract" />
         <main className="flex-1 p-6 flex items-center justify-center">
-          <p className="text-slate-500">Agreement not found.</p>
+          <p className="text-stone-500">Agreement not found.</p>
         </main>
       </>
     );
@@ -114,7 +114,7 @@ export default function BackendLandlordCounterSignPage() {
       <>
         <Header title="Counter-Sign Contract" />
         <main className="flex-1 p-6 flex items-center justify-center">
-          <p className="text-slate-500">Only the property landlord can counter-sign.</p>
+          <p className="text-stone-500">Only the property landlord can counter-sign.</p>
         </main>
       </>
     );
@@ -130,7 +130,7 @@ export default function BackendLandlordCounterSignPage() {
         <main className="flex-1 p-6 flex items-center justify-center">
           <div className="text-center max-w-md">
             <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-            <p className="text-slate-700 font-medium">
+            <p className="text-stone-700 font-medium">
               This agreement is not awaiting your counter-signature.
             </p>
             <Link
@@ -155,10 +155,10 @@ export default function BackendLandlordCounterSignPage() {
             <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            <h2 className="text-2xl font-bold text-stone-900 mb-2">
               Counter-Signature Recorded!
             </h2>
-            <p className="text-slate-600">
+            <p className="text-stone-600">
               Your e-signature has been recorded. The agreement has been forwarded to
               DARA for verification.
             </p>
@@ -195,11 +195,11 @@ export default function BackendLandlordCounterSignPage() {
   return (
     <>
       <Header title="Counter-Sign Contract" />
-      <main className="flex-1 bg-slate-50 overflow-y-auto">
+      <main className="flex-1 bg-stone-50 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link
             href={`/dashboard/agreements/${agreementId}`}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-primary-700 mb-6"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-primary-700 mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to agreement
@@ -210,36 +210,36 @@ export default function BackendLandlordCounterSignPage() {
               <FileSignature className="w-4 h-4" />
               Landlord Counter-Signature
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900">
               {agreement.propertyTitle}
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-stone-500 text-sm mt-1">
               {agreement.tenantName} has signed. Read the contract and apply your
               e-signature to counter-sign.
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-6">
             <div className="px-6 pt-3 pb-1">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-slate-500 flex items-center gap-1">
+                <span className="text-xs text-stone-500 flex items-center gap-1">
                   <BookOpen className="w-3.5 h-3.5" />
                   Reading progress
                 </span>
                 <span
-                  className={`text-xs font-semibold ${hasReadContract ? "text-emerald-600" : "text-slate-400"}`}
+                  className={`text-xs font-semibold ${hasReadContract ? "text-emerald-600" : "text-stone-400"}`}
                 >
                   {hasReadContract ? "✓ Read" : `${scrollPct}%`}
                 </span>
               </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${hasReadContract ? "bg-emerald-500" : "bg-primary-500"}`}
                   style={{ width: `${scrollPct}%` }}
                 />
               </div>
               {!hasReadContract && (
-                <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                <p className="text-[10px] text-stone-400 mt-1 flex items-center gap-1">
                   <ChevronDown className="w-3 h-3 animate-bounce" />
                   Scroll to the end of the contract to unlock signing
                 </p>
@@ -270,41 +270,41 @@ export default function BackendLandlordCounterSignPage() {
           </div>
 
           {!hasReadContract ? (
-            <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-              <LockKeyhole className="w-7 h-7 text-slate-400 mx-auto mb-2" />
-              <p className="font-semibold text-slate-700">Signing section locked</p>
-              <p className="text-sm text-slate-500 mt-1">
+            <div className="rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 p-8 text-center">
+              <LockKeyhole className="w-7 h-7 text-stone-400 mx-auto mb-2" />
+              <p className="font-semibold text-stone-700">Signing section locked</p>
+              <p className="text-sm text-stone-500 mt-1">
                 Scroll through the full contract to unlock counter-signing.
               </p>
             </div>
           ) : (
             <>
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 mb-6">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center">
                     <Pen className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base">{ct("eSignTitle")}</h3>
-                    <p className="text-xs text-slate-500">{ct("eSignDraw")}</p>
+                    <h3 className="font-bold text-stone-900 text-base">{ct("eSignTitle")}</h3>
+                    <p className="text-xs text-stone-500">{ct("eSignDraw")}</p>
                   </div>
                 </div>
                 <SignaturePad canvasRef={canvasRef} onSigned={setHasSig} />
-                <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-start gap-3 text-xs text-slate-600">
+                <div className="mt-5 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 flex items-start gap-3 text-xs text-stone-600">
                   <ShieldCheck className="w-4 h-4 text-primary-600 shrink-0 mt-0.5" />
                   <span>{ct("eSignLegal")}</span>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6">
                 <label className="flex items-start gap-3 cursor-pointer mb-6">
                   <input
                     type="checkbox"
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-slate-300 text-primary-600"
+                    className="mt-1 w-4 h-4 rounded border-stone-300 text-primary-600"
                   />
-                  <span className="text-sm text-slate-700 leading-relaxed">
+                  <span className="text-sm text-stone-700 leading-relaxed">
                     I have reviewed the tenant&apos;s signature and agree to counter-sign
                     this agreement for DARA verification.
                   </span>
@@ -319,7 +319,7 @@ export default function BackendLandlordCounterSignPage() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link
                     href={`/dashboard/agreements/${agreementId}`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-stone-300 text-stone-700 font-semibold hover:bg-stone-50"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     {ct("cancel")}
@@ -327,7 +327,7 @@ export default function BackendLandlordCounterSignPage() {
                   <button
                     onClick={handleSubmit}
                     disabled={!agreed || !hasSig || submitting}
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 text-white font-semibold px-6 py-3 rounded-xl"
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-300 text-white font-semibold px-6 py-3 rounded-xl"
                   >
                     {submitting ? (
                       <>

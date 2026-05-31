@@ -88,7 +88,7 @@ export function SignaturePad({
 
   return (
     <div className="space-y-2">
-      <div className="relative rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 overflow-hidden">
+      <div className="relative rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 overflow-hidden">
         <canvas
           ref={canvasRef}
           width={700}
@@ -103,8 +103,8 @@ export function SignaturePad({
           onTouchEnd={endDraw}
         />
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none">
-          <div className="w-48 h-px bg-slate-300" />
-          <p className="text-center text-[10px] text-slate-400 mt-0.5 tracking-wide">
+          <div className="w-48 h-px bg-stone-300" />
+          <p className="text-center text-[10px] text-stone-400 mt-0.5 tracking-wide">
             SIGN HERE
           </p>
         </div>
@@ -113,14 +113,14 @@ export function SignaturePad({
         <button
           type="button"
           onClick={clear}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-rose-600 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-rose-600 transition-colors"
         >
           <Eraser className="w-3.5 h-3.5" /> Clear
         </button>
         <button
           type="button"
           onClick={exportSig}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary-600 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-primary-600 transition-colors"
         >
           <Download className="w-3.5 h-3.5" /> Export as PNG
         </button>

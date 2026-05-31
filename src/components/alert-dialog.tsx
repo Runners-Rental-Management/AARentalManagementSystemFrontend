@@ -26,7 +26,7 @@ export function AlertDialog({ open, title, message, onClose }: AlertDialogProps)
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4" role="presentation">
       <button
         type="button"
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm"
         aria-label="Close dialog"
         onClick={onClose}
       />
@@ -35,30 +35,30 @@ export function AlertDialog({ open, title, message, onClose }: AlertDialogProps)
         aria-modal="true"
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-message"
-        className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl"
+        className="relative w-full max-w-md rounded-xl border border-stone-200 bg-white shadow-xl"
       >
         <div className="flex items-start gap-3 p-5">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
             <AlertCircle className="h-5 w-5 text-red-600" aria-hidden />
           </div>
           <div className="min-w-0 flex-1 pt-0.5">
-            <h2 id="alert-dialog-title" className="text-base font-semibold text-slate-900">
+            <h2 id="alert-dialog-title" className="text-base font-semibold text-stone-900">
               {title}
             </h2>
-            <p id="alert-dialog-message" className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+            <p id="alert-dialog-message" className="mt-1.5 text-sm text-stone-600 leading-relaxed">
               {message}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex justify-end border-t border-slate-100 px-5 py-3">
+        <div className="flex justify-end border-t border-stone-100 px-5 py-3">
           <button
             type="button"
             onClick={onClose}

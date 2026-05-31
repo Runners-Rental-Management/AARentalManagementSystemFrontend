@@ -32,23 +32,23 @@ export function ContractBody({
   paymentDeadlineDay,
 }: ContractBodyProps) {
   const isAm = locale === "am";
-  const cl = "font-semibold text-slate-900 border-b border-primary-300 pb-px";
+  const cl = "font-semibold text-stone-900 border-b border-primary-300 pb-px";
   const gap = "my-5";
-  const secTitle = "font-bold text-slate-900 mt-7 mb-3 text-base";
-  const clause = "mb-2 text-slate-700 leading-relaxed";
+  const secTitle = "font-bold text-stone-900 mt-7 mb-3 text-base";
+  const clause = "mb-2 text-stone-700 leading-relaxed";
 
   return (
-    <div className="font-[Georgia,serif] text-sm leading-7 text-slate-800 space-y-1 px-1">
+    <div className="font-[Georgia,serif] text-sm leading-7 text-stone-800 space-y-1 px-1">
       {/* Header */}
       <div className="text-center space-y-1 mb-6">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-stone-500">
           ቀን፡ <span className={cl}>{today}</span>
         </p>
-        <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+        <h2 className="text-xl font-bold text-stone-900 tracking-tight">
           የመኖሪያ ቤት ኪራይ ሞዴል ውል
         </h2>
         {!isAm && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-stone-500">
             (Residential Rental Agreement — Proclamation No. 1320/2016)
           </p>
         )}
@@ -99,7 +99,7 @@ export function ContractBody({
           የመኖሪያ ቤት ኪራይ ዉል ስምምነት ተዋውለናል።
         </p>
         {!isAm && (
-          <p className="text-xs text-slate-500 italic mb-2">
+          <p className="text-xs text-stone-500 italic mb-2">
             (The landlord agrees to rent the above property at{" "}
             <strong>{monthlyRent} ETB/month</strong> for{" "}
             <strong>{leaseDuration} year(s)</strong>, and the tenant agrees to rent at this price.)
@@ -114,7 +114,7 @@ export function ContractBody({
           ክፍያ ተከራይ ይሆናል።
         </p>
         {!isAm && (
-          <p className="text-xs text-slate-500 italic mb-2">
+          <p className="text-xs text-stone-500 italic mb-2">
             (Water, phone, electricity, security, cleaning and other service fees
             are the tenant&apos;s responsibility.)
           </p>
@@ -133,7 +133,7 @@ export function ContractBody({
           በየዓመቱ የሚያደርገውን ዋጋ ማሻሻያ መሰረት በማድረግ ብቻ ይሆናል።
         </p>
         {!isAm && (
-          <p className="text-xs text-slate-500 italic mb-2">
+          <p className="text-xs text-stone-500 italic mb-2">
             (The landlord may only increase rent in accordance with the annual adjustment set by the regulatory body under Proclamation 1320/2016.)
           </p>
         )}
@@ -158,7 +158,7 @@ export function ContractBody({
           ተስማምቻለሁ።
         </p>
         {!isAm && (
-          <p className="text-xs text-slate-500 italic mb-2">
+          <p className="text-xs text-stone-500 italic mb-2">
             (Advance payment of <strong>{advanceMonths} month(s)</strong> — ETB {advanceAmount} paid today.
             Monthly rent is due by the <strong>{paymentDeadlineDay}th</strong> of each month.)
           </p>
@@ -177,7 +177,7 @@ export function ContractBody({
           ዘዴ ብቻ ነው።
         </p>
         {!isAm && (
-          <p className="text-xs text-slate-500 italic mb-2">
+          <p className="text-xs text-stone-500 italic mb-2">
             (Tenant must pay via bank or legal electronic payment only.)
           </p>
         )}
@@ -191,7 +191,7 @@ export function ContractBody({
           ተፈጻሚ ይሆናል።
         </p>
         {!isAm && (
-          <p className="text-xs text-slate-500 italic mb-1">
+          <p className="text-xs text-stone-500 italic mb-1">
             (Matters not covered by this agreement are governed by Proclamation 1320/2016.)
           </p>
         )}
@@ -200,7 +200,7 @@ export function ContractBody({
           ተፈርሞ በተቆጣጣሪው አካሉ ሲረጋገጥ የፀና ይሆናል።
         </p>
         {!isAm && (
-          <p className="text-xs text-slate-500 italic mb-1">
+          <p className="text-xs text-stone-500 italic mb-1">
             (This agreement becomes effective when signed by both parties and confirmed by the regulatory authority.)
           </p>
         )}

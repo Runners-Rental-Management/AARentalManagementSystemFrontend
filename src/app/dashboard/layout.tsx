@@ -27,8 +27,8 @@ export default function DashboardLayout({
 
   if (!mounted || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-pulse text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-surface-muted flex items-center justify-center">
+        <div className="animate-pulse text-stone-400">Loading...</div>
       </div>
     );
   }
@@ -40,7 +40,7 @@ export default function DashboardLayout({
     <div
       className={cn(
         "dashboard-shell min-h-screen",
-        authorityUi ? "bg-white" : "bg-slate-50"
+        authorityUi ? "bg-surface" : "bg-surface-muted"
       )}
     >
       <OnboardingRedirect />

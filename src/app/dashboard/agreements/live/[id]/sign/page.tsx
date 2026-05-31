@@ -95,7 +95,7 @@ function SignaturePad({
 
   return (
     <div className="space-y-2">
-      <div className="relative rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 overflow-hidden">
+      <div className="relative rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 overflow-hidden">
         <canvas
           ref={canvasRef}
           width={700}
@@ -110,15 +110,15 @@ function SignaturePad({
           onTouchEnd={endDraw}
         />
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none">
-          <div className="w-48 h-px bg-slate-300" />
-          <p className="text-center text-[10px] text-slate-400 mt-0.5 tracking-wide">SIGN HERE</p>
+          <div className="w-48 h-px bg-stone-300" />
+          <p className="text-center text-[10px] text-stone-400 mt-0.5 tracking-wide">SIGN HERE</p>
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <button type="button" onClick={clear} className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-rose-600 transition-colors">
+        <button type="button" onClick={clear} className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-rose-600 transition-colors">
           <Eraser className="w-3.5 h-3.5" /> Clear
         </button>
-        <button type="button" onClick={exportSig} className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary-600 transition-colors">
+        <button type="button" onClick={exportSig} className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-primary-600 transition-colors">
           <Download className="w-3.5 h-3.5" /> Export as PNG
         </button>
       </div>
@@ -178,7 +178,7 @@ export default function TenantSignPage() {
       <>
         <Header title={locale === "am" ? "ውሉን ፈርሙ" : "Sign Contract"} />
         <main className="flex-1 p-6 flex items-center justify-center">
-          <p className="text-slate-500">Agreement not found.</p>
+          <p className="text-stone-500">Agreement not found.</p>
         </main>
       </>
     );
@@ -191,7 +191,7 @@ export default function TenantSignPage() {
         <main className="flex-1 p-6 flex items-center justify-center">
           <div className="text-center max-w-md">
             <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-            <p className="text-slate-700 font-medium">
+            <p className="text-stone-700 font-medium">
               {locale === "am" ? "ይህ ውል አስቀድሞ ተፈርሟል።" : "This contract has already been signed."}
             </p>
             <Link
@@ -216,15 +216,15 @@ export default function TenantSignPage() {
             <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            <h2 className="text-2xl font-bold text-stone-900 mb-2">
               {locale === "am" ? "ውሉ ተፈርሟል!" : "Contract Signed!"}
             </h2>
-            <p className="text-slate-600">
+            <p className="text-stone-600">
               {locale === "am"
                 ? "ፊርማዎ ተመዝግቧል። ስምምነቱ ለ DARA ማረጋገጫ ቀርቧል።"
                 : "Your e-signature has been recorded. The agreement has been forwarded to DARA for verification."}
             </p>
-            <p className="text-xs text-slate-400 mt-4">
+            <p className="text-xs text-stone-400 mt-4">
               {locale === "am" ? "የስምምነት መከታተያ እየተከፈተ ነው…" : "Opening your agreement tracker…"}
             </p>
           </div>
@@ -250,13 +250,13 @@ export default function TenantSignPage() {
   return (
     <>
       <Header title={locale === "am" ? "ውሉን ፈርሙ" : "Sign Contract"} />
-      <main className="flex-1 bg-slate-50 overflow-y-auto">
+      <main className="flex-1 bg-stone-50 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
           {/* Back */}
           <Link
             href="/dashboard/agreements"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-primary-700 mb-6"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-primary-700 mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             {locale === "am" ? "ወደ ስምምነቶች ተመለስ" : "Back to agreements"}
@@ -268,10 +268,10 @@ export default function TenantSignPage() {
               <FileSignature className="w-4 h-4" />
               {ct("officialTemplate")}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900">
               {agreement.propertyTitle}
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-stone-500 text-sm mt-1">
               {locale === "am"
                 ? "ይህ ውል አከራዩ ፈርሞ ልኮልዎታል። ከፈረሙ በፊት ሙሉ ውሉን ያንብቡ።"
                 : "This contract was signed by the landlord and sent to you. Please read it carefully before signing."}
@@ -294,9 +294,9 @@ export default function TenantSignPage() {
           </div>
 
           {/* Contract viewer */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-6">
             {/* Contract header strip */}
-            <div className="bg-gradient-to-r from-primary-700 to-indigo-700 px-6 py-4 flex items-center gap-3">
+            <div className="bg-gradient-to-r from-primary-700 to-primary-700 px-6 py-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
                 <FileSignature className="w-5 h-5 text-white" />
               </div>
@@ -316,24 +316,24 @@ export default function TenantSignPage() {
             {/* Read progress bar */}
             <div className="px-6 pt-3 pb-1">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-slate-500 flex items-center gap-1">
+                <span className="text-xs text-stone-500 flex items-center gap-1">
                   <BookOpen className="w-3.5 h-3.5" />
                   {locale === "am" ? "የንባብ ሂደት" : "Reading progress"}
                 </span>
-                <span className={`text-xs font-semibold ${hasReadContract ? "text-emerald-600" : "text-slate-400"}`}>
+                <span className={`text-xs font-semibold ${hasReadContract ? "text-emerald-600" : "text-stone-400"}`}>
                   {hasReadContract
                     ? (locale === "am" ? "✓ ተነቢቧል" : "✓ Read")
                     : `${scrollPct}%`}
                 </span>
               </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${hasReadContract ? "bg-emerald-500" : "bg-primary-500"}`}
                   style={{ width: `${scrollPct}%` }}
                 />
               </div>
               {!hasReadContract && (
-                <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                <p className="text-[10px] text-stone-400 mt-1 flex items-center gap-1">
                   <ChevronDown className="w-3 h-3 animate-bounce" />
                   {locale === "am"
                     ? "ወደ ታች ሸብልሉ — ሙሉ ውሉን ካነበቡ በኋላ ፊርማ ክፍሉ ይከፈታል"
@@ -369,14 +369,14 @@ export default function TenantSignPage() {
             </div>
 
             {/* Signature rows */}
-            <div className="border-t border-slate-100 bg-slate-50/60 px-8 py-5 grid sm:grid-cols-2 gap-6 text-sm font-[Georgia,serif] text-slate-700">
+            <div className="border-t border-stone-100 bg-stone-50/60 px-8 py-5 grid sm:grid-cols-2 gap-6 text-sm font-[Georgia,serif] text-stone-700">
               <div>
                 <p className="font-bold mb-3">አከራይ{locale !== "am" && " (Landlord)"}</p>
-                <p>ስም፡ <span className="border-b border-slate-400 inline-block w-40">{agreement.landlordName}</span></p>
+                <p>ስም፡ <span className="border-b border-stone-400 inline-block w-40">{agreement.landlordName}</span></p>
                 <p className="mt-2">ፊርማ፡ <span className="border-b border-emerald-400 inline-block w-36 text-emerald-600 font-semibold text-xs">
                   ✓ {locale === "am" ? "ተፈርሟል" : "Signed"}
                 </span></p>
-                <p className="mt-2">ቀን፡ <span className="border-b border-slate-400 inline-block w-28">
+                <p className="mt-2">ቀን፡ <span className="border-b border-stone-400 inline-block w-28">
                   {agreement.landlordSignedAt
                     ? new Date(agreement.landlordSignedAt).toLocaleDateString("en-GB")
                     : today}
@@ -384,42 +384,42 @@ export default function TenantSignPage() {
               </div>
               <div>
                 <p className="font-bold mb-3">ተከራይ{locale !== "am" && " (Tenant)"}</p>
-                <p>ስም፡ <span className="border-b border-slate-400 inline-block w-40">{agreement.tenantName}</span></p>
-                <p className="mt-2">ፊርማ፡ <span className="border-b border-slate-300 inline-block w-36 text-slate-400 italic text-xs">
+                <p>ስም፡ <span className="border-b border-stone-400 inline-block w-40">{agreement.tenantName}</span></p>
+                <p className="mt-2">ፊርማ፡ <span className="border-b border-stone-300 inline-block w-36 text-stone-400 italic text-xs">
                   {locale === "am" ? "ከዚህ በታች ፊርማ ይመልከቱ" : "See e-signature below"}
                 </span></p>
-                <p className="mt-2">ቀን፡ <span className="border-b border-slate-400 inline-block w-28">{today}</span></p>
+                <p className="mt-2">ቀን፡ <span className="border-b border-stone-400 inline-block w-28">{today}</span></p>
               </div>
             </div>
           </div>
 
           {/* Read gate — signing section locked until contract is fully read */}
           {!hasReadContract ? (
-            <div className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 flex flex-col items-center justify-center text-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-slate-200 flex items-center justify-center">
-                <LockKeyhole className="w-7 h-7 text-slate-400" />
+            <div className="relative rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 p-8 flex flex-col items-center justify-center text-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-stone-200 flex items-center justify-center">
+                <LockKeyhole className="w-7 h-7 text-stone-400" />
               </div>
-              <p className="font-semibold text-slate-700">
+              <p className="font-semibold text-stone-700">
                 {locale === "am" ? "ፊርማ ክፍሉ ተዘግቷል" : "Signing section locked"}
               </p>
-              <p className="text-sm text-slate-500 max-w-sm">
+              <p className="text-sm text-stone-500 max-w-sm">
                 {locale === "am"
                   ? "ከዚህ በላይ ያለውን ሙሉ ውል አንብበው ወደ ታች ሸብልሉ። ሲጨርሱ ፊርማ ክፍሉ ይከፈታል።"
                   : "Scroll through the full contract above to unlock the signing section. You must read it before you can sign."}
               </p>
               <div className="flex items-center gap-2 mt-2">
-                <div className="h-2 w-40 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-2 w-40 bg-stone-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary-500 rounded-full transition-all duration-300"
                     style={{ width: `${scrollPct}%` }}
                   />
                 </div>
-                <span className="text-xs text-slate-500 w-8">{scrollPct}%</span>
+                <span className="text-xs text-stone-500 w-8">{scrollPct}%</span>
               </div>
               {/* Cancel still accessible */}
               <Link
                 href="/dashboard/agreements"
-                className="mt-2 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
+                className="mt-2 inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700"
               >
                 <ArrowLeft className="w-4 h-4" /> {ct("cancel")}
               </Link>
@@ -427,7 +427,7 @@ export default function TenantSignPage() {
           ) : (
             <>
               {/* E-sign section */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 mb-6">
                 {/* Unlocked badge */}
                 <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold mb-5 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg w-fit">
                   <CheckCircle2 className="w-4 h-4" />
@@ -435,18 +435,18 @@ export default function TenantSignPage() {
                 </div>
 
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center">
                     <Pen className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-base">{ct("eSignTitle")}</h3>
-                    <p className="text-xs text-slate-500">{ct("eSignDraw")}</p>
+                    <h3 className="font-bold text-stone-900 text-base">{ct("eSignTitle")}</h3>
+                    <p className="text-xs text-stone-500">{ct("eSignDraw")}</p>
                   </div>
                 </div>
 
                 <SignaturePad canvasRef={canvasRef} onSigned={setHasSig} />
 
-                <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-start gap-3 text-xs text-slate-600 leading-relaxed">
+                <div className="mt-5 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 flex items-start gap-3 text-xs text-stone-600 leading-relaxed">
                   <ShieldCheck className="w-4 h-4 text-primary-600 shrink-0 mt-0.5" />
                   <span>
                     {ct("eSignLegal")}
@@ -456,15 +456,15 @@ export default function TenantSignPage() {
               </div>
 
               {/* Agreement checkbox + submit */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6">
                 <label className="flex items-start gap-3 cursor-pointer mb-6 group">
                   <input
                     type="checkbox"
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                    className="mt-1 w-4 h-4 rounded border-stone-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                   />
-                  <span className="text-sm text-slate-700 leading-relaxed group-hover:text-slate-900">
+                  <span className="text-sm text-stone-700 leading-relaxed group-hover:text-stone-900">
                     {ct("declarationTenant")}
                   </span>
                 </label>
@@ -485,7 +485,7 @@ export default function TenantSignPage() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link
                     href="/dashboard/agreements"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-stone-300 text-stone-700 font-semibold hover:bg-stone-50 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     {ct("cancel")}
@@ -493,7 +493,7 @@ export default function TenantSignPage() {
                   <button
                     onClick={handleSubmit}
                     disabled={!agreed || !hasSig || submitting}
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-md shadow-primary-600/20"
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-md shadow-primary-600/20"
                   >
                     {submitting ? (
                       <>

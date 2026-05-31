@@ -151,10 +151,10 @@ function StageTracker({ agreement }: { agreement: LiveAgreement }) {
   const idx = getAgreementStageIndex(agreement);
   const allDone = agreement.status === "paid";
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6">
-      <h3 className="text-sm font-semibold text-slate-700 mb-5">
+    <div className="bg-white rounded-2xl border border-stone-200 p-6">
+      <h3 className="text-sm font-semibold text-stone-700 mb-5">
         Agreement Progress
-        <span className="ml-2 text-xs font-normal text-slate-400">
+        <span className="ml-2 text-xs font-normal text-stone-400">
           {agreement.initiatedByLandlord ? "Landlord → Tenant → DARA" : "Tenant → Landlord → DARA"}
         </span>
       </h3>
@@ -171,7 +171,7 @@ function StageTracker({ agreement }: { agreement: LiveAgreement }) {
                       ? active
                         ? "bg-primary-600 ring-4 ring-primary-100"
                         : "bg-emerald-500"
-                      : "bg-slate-100"
+                      : "bg-stone-100"
                   }`}
                 >
                   {done && !active ? (
@@ -179,7 +179,7 @@ function StageTracker({ agreement }: { agreement: LiveAgreement }) {
                   ) : active ? (
                     <Clock className="w-4 h-4 text-white animate-pulse" />
                   ) : (
-                    <span className="text-xs font-bold text-slate-400">
+                    <span className="text-xs font-bold text-stone-400">
                       {i + 1}
                     </span>
                   )}
@@ -190,19 +190,19 @@ function StageTracker({ agreement }: { agreement: LiveAgreement }) {
                       ? active
                         ? "text-primary-700"
                         : "text-emerald-700"
-                      : "text-slate-400"
+                      : "text-stone-400"
                   }`}
                 >
                   {stage.label}
                 </p>
-                <p className="text-[10px] text-slate-400 text-center">
+                <p className="text-[10px] text-stone-400 text-center">
                   {stage.who}
                 </p>
               </div>
               {i < stages.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 mt-[-22px] transition-colors ${
-                    i < idx ? "bg-emerald-400" : "bg-slate-200"
+                    i < idx ? "bg-emerald-400" : "bg-stone-200"
                   }`}
                 />
               )}
@@ -230,7 +230,7 @@ function SmsToast({ phone, amount, ref, method }: { phone: string; amount: numbe
   if (!visible) return null;
   return (
     <div className="fixed bottom-6 right-6 z-[60] w-80 animate-fade-in-up">
-      <div className="bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="bg-stone-900 rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center gap-2 bg-green-600 px-4 py-2">
           <MessageSquare className="w-3.5 h-3.5 text-white" />
           <span className="text-white text-xs font-bold">SMS Notification Sent</span>
@@ -239,7 +239,7 @@ function SmsToast({ phone, amount, ref, method }: { phone: string; amount: numbe
           </button>
         </div>
         <div className="px-4 py-3">
-          <p className="text-[10px] text-slate-400 mb-1">To: {phone}</p>
+          <p className="text-[10px] text-stone-400 mb-1">To: {phone}</p>
           <p className="text-xs text-white leading-relaxed">
             {method === "cbe_birr"
               ? `CBE Birr: Your payment of ETB ${amount.toLocaleString()} was successful. Ref: ${ref}. DARA Rental System — advance rent confirmed.`
@@ -327,7 +327,7 @@ function Receipt({
   return (
     <div className="p-6">
       {/* CBE-styled receipt */}
-      <div className="border border-slate-200 rounded-2xl overflow-hidden mb-4 text-xs" style={{ fontFamily: "'Courier New', monospace" }}>
+      <div className="border border-stone-200 rounded-2xl overflow-hidden mb-4 text-xs" style={{ fontFamily: "'Courier New', monospace" }}>
         {/* Bank header */}
         <div className="bg-[#1a3a6b] px-5 py-4 text-center">
           <p className="text-white font-black text-base tracking-wide">Commercial Bank of Ethiopia</p>
@@ -342,8 +342,8 @@ function Receipt({
         </div>
 
         {/* Company info */}
-        <div className="px-4 py-3 border-b border-dashed border-slate-200 bg-slate-50">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Company Address &amp; Other Information</p>
+        <div className="px-4 py-3 border-b border-dashed border-stone-200 bg-stone-50">
+          <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-2">Company Address &amp; Other Information</p>
           {[
             ["Country",              "Ethiopia"],
             ["City",                 "Addis Ababa"],
@@ -355,15 +355,15 @@ function Receipt({
             ["VAT Registration No",  "011140"],
           ].map(([l, v]) => (
             <div key={l} className="flex justify-between py-0.5">
-              <span className="text-slate-400 shrink-0 w-36">{l}:</span>
-              <span className="text-slate-700 font-semibold text-right">{v}</span>
+              <span className="text-stone-400 shrink-0 w-36">{l}:</span>
+              <span className="text-stone-700 font-semibold text-right">{v}</span>
             </div>
           ))}
         </div>
 
         {/* Customer info */}
-        <div className="px-4 py-3 border-b border-dashed border-slate-200">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Customer Information</p>
+        <div className="px-4 py-3 border-b border-dashed border-stone-200">
+          <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-2">Customer Information</p>
           {[
             ["Customer Name",  tenantName.toUpperCase()],
             ["Region",         "Addis Ababa"],
@@ -374,15 +374,15 @@ function Receipt({
             ["Branch",         "Mobile Banking"],
           ].map(([l, v]) => (
             <div key={l} className="flex justify-between py-0.5">
-              <span className="text-slate-400 shrink-0 w-36">{l}:</span>
-              <span className="text-slate-700 font-semibold text-right">{v}</span>
+              <span className="text-stone-400 shrink-0 w-36">{l}:</span>
+              <span className="text-stone-700 font-semibold text-right">{v}</span>
             </div>
           ))}
         </div>
 
         {/* Transaction info */}
-        <div className="px-4 py-3 border-b border-dashed border-slate-200">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Payment / Transaction Information</p>
+        <div className="px-4 py-3 border-b border-dashed border-stone-200">
+          <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-2">Payment / Transaction Information</p>
           {[
             ["Payer",                  tenantName.toUpperCase()],
             ["Account",                maskedAcc],
@@ -396,14 +396,14 @@ function Receipt({
             ["15% VAT on Commission",  vat.toFixed(2) + " ETB"],
             ["Total Debited",          totalDebited.toFixed(2) + " ETB"],
           ].map(([l, v]) => (
-            <div key={l} className={`flex justify-between py-0.5 ${l === "Total Debited" ? "font-black text-slate-900 pt-2 border-t border-slate-200 mt-1" : ""}`}>
-              <span className={`shrink-0 w-44 ${l === "Total Debited" ? "text-slate-700" : "text-slate-400"}`}>{l}:</span>
-              <span className="font-semibold text-slate-800 text-right">{v}</span>
+            <div key={l} className={`flex justify-between py-0.5 ${l === "Total Debited" ? "font-black text-stone-900 pt-2 border-t border-stone-200 mt-1" : ""}`}>
+              <span className={`shrink-0 w-44 ${l === "Total Debited" ? "text-stone-700" : "text-stone-400"}`}>{l}:</span>
+              <span className="font-semibold text-stone-800 text-right">{v}</span>
             </div>
           ))}
-          <div className="mt-2 pt-2 border-t border-slate-100">
-            <p className="text-slate-400">Amount in Word:</p>
-            <p className="text-slate-700 font-semibold mt-0.5">{amountToWords(totalDebited)}</p>
+          <div className="mt-2 pt-2 border-t border-stone-100">
+            <p className="text-stone-400">Amount in Word:</p>
+            <p className="text-stone-700 font-semibold mt-0.5">{amountToWords(totalDebited)}</p>
           </div>
         </div>
 
@@ -418,7 +418,7 @@ function Receipt({
       <div className="flex gap-2">
         <button
           onClick={() => window.print()}
-          className="flex-1 flex items-center justify-center gap-2 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium transition-colors"
         >
           <Printer className="w-4 h-4" /> Print
         </button>
@@ -489,7 +489,7 @@ function PaymentModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary-700 to-indigo-700 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="bg-gradient-to-r from-primary-700 to-primary-700 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
             <div className="flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-white" />
               <span className="text-white font-bold text-sm">
@@ -505,7 +505,7 @@ function PaymentModal({
 
           {/* Step bar */}
           {!["processing", "receipt"].includes(step) && (
-            <div className="flex border-b border-slate-100">
+            <div className="flex border-b border-stone-100">
               {STEPS_BAR.map((s, i) => (
                 <div
                   key={s}
@@ -514,7 +514,7 @@ function PaymentModal({
                       ? "text-primary-700 border-b-2 border-primary-600"
                       : STEPS_BAR.indexOf(step as (typeof STEPS_BAR)[number]) > i
                         ? "text-emerald-600"
-                        : "text-slate-400"
+                        : "text-stone-400"
                   }`}
                 >
                   {i + 1}. {STEP_LABELS[i]}
@@ -527,9 +527,9 @@ function PaymentModal({
             {/* ── Step 1: Choose method ── */}
             {step === "select" && (
               <>
-                <p className="text-xs text-slate-500 mb-0.5">Amount Due</p>
-                <p className="text-3xl font-bold text-slate-900 mb-5">{fmtCur(amount)}</p>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                <p className="text-xs text-stone-500 mb-0.5">Amount Due</p>
+                <p className="text-3xl font-bold text-stone-900 mb-5">{fmtCur(amount)}</p>
+                <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
                   Choose Payment Method
                 </p>
                 <div className="space-y-3 mb-6">
@@ -538,7 +538,7 @@ function PaymentModal({
                       key={m.id}
                       onClick={() => setMethod(m.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 transition-all ${
-                        method === m.id ? `${m.border} ${m.bg}` : "border-slate-200 hover:border-slate-300"
+                        method === m.id ? `${m.border} ${m.bg}` : "border-stone-200 hover:border-stone-300"
                       }`}
                     >
                       <div className={`w-10 h-10 rounded-xl ${m.bg} flex items-center justify-center`}>
@@ -546,7 +546,7 @@ function PaymentModal({
                       </div>
                       <div className="text-left">
                         <p className={`font-semibold text-sm ${m.color}`}>{m.label}</p>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-stone-400">
                           {m.id === "cbe_birr" ? "CBE bank account number" : "Registered Telebirr phone"}
                         </p>
                       </div>
@@ -559,7 +559,7 @@ function PaymentModal({
                 <button
                   onClick={() => setStep("account")}
                   disabled={!method}
-                  className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3 rounded-xl transition-colors"
+                  className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white font-semibold py-3 rounded-xl transition-colors"
                 >
                   Continue
                 </button>
@@ -574,31 +574,31 @@ function PaymentModal({
                     <methodInfo.icon className={`w-6 h-6 ${methodInfo.color}`} />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">{methodInfo.label}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="font-bold text-stone-900 text-sm">{methodInfo.label}</p>
+                    <p className="text-xs text-stone-500">
                       {isCbe ? "Enter your CBE account number" : "Enter your Telebirr phone number"}
                     </p>
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5 block">
                     {isCbe ? "CBE Account Number" : "Telebirr Phone Number"}
                   </label>
                   <div className="relative">
                     {isCbe
-                      ? <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      : <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      ? <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                      : <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                     }
                     <input
                       type={isCbe ? "text" : "tel"}
                       value={account}
                       onChange={(e) => setAccount(isCbe ? e.target.value.replace(/\D/g, "") : e.target.value)}
                       placeholder={isCbe ? "1000XXXXXXXXX" : "+251 9XX XXX XXX"}
-                      className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 font-mono"
+                      className="w-full border border-stone-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 font-mono"
                     />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1.5">
+                  <p className="text-[11px] text-stone-400 mt-1.5">
                     {isCbe
                       ? "Your 13-digit CBE Birr account number linked to this device."
                       : "The phone number registered with your Telebirr wallet."}
@@ -612,14 +612,14 @@ function PaymentModal({
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStep("select")}
-                    className="flex-1 border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm"
+                    className="flex-1 border border-stone-200 text-stone-700 font-semibold py-2.5 rounded-xl hover:bg-stone-50 transition-colors text-sm"
                   >
                     Back
                   </button>
                   <button
                     onClick={() => setStep("pin")}
                     disabled={account.trim().length < 7}
-                    className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
+                    className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
                   >
                     Continue
                   </button>
@@ -635,15 +635,15 @@ function PaymentModal({
                     <KeyRound className={`w-6 h-6 ${methodInfo.color}`} />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">
+                    <p className="font-bold text-stone-900 text-sm">
                       Enter your {methodInfo.pinLabel} PIN
                     </p>
-                    <p className="text-xs text-slate-500">{account}</p>
+                    <p className="text-xs text-stone-500">{account}</p>
                   </div>
                 </div>
 
                 <div className="mb-1">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5 block">
                     {isCbe ? "CBE Birr PIN" : "Telebirr Passkey"}
                   </label>
                   <div className="relative">
@@ -654,12 +654,12 @@ function PaymentModal({
                       onChange={(e) => { setPin(e.target.value.replace(/\D/g, "").slice(0, 6)); setPinError(""); }}
                       placeholder="••••••"
                       maxLength={6}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 pr-12 text-center"
+                      className="w-full border border-stone-200 rounded-xl px-4 py-3 text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 pr-12 text-center"
                     />
                     <button
                       type="button"
                       onClick={() => setPinVisible((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                     >
                       {pinVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -667,15 +667,15 @@ function PaymentModal({
                   {pinError && <p className="text-xs text-red-600 mt-1.5">{pinError}</p>}
                 </div>
 
-                <p className="text-xs text-slate-400 mt-2 mb-5">
+                <p className="text-xs text-stone-400 mt-2 mb-5">
                   Your PIN is encrypted and sent directly to {methodInfo.label}. It is never stored by DARA.
                 </p>
 
                 <div className="flex gap-3">
-                  <button onClick={() => setStep("account")} className="flex-1 border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm">
+                  <button onClick={() => setStep("account")} className="flex-1 border border-stone-200 text-stone-700 font-semibold py-2.5 rounded-xl hover:bg-stone-50 transition-colors text-sm">
                     Back
                   </button>
-                  <button onClick={handlePinNext} disabled={pin.length < 4} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm">
+                  <button onClick={handlePinNext} disabled={pin.length < 4} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm">
                     Authorise
                   </button>
                 </div>
@@ -685,17 +685,17 @@ function PaymentModal({
             {/* ── Step 4: Confirm ── */}
             {step === "confirm" && methodInfo && (
               <>
-                <p className="text-sm font-bold text-slate-900 mb-4">Review & Confirm Payment</p>
-                <div className="bg-slate-50 rounded-xl p-4 space-y-2.5 text-sm mb-2">
+                <p className="text-sm font-bold text-stone-900 mb-4">Review & Confirm Payment</p>
+                <div className="bg-stone-50 rounded-xl p-4 space-y-2.5 text-sm mb-2">
                   {[
-                    ["Amount", <span key="a" className="font-black text-slate-900 text-base">{fmtCur(amount)}</span>],
+                    ["Amount", <span key="a" className="font-black text-stone-900 text-base">{fmtCur(amount)}</span>],
                     ["Method", methodInfo.label],
                     [isCbe ? "Account No." : "Phone", account],
                     ["PIN", <span key="p" className="tracking-widest">{"•".repeat(pin.length)}</span>],
                   ].map(([label, value]) => (
                     <div key={String(label)} className="flex justify-between items-center">
-                      <span className="text-slate-500">{label}</span>
-                      <span className="font-semibold text-slate-800">{value}</span>
+                      <span className="text-stone-500">{label}</span>
+                      <span className="font-semibold text-stone-800">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -703,7 +703,7 @@ function PaymentModal({
                   After payment an <strong>SMS confirmation</strong> will be sent to your {isCbe ? "account" : "phone"} and a <strong>transaction receipt</strong> will be generated.
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setStep("pin")} className="flex-1 border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm">Back</button>
+                  <button onClick={() => setStep("pin")} className="flex-1 border border-stone-200 text-stone-700 font-semibold py-2.5 rounded-xl hover:bg-stone-50 transition-colors text-sm">Back</button>
                   <button onClick={handleConfirm} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2">
                     <CreditCard className="w-4 h-4" /> Pay {fmtCur(amount)}
                   </button>
@@ -720,9 +720,9 @@ function PaymentModal({
                     <Loader2 className="w-9 h-9 text-primary-600 animate-spin" />
                   </div>
                 </div>
-                <p className="font-bold text-slate-900 text-lg">Processing Payment…</p>
-                <p className="text-sm text-slate-500 mt-1">Connecting to {methodInfo?.label}…</p>
-                <p className="text-xs text-slate-400 mt-3">Please do not close this window.</p>
+                <p className="font-bold text-stone-900 text-lg">Processing Payment…</p>
+                <p className="text-sm text-stone-500 mt-1">Connecting to {methodInfo?.label}…</p>
+                <p className="text-xs text-stone-400 mt-3">Please do not close this window.</p>
               </div>
             )}
 
@@ -804,7 +804,7 @@ export default function LiveAgreementPage() {
     return (
       <main className="flex-1 p-6 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-500 mb-4">Agreement not found.</p>
+          <p className="text-stone-500 mb-4">Agreement not found.</p>
           <Link
             href="/dashboard/agreements"
             className="text-primary-600 hover:underline text-sm"
@@ -840,10 +840,10 @@ export default function LiveAgreementPage() {
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-5">
             <XCircle className="w-10 h-10 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">
+          <h2 className="text-xl font-bold text-stone-900 mb-2">
             {isDeclined ? "Contract Declined" : "Agreement Cancelled"}
           </h2>
-          <p className="text-slate-600 mb-6">
+          <p className="text-stone-600 mb-6">
             {isDeclined
               ? "This contract was declined by the tenant. No further action is required."
               : isLandlordCancelled
@@ -900,17 +900,17 @@ export default function LiveAgreementPage() {
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
               <XCircle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 text-center mb-2">
+            <h3 className="text-lg font-bold text-stone-900 text-center mb-2">
               Withdraw Agreement?
             </h3>
-            <p className="text-sm text-slate-600 text-center mb-6">
+            <p className="text-sm text-stone-600 text-center mb-6">
               Are you sure you want to withdraw from the rental agreement for{" "}
               <strong>{agreement.propertyTitle}</strong>? This action cannot be undone. The landlord and DARA will be notified.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowCancelConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 font-medium text-sm transition-colors"
               >
                 Keep Agreement
               </button>
@@ -932,10 +932,10 @@ export default function LiveAgreementPage() {
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
               <XCircle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 text-center mb-2">
+            <h3 className="text-lg font-bold text-stone-900 text-center mb-2">
               Cancel Agreement?
             </h3>
-            <p className="text-sm text-slate-600 text-center mb-6">
+            <p className="text-sm text-stone-600 text-center mb-6">
               Are you sure you want to cancel the rental agreement for{" "}
               <strong>{agreement.propertyTitle}</strong>? This action cannot be undone.{" "}
               <strong>{agreement.tenantName}</strong> will be notified immediately.
@@ -943,7 +943,7 @@ export default function LiveAgreementPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLandlordCancelConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 font-medium text-sm transition-colors"
               >
                 Keep Agreement
               </button>
@@ -958,11 +958,11 @@ export default function LiveAgreementPage() {
         </div>
       )}
 
-      <main className="flex-1 bg-slate-50 overflow-y-auto">
+      <main className="flex-1 bg-stone-50 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary-600 mb-6"
+            className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary-600 mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -972,10 +972,10 @@ export default function LiveAgreementPage() {
             <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-3 py-1.5 rounded-full text-xs font-semibold mb-3">
               Live Agreement Tracker
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-stone-900">
               {agreement.propertyTitle}
             </h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <p className="text-stone-500 text-sm mt-0.5">
               {agreement.propertyAddress}
             </p>
           </div>
@@ -990,7 +990,7 @@ export default function LiveAgreementPage() {
               agreement.status === "landlord_initiated"
                 ? "bg-violet-50 border-violet-200"
                 : agreement.status === "landlord_signed"
-                  ? "bg-indigo-50 border-indigo-200"
+                  ? "bg-primary-50 border-primary-200"
                   : agreement.status === "dara_approved"
                     ? "bg-amber-50 border-amber-200"
                     : "bg-emerald-50 border-emerald-200"
@@ -998,7 +998,7 @@ export default function LiveAgreementPage() {
               <div>
                 <p className={`text-xs font-semibold uppercase tracking-wide mb-0.5 ${
                   agreement.status === "landlord_initiated" ? "text-violet-600"
-                  : agreement.status === "landlord_signed" ? "text-indigo-600"
+                  : agreement.status === "landlord_signed" ? "text-primary-600"
                   : agreement.status === "dara_approved" ? "text-amber-600"
                   : "text-emerald-600"
                 }`}>
@@ -1008,7 +1008,7 @@ export default function LiveAgreementPage() {
                   {agreement.status === "dara_approved" && "Awaiting Your Payment"}
                   {agreement.status === "paid" && "Agreement Active"}
                 </p>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-stone-600">
                   {agreement.status === "landlord_initiated" && "Review and sign the contract to proceed."}
                   {agreement.status === "tenant_signed" && "The landlord is reviewing your signature."}
                   {agreement.status === "landlord_signed" && "A DARA officer is reviewing this agreement for compliance."}
@@ -1036,7 +1036,7 @@ export default function LiveAgreementPage() {
                 : agreement.status === "tenant_signed"
                   ? "bg-amber-50 border-amber-200"
                   : agreement.status === "landlord_signed"
-                    ? "bg-indigo-50 border-indigo-200"
+                    ? "bg-primary-50 border-primary-200"
                     : agreement.status === "dara_approved"
                       ? "bg-sky-50 border-sky-200"
                       : "bg-emerald-50 border-emerald-200"
@@ -1045,7 +1045,7 @@ export default function LiveAgreementPage() {
                 <p className={`text-xs font-semibold uppercase tracking-wide mb-0.5 ${
                   agreement.status === "landlord_initiated" ? "text-violet-600"
                   : agreement.status === "tenant_signed" ? "text-amber-600"
-                  : agreement.status === "landlord_signed" ? "text-indigo-600"
+                  : agreement.status === "landlord_signed" ? "text-primary-600"
                   : agreement.status === "dara_approved" ? "text-sky-600"
                   : "text-emerald-600"
                 }`}>
@@ -1055,7 +1055,7 @@ export default function LiveAgreementPage() {
                   {agreement.status === "dara_approved" && "Awaiting Tenant Payment"}
                   {agreement.status === "paid" && "Contract Active"}
                 </p>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-stone-600">
                   {agreement.status === "landlord_initiated" && `${agreement.tenantName} has received your contract and must sign it.`}
                   {agreement.status === "tenant_signed" && "Review the tenant's signature and counter-sign or reject."}
                   {agreement.status === "landlord_signed" && "Both parties have signed. A DARA officer is reviewing compliance."}
@@ -1086,10 +1086,10 @@ export default function LiveAgreementPage() {
                       <FileSignature className="w-5 h-5 text-amber-600" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="font-bold text-slate-900 mb-1">
+                      <h2 className="font-bold text-stone-900 mb-1">
                         Tenant Signed — Your Action Required
                       </h2>
-                      <p className="text-sm text-slate-600 mb-4">
+                      <p className="text-sm text-stone-600 mb-4">
                         <strong>{agreement.tenantName}</strong> has signed the rental contract
                         for <strong>{agreement.propertyTitle}</strong>. Review the terms, then
                         counter-sign to send the agreement to DARA for verification, or reject
@@ -1123,16 +1123,16 @@ export default function LiveAgreementPage() {
 
               {/* Tenant signed — tenant waiting for landlord */}
               {agreement.status === "tenant_signed" && isTenant && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl border border-stone-200 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
                       <Clock className="w-5 h-5 text-amber-600" />
                     </div>
                     <div>
-                      <h2 className="font-bold text-slate-900 mb-1">
+                      <h2 className="font-bold text-stone-900 mb-1">
                         Awaiting Landlord Counter-Signature
                       </h2>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-stone-600">
                         {agreement.landlordName} has been notified and must review and
                         counter-sign before DARA can verify the agreement.
                       </p>
@@ -1149,10 +1149,10 @@ export default function LiveAgreementPage() {
                       <FileSignature className="w-5 h-5 text-violet-600" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="font-bold text-slate-900 mb-1">
+                      <h2 className="font-bold text-stone-900 mb-1">
                         Landlord Signed — Your Action Required
                       </h2>
-                      <p className="text-sm text-slate-600 mb-4">
+                      <p className="text-sm text-stone-600 mb-4">
                         {agreement.landlordName} has signed this contract and sent it to you.
                         Review the full agreement and sign to proceed to DARA verification.
                       </p>
@@ -1169,16 +1169,16 @@ export default function LiveAgreementPage() {
               )}
 
               {agreement.status === "landlord_initiated" && isLandlord && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl border border-stone-200 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-violet-100 flex items-center justify-center shrink-0">
                       <Clock className="w-5 h-5 text-violet-600" />
                     </div>
                     <div>
-                      <h2 className="font-bold text-slate-900 mb-1">
+                      <h2 className="font-bold text-stone-900 mb-1">
                         Awaiting Tenant Signature
                       </h2>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-stone-600">
                         You signed first. {agreement.tenantName} must review and sign the
                         contract before it goes to DARA.
                       </p>
@@ -1189,21 +1189,21 @@ export default function LiveAgreementPage() {
 
               {/* Both signed — DARA must act */}
               {agreement.status === "landlord_signed" && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl border border-stone-200 p-6">
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-2xl bg-indigo-100 flex items-center justify-center shrink-0">
-                      <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                    <div className="w-11 h-11 rounded-2xl bg-primary-100 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-5 h-5 text-primary-600" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="font-bold text-slate-900 mb-1">
+                      <h2 className="font-bold text-stone-900 mb-1">
                         Awaiting DARA Government Verification
                       </h2>
-                      <p className="text-sm text-slate-600 mb-4">
+                      <p className="text-sm text-stone-600 mb-4">
                         Both parties have signed. The agreement is forwarded to
                         a DARA officer for compliance review and official
                         approval.
                       </p>
-                      <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 text-xs text-indigo-800 mb-4">
+                      <div className="bg-primary-50 border border-primary-100 rounded-xl px-4 py-3 text-xs text-primary-800 mb-4">
                         <strong>Compliance check:</strong> Advance ≤ 2 months ✓
                         · Minimum 2-year term ✓ · Both parties Fayda-verified ✓
                       </div>
@@ -1211,7 +1211,7 @@ export default function LiveAgreementPage() {
                         <button
                           onClick={doDaraApprove}
                           disabled={daraLoading}
-                          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+                          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
                         >
                           {daraLoading ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -1222,7 +1222,7 @@ export default function LiveAgreementPage() {
                         </button>
                       )}
                       {!isAuthority && (
-                        <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-500 px-4 py-2.5 rounded-xl text-sm font-medium">
+                        <div className="inline-flex items-center gap-2 bg-stone-100 text-stone-500 px-4 py-2.5 rounded-xl text-sm font-medium">
                           <Clock className="w-4 h-4" />
                           Waiting for DARA officer review…
                         </div>
@@ -1235,16 +1235,16 @@ export default function LiveAgreementPage() {
 
               {/* ③ DARA approved — tenant pays */}
               {agreement.status === "dara_approved" && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl border border-stone-200 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-emerald-100 flex items-center justify-center shrink-0">
                       <CreditCard className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="font-bold text-slate-900 mb-1">
+                      <h2 className="font-bold text-stone-900 mb-1">
                         Payment Required to Activate Contract
                       </h2>
-                      <p className="text-sm text-slate-600 mb-2">
+                      <p className="text-sm text-stone-600 mb-2">
                         Your agreement has been approved by DARA. Complete the
                         advance payment to receive the landlord&apos;s contact
                         information and activate your contract.
@@ -1283,7 +1283,7 @@ export default function LiveAgreementPage() {
                       <h2 className="font-bold text-emerald-900 mb-1">
                         Contract Active — Welcome to Your New Home!
                       </h2>
-                      <p className="text-sm text-slate-600 mb-4">
+                      <p className="text-sm text-stone-600 mb-4">
                         Payment confirmed. Your rental contract is now fully
                         active. You can contact your landlord directly below.
                       </p>
@@ -1298,16 +1298,16 @@ export default function LiveAgreementPage() {
                             <User className="w-6 h-6 text-emerald-700" />
                           </div>
                           <div className="space-y-1 flex-1">
-                            <p className="font-bold text-slate-900 text-base">
+                            <p className="font-bold text-stone-900 text-base">
                               {landlordUser?.firstName} {landlordUser?.lastName}
                             </p>
                             <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4 text-slate-400" />
+                              <Phone className="w-4 h-4 text-stone-400" />
                               <span
                                 className={`text-sm font-mono ${
                                   phoneVisible
-                                    ? "text-slate-900"
-                                    : "text-slate-400 tracking-widest"
+                                    ? "text-stone-900"
+                                    : "text-stone-400 tracking-widest"
                                 }`}
                               >
                                 {phoneVisible
@@ -1331,26 +1331,26 @@ export default function LiveAgreementPage() {
                       </div>
 
                       {agreement.paidAt && (
-                        <div className="mt-4 bg-slate-50 rounded-xl px-4 py-3 text-xs text-slate-700 space-y-2">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Transaction Summary</p>
+                        <div className="mt-4 bg-stone-50 rounded-xl px-4 py-3 text-xs text-stone-700 space-y-2">
+                          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Transaction Summary</p>
                           <div className="flex justify-between">
-                            <span className="text-slate-500">Method</span>
+                            <span className="text-stone-500">Method</span>
                             <span className="font-semibold">
                               {agreement.paymentMethod?.toUpperCase().replace("_", " ")}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500">Reference</span>
+                            <span className="text-stone-500">Reference</span>
                             <span className="font-mono font-semibold text-primary-700">
                               {agreement.paymentRef}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500">Paid on</span>
+                            <span className="text-stone-500">Paid on</span>
                             <span className="font-semibold">{fmtDate(agreement.paidAt)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500">Amount</span>
+                            <span className="text-stone-500">Amount</span>
                             <span className="font-bold text-emerald-700">{fmtCur(agreement.advanceAmount)}</span>
                           </div>
                           <button
@@ -1431,18 +1431,18 @@ export default function LiveAgreementPage() {
               )}
 
               {/* Activity timeline */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                <h3 className="text-sm font-semibold text-slate-700 mb-4">
+              <div className="bg-white rounded-2xl border border-stone-200 p-6">
+                <h3 className="text-sm font-semibold text-stone-700 mb-4">
                   Activity Timeline
                 </h3>
-                <ol className="relative border-l border-slate-200 space-y-4 ml-3">
+                <ol className="relative border-l border-stone-200 space-y-4 ml-3">
                   {agreement.initiatedByLandlord && agreement.landlordSignedAt && (
                     <li className="pl-5">
                       <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5 top-0.5" />
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         Landlord signed the agreement
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         {fmtDate(agreement.landlordSignedAt)} · {agreement.landlordName}
                       </p>
                     </li>
@@ -1450,10 +1450,10 @@ export default function LiveAgreementPage() {
                   {!agreement.initiatedByLandlord && agreement.tenantSignedAt && (
                     <li className="pl-5">
                       <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5 top-0.5" />
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         Tenant signed the agreement
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         {fmtDate(agreement.tenantSignedAt)} · {agreement.tenantName}
                       </p>
                     </li>
@@ -1461,10 +1461,10 @@ export default function LiveAgreementPage() {
                   {agreement.initiatedByLandlord && agreement.tenantSignedAt && (
                     <li className="pl-5">
                       <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5" />
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         Tenant signed the agreement
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         {fmtDate(agreement.tenantSignedAt)} · {agreement.tenantName}
                       </p>
                     </li>
@@ -1472,10 +1472,10 @@ export default function LiveAgreementPage() {
                   {!agreement.initiatedByLandlord && agreement.landlordSignedAt && (
                     <li className="pl-5">
                       <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5" />
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         Landlord counter-signed
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         {fmtDate(agreement.landlordSignedAt)} · {agreement.landlordName}
                       </p>
                     </li>
@@ -1483,10 +1483,10 @@ export default function LiveAgreementPage() {
                   {agreement.daraApprovedAt && (
                     <li className="pl-5">
                       <div className="absolute w-3 h-3 bg-emerald-400 rounded-full -left-1.5" />
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         DARA officer approved the agreement
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         {fmtDate(agreement.daraApprovedAt)} · Government Officer
                       </p>
                     </li>
@@ -1494,10 +1494,10 @@ export default function LiveAgreementPage() {
                   {agreement.paidAt && (
                     <li className="pl-5">
                       <div className="absolute w-3 h-3 bg-primary-500 rounded-full -left-1.5" />
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         Advance payment confirmed
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         {fmtDate(agreement.paidAt)} ·{" "}
                         {fmtCur(agreement.advanceAmount)} via{" "}
                         {agreement.paymentMethod?.replace("_", " ")}
@@ -1508,8 +1508,8 @@ export default function LiveAgreementPage() {
                     !agreement.initiatedByLandlord &&
                     agreement.status === "tenant_signed" && (
                     <li className="pl-5 opacity-40">
-                      <div className="absolute w-3 h-3 bg-slate-300 rounded-full -left-1.5" />
-                      <p className="text-sm text-slate-500">
+                      <div className="absolute w-3 h-3 bg-stone-300 rounded-full -left-1.5" />
+                      <p className="text-sm text-stone-500">
                         Waiting for landlord counter-signature…
                       </p>
                     </li>
@@ -1517,24 +1517,24 @@ export default function LiveAgreementPage() {
                   {agreement.initiatedByLandlord &&
                     agreement.status === "landlord_initiated" && (
                     <li className="pl-5 opacity-40">
-                      <div className="absolute w-3 h-3 bg-slate-300 rounded-full -left-1.5" />
-                      <p className="text-sm text-slate-500">
+                      <div className="absolute w-3 h-3 bg-stone-300 rounded-full -left-1.5" />
+                      <p className="text-sm text-stone-500">
                         Waiting for tenant signature…
                       </p>
                     </li>
                   )}
                   {agreement.landlordSignedAt && !agreement.daraApprovedAt && (
                     <li className="pl-5 opacity-40">
-                      <div className="absolute w-3 h-3 bg-slate-300 rounded-full -left-1.5" />
-                      <p className="text-sm text-slate-500">
+                      <div className="absolute w-3 h-3 bg-stone-300 rounded-full -left-1.5" />
+                      <p className="text-sm text-stone-500">
                         Waiting for DARA approval…
                       </p>
                     </li>
                   )}
                   {agreement.daraApprovedAt && !agreement.paidAt && (
                     <li className="pl-5 opacity-40">
-                      <div className="absolute w-3 h-3 bg-slate-300 rounded-full -left-1.5" />
-                      <p className="text-sm text-slate-500">
+                      <div className="absolute w-3 h-3 bg-stone-300 rounded-full -left-1.5" />
+                      <p className="text-sm text-stone-500">
                         Waiting for advance payment…
                       </p>
                     </li>
@@ -1545,8 +1545,8 @@ export default function LiveAgreementPage() {
 
             {/* Sidebar */}
             <div className="space-y-5">
-              <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-2">
+              <div className="bg-white rounded-2xl border border-stone-200 p-5">
+                <p className="text-xs text-stone-400 font-semibold uppercase tracking-wide mb-2">
                   Current Status
                 </p>
                 <div
@@ -1554,7 +1554,7 @@ export default function LiveAgreementPage() {
                     agreement.status === "paid"
                       ? "bg-emerald-100 text-emerald-700"
                       : stageIdx >= 2
-                        ? "bg-indigo-100 text-indigo-700"
+                        ? "bg-primary-100 text-primary-700"
                         : "bg-amber-100 text-amber-700"
                   }`}
                 >
@@ -1579,28 +1579,28 @@ export default function LiveAgreementPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                <h3 className="text-sm font-semibold text-slate-700">
+              <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-3">
+                <h3 className="text-sm font-semibold text-stone-700">
                   Agreement Summary
                 </h3>
                 <div className="text-sm space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Monthly Rent</span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="text-stone-500">Monthly Rent</span>
+                    <span className="font-semibold text-stone-900">
                       {fmtCur(agreement.monthlyRent)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Advance (2 mo.)</span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="text-stone-500">Advance (2 mo.)</span>
+                    <span className="font-semibold text-stone-900">
                       {fmtCur(agreement.advanceAmount)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
-                <h3 className="text-sm font-semibold text-slate-700">
+              <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-4">
+                <h3 className="text-sm font-semibold text-stone-700">
                   Parties
                 </h3>
                 <div className="flex items-center gap-3">
@@ -1608,10 +1608,10 @@ export default function LiveAgreementPage() {
                     <User className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">
+                    <p className="text-sm font-medium text-stone-900">
                       {agreement.landlordName}
                     </p>
-                    <p className="text-xs text-slate-500">Landlord</p>
+                    <p className="text-xs text-stone-500">Landlord</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1619,10 +1619,10 @@ export default function LiveAgreementPage() {
                     <User className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">
+                    <p className="text-sm font-medium text-stone-900">
                       {agreement.tenantName}
                     </p>
-                    <p className="text-xs text-slate-500">Tenant</p>
+                    <p className="text-xs text-stone-500">Tenant</p>
                     {isLandlord && (
                       <ViewTenantProfileLink
                         tenantId={agreement.tenantId}
@@ -1633,22 +1633,22 @@ export default function LiveAgreementPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">
+              <div className="bg-white rounded-2xl border border-stone-200 p-5">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3">
                   Property
                 </h3>
                 <Link
                   href={`/dashboard/properties/${agreement.propertyId}`}
                   className="flex items-center gap-3 group"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-slate-500" />
+                  <div className="w-9 h-9 rounded-xl bg-stone-100 flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-stone-500" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600 transition-colors">
+                    <p className="text-sm font-medium text-stone-900 group-hover:text-primary-600 transition-colors">
                       {agreement.propertyTitle}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-stone-500">
                       {agreement.propertyAddress}
                     </p>
                   </div>

@@ -103,15 +103,15 @@ function ESignatureCard({
   imageSrc: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
-      <div className="flex items-center gap-2 text-slate-500">
+    <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4 space-y-3">
+      <div className="flex items-center gap-2 text-stone-500">
         <User className="w-4 h-4 shrink-0" />
         <span className="text-xs font-semibold uppercase tracking-wide">
           {roleLabel}
         </span>
       </div>
-      <p className="text-sm font-semibold text-slate-900">{name}</p>
-      <div className="min-h-[108px] rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center p-3">
+      <p className="text-sm font-semibold text-stone-900">{name}</p>
+      <div className="min-h-[108px] rounded-lg border border-dashed border-stone-300 bg-white flex items-center justify-center p-3">
         {imageSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -120,7 +120,7 @@ function ESignatureCard({
             className="max-h-[100px] w-full object-contain object-center"
           />
         ) : (
-          <p className="text-xs text-slate-400">No signature image</p>
+          <p className="text-xs text-stone-400">No signature image</p>
         )}
       </div>
       <p className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
@@ -245,30 +245,30 @@ export default function VerificationsPage() {
       <main className="flex-1 p-6 overflow-y-auto relative">
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <p className="text-xs text-slate-500 mb-1">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
+            <p className="text-xs text-stone-500 mb-1">
               Pending Properties
             </p>
             <p className="text-2xl font-bold text-amber-600">
               {pendingProperties.length}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <p className="text-xs text-slate-500 mb-1">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
+            <p className="text-xs text-stone-500 mb-1">
               Pending Agreements
             </p>
             <p className="text-2xl font-bold text-blue-600">
               {pendingAgreementItems.length}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <p className="text-xs text-slate-500 mb-1">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
+            <p className="text-xs text-stone-500 mb-1">
               Verified Today
             </p>
             <p className="text-2xl font-bold text-emerald-600">3</p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <p className="text-xs text-slate-500 mb-1">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
+            <p className="text-xs text-stone-500 mb-1">
               Rejected Today
             </p>
             <p className="text-2xl font-bold text-red-600">1</p>
@@ -276,13 +276,13 @@ export default function VerificationsPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 mb-6 w-fit">
+        <div className="flex items-center gap-1 bg-stone-100 rounded-lg p-1 mb-6 w-fit">
           <button
             onClick={() => setTab("properties")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               tab === "properties"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-white text-stone-900 shadow-sm"
+                : "text-stone-500 hover:text-stone-700"
             }`}
           >
             <Building2 className="w-4 h-4 inline mr-1.5" />
@@ -292,8 +292,8 @@ export default function VerificationsPage() {
             onClick={() => setTab("agreements")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               tab === "agreements"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-white text-stone-900 shadow-sm"
+                : "text-stone-500 hover:text-stone-700"
             }`}
           >
             <FileText className="w-4 h-4 inline mr-1.5" />
@@ -305,9 +305,9 @@ export default function VerificationsPage() {
         {tab === "properties" && (
           <div className="space-y-4">
             {pendingProperties.length === 0 && (
-              <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-                <ShieldCheck className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-slate-500 text-sm">
+              <div className="text-center py-16 bg-white rounded-xl border border-stone-200">
+                <ShieldCheck className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+                <p className="text-stone-500 text-sm">
                   No properties pending verification
                 </p>
               </div>
@@ -315,16 +315,16 @@ export default function VerificationsPage() {
             {pendingProperties.map((property) => (
               <div
                 key={property.id}
-                className="bg-white rounded-xl border border-slate-200 p-6"
+                className="bg-white rounded-xl border border-stone-200 p-6"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1">
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center shrink-0">
-                      <Building2 className="w-6 h-6 text-slate-400" />
+                    <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center shrink-0">
+                      <Building2 className="w-6 h-6 text-stone-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-semibold text-slate-900">
+                        <h3 className="text-sm font-semibold text-stone-900">
                           {property.title}
                         </h3>
                         <span
@@ -333,10 +333,10 @@ export default function VerificationsPage() {
                           {formatStatus(property.status)}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mb-2">
+                      <p className="text-xs text-stone-500 mb-2">
                         {property.address}, {property.subCity} Sub-City
                       </p>
-                      <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                      <div className="flex flex-wrap gap-4 text-xs text-stone-500">
                         <span>Owner: {property.landlordName}</span>
                         <span>Type: {property.propertyType}</span>
                         <span>
@@ -352,7 +352,7 @@ export default function VerificationsPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      className="p-2 text-stone-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
@@ -375,9 +375,9 @@ export default function VerificationsPage() {
         {tab === "agreements" && (
           <div className="space-y-4">
             {pendingAgreementItems.length === 0 && (
-              <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-                <ShieldCheck className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-slate-500 text-sm">
+              <div className="text-center py-16 bg-white rounded-xl border border-stone-200">
+                <ShieldCheck className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+                <p className="text-stone-500 text-sm">
                   No agreements pending verification
                 </p>
               </div>
@@ -400,7 +400,7 @@ export default function VerificationsPage() {
               return (
                 <div
                   key={`${item.kind}-${id}`}
-                  className="bg-white rounded-xl border border-slate-200 p-6"
+                  className="bg-white rounded-xl border border-stone-200 p-6"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1">
@@ -409,7 +409,7 @@ export default function VerificationsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-semibold text-slate-900">
+                          <h3 className="text-sm font-semibold text-stone-900">
                             {propertyTitle}
                           </h3>
                           <span
@@ -423,10 +423,10 @@ export default function VerificationsPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mb-2">
+                        <p className="text-xs text-stone-500 mb-2">
                           {landlordName} → {tenantName}
                         </p>
-                        <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                        <div className="flex flex-wrap gap-4 text-xs text-stone-500">
                           <span>
                             Rent: {formatCurrency(monthlyRent)}/mo
                           </span>
@@ -468,7 +468,7 @@ export default function VerificationsPage() {
                         type="button"
                         onClick={() => openReview(item)}
                         title="View full agreement and signatures"
-                        className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        className="p-2 text-stone-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -499,25 +499,25 @@ export default function VerificationsPage() {
         {/* Agreement review: full contract body + e-signature PNGs */}
         {reviewItem && reviewContractProps && signatureBitmaps && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px]"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-[2px]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="agreement-review-title"
             onClick={closeReview}
           >
             <div
-              className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-4xl w-full max-h-[92vh] overflow-y-auto"
+              className="bg-white rounded-2xl border border-stone-200 shadow-xl max-w-4xl w-full max-h-[92vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 z-10 flex items-start justify-between gap-4 px-6 py-4 border-b border-slate-100 bg-white rounded-t-2xl">
+              <div className="sticky top-0 z-10 flex items-start justify-between gap-4 px-6 py-4 border-b border-stone-100 bg-white rounded-t-2xl">
                 <div>
                   <h2
                     id="agreement-review-title"
-                    className="text-base font-semibold text-slate-900"
+                    className="text-base font-semibold text-stone-900"
                   >
                     {reviewItem.agreement.propertyTitle}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-stone-500 mt-1">
                     {reviewItem.agreement.landlordName} →{" "}
                     {reviewItem.agreement.tenantName}
                   </p>
@@ -525,7 +525,7 @@ export default function VerificationsPage() {
                 <button
                   type="button"
                   onClick={closeReview}
-                  className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  className="p-2 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
                   aria-label="Close"
                 >
                   <X className="w-5 h-5" />
@@ -534,11 +534,11 @@ export default function VerificationsPage() {
 
               <div className="px-6 py-5 space-y-8">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-3">
+                  <h3 className="text-sm font-semibold text-stone-900 mb-3">
                     Full agreement (official template)
                   </h3>
-                  <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
-                    <div className="bg-gradient-to-r from-primary-700 to-indigo-700 px-5 py-3 flex items-center gap-3 shrink-0">
+                  <div className="rounded-xl border border-stone-200 overflow-hidden bg-white">
+                    <div className="bg-gradient-to-r from-primary-700 to-primary-700 px-5 py-3 flex items-center gap-3 shrink-0">
                       <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
                         <FileSignature className="w-4 h-4 text-white" />
                       </div>
@@ -555,7 +555,7 @@ export default function VerificationsPage() {
                       </span>
                     </div>
                     <div
-                      className="px-4 sm:px-6 py-5 max-h-[min(52vh,520px)] overflow-y-auto bg-slate-50/50"
+                      className="px-4 sm:px-6 py-5 max-h-[min(52vh,520px)] overflow-y-auto bg-stone-50/50"
                       style={{ scrollbarWidth: "thin" }}
                     >
                       <ContractBody {...reviewContractProps} />
@@ -564,10 +564,10 @@ export default function VerificationsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                  <h3 className="text-sm font-semibold text-stone-900 mb-2">
                     Parties&apos; e-signatures
                   </h3>
-                  <p className="text-xs text-slate-500 mb-4">
+                  <p className="text-xs text-stone-500 mb-4">
                     Images captured from the signing flow (or system-generated
                     counter-signature when the landlord line is auto-completed).
                     Compare with the signers named in the contract above.
@@ -597,11 +597,11 @@ export default function VerificationsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3 justify-end px-6 py-4 border-t border-slate-100 bg-slate-50/80 rounded-b-2xl sticky bottom-0">
+              <div className="flex flex-wrap gap-3 justify-end px-6 py-4 border-t border-stone-100 bg-stone-50/80 rounded-b-2xl sticky bottom-0">
                 <button
                   type="button"
                   onClick={closeReview}
-                  className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-200/80 rounded-lg transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-stone-600 hover:bg-stone-200/80 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>

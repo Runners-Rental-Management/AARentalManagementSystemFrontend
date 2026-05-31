@@ -1,5 +1,5 @@
 import { ApiError } from "@/lib/api-error";
-import type { Property, RentAdjustment, TenantPublicProfile, User, UserRole } from "@/lib/types";
+import type { Property, RentAdjustment, RentPayment, TenantPublicProfile, User, UserRole } from "@/lib/types";
 import type { TenancyAgreement } from "@/lib/types";
 
 const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
@@ -683,6 +683,90 @@ export async function apiWithdrawAgreement(
     body: { reason },
   });
   return mapBackendAgreement(result);
+}
+
+// ─── Rent payments ────────────────────────────────────────────────────────────
+
+type BackendRentPayment = {
+  id: string;
+  agreementId: string;
+  payerId: string;
+  recipientId: string;
+  amount: number | string;
+  dueDate: string;
+  paidDate?: string | null;
+  status: RentPayment["status"];
+  method?: RentPayment["method"] | null;
+  reference?: string | null;
+  agreement?: {
+    id: string;
+    property?: { id: string; title?: string };
+  };
+  payer?: { id: string; firstName?: string; lastName?: string };
+  recipient?: { id: string; firstName?: string; lastName?: string };
+};
+
+type RentPaymentListResponse = {
+  items: BackendRentPayment[];
+  meta: { page: number; pageSize: number; total: number; totalPages: number };
+};
+
+function mapBackendRentPayment(raw: BackendRentPayment): RentPayment {
+  const payerName = raw.payer
+    ? `${raw.payer.firstName ?? ""} ${raw.payer.lastName ?? ""}`.trim()
+    : "—";
+  const recipientName = raw.recipient
+    ? `${raw.recipient.firstName ?? ""} ${raw.recipient.lastName ?? ""}`.trim()
+    : "—";
+  return {
+    id: raw.id,
+    agreementId: raw.agreementId,
+    propertyTitle: raw.agreement?.property?.title ?? "—",
+    payerId: raw.payerId,
+    payerName,
+    recipientId: raw.recipientId,
+    recipientName,
+    amount: Number(raw.amount ?? 0),
+    dueDate: toIsoDate(raw.dueDate),
+    paidDate: raw.paidDate ? toIsoDate(raw.paidDate) : undefined,
+    status: raw.status,
+    method: raw.method ?? undefined,
+    reference: raw.reference ?? undefined,
+  };
+}
+
+export async function apiListRentPayments(
+  token: string,
+  query = "page=1&pageSize=100",
+) {
+  const result = await apiRequest<RentPaymentListResponse>(`/payments?${query}`, {
+    token,
+  });
+  return {
+    ...result,
+    items: result.items.map(mapBackendRentPayment),
+  };
+}
+
+export async function apiGetRentPaymentById(token: string, id: string) {
+  const result = await apiRequest<BackendRentPayment>(`/payments/${id}`, { token });
+  return mapBackendRentPayment(result);
+}
+
+export async function apiConfirmRentPayment(
+  token: string,
+  id: string,
+  payload: {
+    method?: RentPayment["method"];
+    reference?: string;
+  },
+) {
+  const result = await apiRequest<BackendRentPayment>(`/payments/${id}/confirm`, {
+    method: "PATCH",
+    token,
+    body: payload,
+  });
+  return mapBackendRentPayment(result);
 }
 
 export async function apiRequestAgreementTermination(

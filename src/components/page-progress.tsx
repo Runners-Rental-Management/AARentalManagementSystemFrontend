@@ -53,8 +53,8 @@ export function PageProgress() {
         className="h-full transition-all duration-200 ease-out rounded-r-full"
         style={{
           width: `${progress}%`,
-          background: "linear-gradient(90deg, #2563eb, #6366f1, #a855f7)",
-          boxShadow: "0 0 10px rgba(99,102,241,0.7), 0 0 20px rgba(99,102,241,0.4)",
+          background: "linear-gradient(90deg, #0f766e, #0d9488, #14b8a6)",
+          boxShadow: "0 0 8px rgba(13, 148, 136, 0.35)",
           opacity: visible ? 1 : 0,
           transition: progress === 100 ? "width 0.2s ease-out, opacity 0.35s 0.2s" : "width 0.2s ease-out",
         }}
@@ -64,8 +64,8 @@ export function PageProgress() {
         className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full"
         style={{
           left: `calc(${progress}% - 8px)`,
-          background: "#6366f1",
-          boxShadow: "0 0 8px 4px rgba(99,102,241,0.6)",
+          background: "#0d9488",
+          boxShadow: "0 0 6px 2px rgba(13, 148, 136, 0.4)",
           opacity: visible ? 1 : 0,
           transition: "left 0.2s ease-out",
         }}

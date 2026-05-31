@@ -62,7 +62,7 @@ function SmsToast({ phone, onDismiss }: { phone: string; onDismiss: () => void }
   useEffect(() => { const t = setTimeout(onDismiss, 7000); return () => clearTimeout(t); }, [onDismiss]);
   return (
     <div className="fixed bottom-6 right-6 z-[60] w-72 animate-fade-in-up">
-      <div className="bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="bg-stone-900 rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center gap-2 bg-green-600 px-3 py-1.5">
           <MessageSquare className="w-3 h-3 text-white" />
           <span className="text-white text-xs font-bold">SMS Notification Sent</span>
@@ -127,7 +127,7 @@ function ExtensionModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-700 to-primary-700 px-5 py-4 flex items-center justify-between sticky top-0 z-10 rounded-t-2xl">
+          <div className="bg-gradient-to-r from-primary-700 to-primary-700 px-5 py-4 flex items-center justify-between sticky top-0 z-10 rounded-t-2xl">
             <div className="flex items-center gap-2">
               <RefreshCw className="w-4 h-4 text-white" />
               <span className="text-white font-bold text-sm">
@@ -141,11 +141,11 @@ function ExtensionModal({
 
           {/* Step bar */}
           {!["processing","receipt","done"].includes(step) && (
-            <div className="flex border-b border-slate-100">
+            <div className="flex border-b border-stone-100">
               {STEPS_BAR.map((s, i) => (
                 <div key={s} className={`flex-1 py-1.5 text-center text-[10px] font-semibold transition-colors ${
                   step === s ? "text-primary-700 border-b-2 border-primary-600"
-                  : STEPS_BAR.indexOf(step as typeof STEPS_BAR[number]) > i ? "text-emerald-600" : "text-slate-400"
+                  : STEPS_BAR.indexOf(step as typeof STEPS_BAR[number]) > i ? "text-emerald-600" : "text-stone-400"
                 }`}>
                   {i+1}. {STEP_LBLS[i]}
                 </div>
@@ -157,51 +157,51 @@ function ExtensionModal({
             {/* ── Step 1: Details ── */}
             {step === "details" && (
               <>
-                <p className="text-sm font-bold text-slate-800 mb-4">Extension Details</p>
-                <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 mb-4 space-y-1">
+                <p className="text-sm font-bold text-stone-800 mb-4">Extension Details</p>
+                <div className="bg-stone-50 rounded-xl p-3 text-xs text-stone-600 mb-4 space-y-1">
                   <p><span className="font-semibold">Property:</span> {agreement.propertyTitle}</p>
                   <p><span className="font-semibold">Tenant:</span> {agreement.tenantName}</p>
                   <p><span className="font-semibold">Current rent:</span> ETB {agreement.monthlyRent.toLocaleString()}/mo</p>
                 </div>
 
                 <div className="mb-4">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">New End Date *</label>
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-1.5">New End Date *</label>
                   <input
                     type="date"
                     value={newEndDate}
                     min={new Date(Date.now() + 30*24*3600*1000).toISOString().split("T")[0]}
                     onChange={(e) => setNewEndDate(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </div>
 
                 <label className="flex items-center gap-2 mb-3 cursor-pointer">
                   <input type="checkbox" checked={adjustRent} onChange={(e) => setAdjustRent(e.target.checked)} className="rounded" />
-                  <span className="text-sm text-slate-700">Also adjust monthly rent</span>
+                  <span className="text-sm text-stone-700">Also adjust monthly rent</span>
                 </label>
 
                 {adjustRent && (
                   <div className="mb-4">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">New Monthly Rent (ETB)</label>
+                    <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-1.5">New Monthly Rent (ETB)</label>
                     <input
                       type="number"
                       value={newRent}
                       min={1}
                       onChange={(e) => setNewRent(Number(e.target.value))}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                     />
-                    <p className="text-[11px] text-slate-400 mt-1">Rent adjustment must comply with DARA pricing policy.</p>
+                    <p className="text-[11px] text-stone-400 mt-1">Rent adjustment must comply with DARA pricing policy.</p>
                   </div>
                 )}
 
-                <div className="rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-3 text-xs text-indigo-700 mb-4">
+                <div className="rounded-xl bg-primary-50 border border-primary-200 px-4 py-3 text-xs text-primary-700 mb-4">
                   <strong>Extension fee:</strong> ETB {EXT_FEE.toFixed(2)} processing charge applies. Both parties must sign. DARA will verify before approval.
                 </div>
 
                 <button
                   onClick={() => setStep("method")}
                   disabled={!newEndDate}
-                  className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+                  className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
                 >
                   Continue to Payment
                 </button>
@@ -211,12 +211,12 @@ function ExtensionModal({
             {/* ── Step 2: Payment method ── */}
             {step === "method" && (
               <>
-                <p className="text-xs text-slate-500 mb-0.5">Extension Processing Fee</p>
-                <p className="text-3xl font-black text-slate-900 mb-4">ETB {EXT_FEE.toFixed(2)}</p>
+                <p className="text-xs text-stone-500 mb-0.5">Extension Processing Fee</p>
+                <p className="text-3xl font-black text-stone-900 mb-4">ETB {EXT_FEE.toFixed(2)}</p>
                 <div className="space-y-3 mb-5">
                   {PAY_METHODS.map((m) => (
                     <button key={m.id} onClick={() => setMethod(m.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all ${method===m.id ? `${m.border} ${m.bg}` : "border-slate-200 hover:border-slate-300"}`}>
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all ${method===m.id ? `${m.border} ${m.bg}` : "border-stone-200 hover:border-stone-300"}`}>
                       <div className={`w-9 h-9 rounded-xl ${m.bg} flex items-center justify-center`}>
                         <m.icon className={`w-4 h-4 ${m.color}`} />
                       </div>
@@ -226,8 +226,8 @@ function ExtensionModal({
                   ))}
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setStep("details")} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium">Back</button>
-                  <button onClick={() => setStep("account")} disabled={!method} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-sm font-semibold">Continue</button>
+                  <button onClick={() => setStep("details")} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium">Back</button>
+                  <button onClick={() => setStep("account")} disabled={!method} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white py-2.5 rounded-xl text-sm font-semibold">Continue</button>
                 </div>
               </>
             )}
@@ -240,24 +240,24 @@ function ExtensionModal({
                     <methodInfo.icon className={`w-5 h-5 ${methodInfo.color}`} />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">{methodInfo.label}</p>
-                    <p className="text-xs text-slate-500">{isCbe ? "Enter your CBE account number" : "Enter your Telebirr phone number"}</p>
+                    <p className="font-bold text-stone-900 text-sm">{methodInfo.label}</p>
+                    <p className="text-xs text-stone-500">{isCbe ? "Enter your CBE account number" : "Enter your Telebirr phone number"}</p>
                   </div>
                 </div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">{methodInfo.acctLabel}</label>
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5 block">{methodInfo.acctLabel}</label>
                 <div className="relative mb-4">
-                  <methodInfo.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <methodInfo.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                   <input
                     type={isCbe ? "text" : "tel"}
                     value={account}
                     onChange={(e) => setAccount(isCbe ? e.target.value.replace(/\D/g,"") : e.target.value)}
                     placeholder={methodInfo.placeholder}
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 font-mono"
+                    className="w-full border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 font-mono"
                   />
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setStep("method")} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium">Back</button>
-                  <button onClick={() => setStep("pin")} disabled={account.trim().length < 7} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-sm font-semibold">Continue</button>
+                  <button onClick={() => setStep("method")} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium">Back</button>
+                  <button onClick={() => setStep("pin")} disabled={account.trim().length < 7} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white py-2.5 rounded-xl text-sm font-semibold">Continue</button>
                 </div>
               </>
             )}
@@ -270,8 +270,8 @@ function ExtensionModal({
                     <KeyRound className={`w-5 h-5 ${methodInfo.color}`} />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">Enter {methodInfo.label} PIN</p>
-                    <p className="text-xs text-slate-500">{account}</p>
+                    <p className="font-bold text-stone-900 text-sm">Enter {methodInfo.label} PIN</p>
+                    <p className="text-xs text-stone-500">{account}</p>
                   </div>
                 </div>
                 <div className="relative mb-1">
@@ -279,17 +279,17 @@ function ExtensionModal({
                     type={pinVisible ? "text" : "password"} inputMode="numeric" value={pin} maxLength={6}
                     onChange={(e) => { setPin(e.target.value.replace(/\D/g,"").slice(0,6)); setPinError(""); }}
                     placeholder="••••••"
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 pr-12 text-center"
+                    className="w-full border border-stone-200 rounded-xl px-4 py-3 text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 pr-12 text-center"
                   />
-                  <button type="button" onClick={() => setPinVisible(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <button type="button" onClick={() => setPinVisible(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">
                     {pinVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {pinError && <p className="text-xs text-red-600 mt-1">{pinError}</p>}
-                <p className="text-xs text-slate-400 mt-2 mb-4">PIN never stored by DARA — sent directly to {methodInfo.label}.</p>
+                <p className="text-xs text-stone-400 mt-2 mb-4">PIN never stored by DARA — sent directly to {methodInfo.label}.</p>
                 <div className="flex gap-3">
-                  <button onClick={() => setStep("account")} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium">Back</button>
-                  <button onClick={handlePinNext} disabled={pin.length < 4} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-sm font-semibold">Authorise</button>
+                  <button onClick={() => setStep("account")} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium">Back</button>
+                  <button onClick={handlePinNext} disabled={pin.length < 4} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white py-2.5 rounded-xl text-sm font-semibold">Authorise</button>
                 </div>
               </>
             )}
@@ -297,8 +297,8 @@ function ExtensionModal({
             {/* ── Step 5: Confirm ── */}
             {step === "confirm" && methodInfo && (
               <>
-                <p className="text-sm font-bold text-slate-900 mb-3">Confirm Extension Fee Payment</p>
-                <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm mb-3">
+                <p className="text-sm font-bold text-stone-900 mb-3">Confirm Extension Fee Payment</p>
+                <div className="bg-stone-50 rounded-xl p-4 space-y-2 text-sm mb-3">
                   {[
                     ["Fee Amount",  `ETB ${EXT_FEE.toFixed(2)}`],
                     ["Method",      methodInfo.label],
@@ -307,14 +307,14 @@ function ExtensionModal({
                     ["New End Date", new Date(newEndDate).toLocaleDateString()],
                     ...(adjustRent ? [["New Monthly Rent", `ETB ${newRent.toLocaleString()}`]] : []),
                   ].map(([l, v]) => (
-                    <div key={l} className="flex justify-between"><span className="text-slate-500">{l}</span><span className="font-semibold text-slate-800">{v}</span></div>
+                    <div key={l} className="flex justify-between"><span className="text-stone-500">{l}</span><span className="font-semibold text-stone-800">{v}</span></div>
                   ))}
                 </div>
                 <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2.5 text-xs text-emerald-800 mb-4">
                   After payment the extension request is sent to <strong>{agreement.tenantName}</strong> for signature, then to DARA for approval.
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setStep("pin")} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium">Back</button>
+                  <button onClick={() => setStep("pin")} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium">Back</button>
                   <button onClick={handleConfirm} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5">
                     <CreditCard className="w-3.5 h-3.5" /> Pay &amp; Submit
                   </button>
@@ -331,15 +331,15 @@ function ExtensionModal({
                     <Loader2 className="w-7 h-7 text-primary-600 animate-spin" />
                   </div>
                 </div>
-                <p className="font-bold text-slate-900">Processing Payment…</p>
-                <p className="text-sm text-slate-500 mt-1">Please do not close this window.</p>
+                <p className="font-bold text-stone-900">Processing Payment…</p>
+                <p className="text-sm text-stone-500 mt-1">Please do not close this window.</p>
               </div>
             )}
 
             {/* ── Receipt (CBE format) ── */}
             {step === "receipt" && method && feeRef && (
               <>
-                <div className="border border-slate-200 rounded-2xl overflow-hidden mb-4 text-xs" style={{ fontFamily:"'Courier New', monospace" }}>
+                <div className="border border-stone-200 rounded-2xl overflow-hidden mb-4 text-xs" style={{ fontFamily:"'Courier New', monospace" }}>
                   <div className="bg-[#1a3a6b] px-5 py-3 text-center">
                     <p className="text-white font-black text-sm">Commercial Bank of Ethiopia</p>
                     <p className="text-blue-200 text-[10px]">VAT Invoice / Customer Receipt</p>
@@ -349,14 +349,14 @@ function ExtensionModal({
                     <p className="text-white font-black text-xl">{totalPaid.toFixed(2)} ETB</p>
                     <p className="text-emerald-200 text-[9px] mt-0.5">✓ Extension Fee Paid</p>
                   </div>
-                  <div className="px-4 py-3 border-b border-dashed border-slate-200 bg-slate-50">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Company Address &amp; Other Information</p>
+                  <div className="px-4 py-3 border-b border-dashed border-stone-200 bg-stone-50">
+                    <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1.5">Company Address &amp; Other Information</p>
                     {[["Country","Ethiopia"],["City","Addis Ababa"],["SWIFT Code","CBETETAA"],["VAT Receipt No",feeRef],["VAT Registration No","011140"]].map(([l,v]) => (
-                      <div key={l} className="flex justify-between py-0.5"><span className="text-slate-400 w-32 shrink-0">{l}:</span><span className="text-slate-700 font-semibold text-right">{v}</span></div>
+                      <div key={l} className="flex justify-between py-0.5"><span className="text-stone-400 w-32 shrink-0">{l}:</span><span className="text-stone-700 font-semibold text-right">{v}</span></div>
                     ))}
                   </div>
-                  <div className="px-4 py-3 border-b border-dashed border-slate-200">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Payment / Transaction Information</p>
+                  <div className="px-4 py-3 border-b border-dashed border-stone-200">
+                    <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1.5">Payment / Transaction Information</p>
                     {[
                       ["Payer", agreement.landlordName.toUpperCase()],
                       ["Account", maskAccount(account)],
@@ -369,13 +369,13 @@ function ExtensionModal({
                       ["15% VAT", vat.toFixed(2)+" ETB"],
                       ["Total Debited", totalPaid.toFixed(2)+" ETB"],
                     ].map(([l,v]) => (
-                      <div key={l} className={`flex justify-between py-0.5 ${l==="Total Debited"?"font-black border-t border-slate-200 mt-1 pt-1":""}`}>
-                        <span className="text-slate-400 w-28 shrink-0">{l}:</span><span className="text-slate-800 font-semibold text-right">{v}</span>
+                      <div key={l} className={`flex justify-between py-0.5 ${l==="Total Debited"?"font-black border-t border-stone-200 mt-1 pt-1":""}`}>
+                        <span className="text-stone-400 w-28 shrink-0">{l}:</span><span className="text-stone-800 font-semibold text-right">{v}</span>
                       </div>
                     ))}
-                    <div className="mt-2 pt-1 border-t border-slate-100">
-                      <p className="text-slate-400">Amount in Word:</p>
-                      <p className="text-slate-700 font-semibold mt-0.5">{amountToWords(totalPaid)}</p>
+                    <div className="mt-2 pt-1 border-t border-stone-100">
+                      <p className="text-stone-400">Amount in Word:</p>
+                      <p className="text-stone-700 font-semibold mt-0.5">{amountToWords(totalPaid)}</p>
                     </div>
                   </div>
                   <div className="bg-[#1a3a6b] px-4 py-2 text-center">
@@ -384,7 +384,7 @@ function ExtensionModal({
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => window.print()} className="flex-1 flex items-center justify-center gap-1.5 border border-slate-200 text-slate-700 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium">
+                  <button onClick={() => window.print()} className="flex-1 flex items-center justify-center gap-1.5 border border-stone-200 text-stone-700 py-2 rounded-xl hover:bg-stone-50 text-xs font-medium">
                     <Printer className="w-3.5 h-3.5" /> Print
                   </button>
                   <button
@@ -412,9 +412,9 @@ function ExtensionModal({
                 <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                 </div>
-                <p className="font-black text-slate-900 text-lg">Extension Request Sent!</p>
-                <p className="text-sm text-slate-500 mt-2 mb-1">Sent to <strong>{agreement.tenantName}</strong> for signature.</p>
-                <p className="text-xs text-slate-400 mb-6">After both parties sign, DARA will verify and approve the extension.</p>
+                <p className="font-black text-stone-900 text-lg">Extension Request Sent!</p>
+                <p className="text-sm text-stone-500 mt-2 mb-1">Sent to <strong>{agreement.tenantName}</strong> for signature.</p>
+                <p className="text-xs text-stone-400 mb-6">After both parties sign, DARA will verify and approve the extension.</p>
                 <button onClick={onClose} className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors">Close</button>
               </div>
             )}
@@ -497,18 +497,18 @@ function TerminationModal({ agreement, onClose, onSubmit }: {
               <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-8 h-8 text-emerald-600" />
               </div>
-              <p className="font-black text-slate-900 text-lg mb-2">Termination Notice Submitted</p>
+              <p className="font-black text-stone-900 text-lg mb-2">Termination Notice Submitted</p>
               {isEarly && (
                 <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-700 mb-3 text-left">
                   <strong>Early termination notice filed.</strong> Because the contract is under 2 years, DARA must review and approve this request before it becomes effective.
                 </div>
               )}
-              <p className="text-sm text-slate-500 mb-1">
+              <p className="text-sm text-stone-500 mb-1">
                 {notifyTenant
                   ? <><strong>{agreement.tenantName}</strong> has been notified and DARA has received the request.</>
                   : <>The request has been forwarded to DARA. The tenant will be informed by DARA.</>}
               </p>
-              <p className="text-xs text-slate-400 mb-6">Expected vacate date: <strong>{new Date(vacateDate).toLocaleDateString()}</strong></p>
+              <p className="text-xs text-stone-400 mb-6">Expected vacate date: <strong>{new Date(vacateDate).toLocaleDateString()}</strong></p>
               <button onClick={onClose} className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold">Close</button>
             </div>
           ) : (
@@ -533,11 +533,11 @@ function TerminationModal({ agreement, onClose, onSubmit }: {
               )}
 
               {/* Property summary */}
-              <div className="bg-slate-50 rounded-xl p-3 mb-5 text-xs text-slate-600 space-y-1">
-                <p><span className="font-semibold text-slate-700">Property:</span> {agreement.propertyTitle}</p>
-                <p><span className="font-semibold text-slate-700">Tenant:</span> {agreement.tenantName}</p>
-                <p><span className="font-semibold text-slate-700">Contract active since:</span> {paidAt.toLocaleDateString()}</p>
-                <p><span className="font-semibold text-slate-700">Monthly rent:</span> ETB {agreement.monthlyRent.toLocaleString()}</p>
+              <div className="bg-stone-50 rounded-xl p-3 mb-5 text-xs text-stone-600 space-y-1">
+                <p><span className="font-semibold text-stone-700">Property:</span> {agreement.propertyTitle}</p>
+                <p><span className="font-semibold text-stone-700">Tenant:</span> {agreement.tenantName}</p>
+                <p><span className="font-semibold text-stone-700">Contract active since:</span> {paidAt.toLocaleDateString()}</p>
+                <p><span className="font-semibold text-stone-700">Monthly rent:</span> ETB {agreement.monthlyRent.toLocaleString()}</p>
               </div>
 
               {/* ── Form fields ── */}
@@ -545,13 +545,13 @@ function TerminationModal({ agreement, onClose, onSubmit }: {
 
                 {/* Grounds */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-1.5">
                     Legal Grounds for Termination <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={grounds}
                     onChange={(e) => setGrounds(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
+                    className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
                   >
                     {TERMINATION_GROUNDS.map((g) => (
                       <option key={g.value} value={g.value} disabled={g.value === ""}>{g.label}</option>
@@ -561,39 +561,39 @@ function TerminationModal({ agreement, onClose, onSubmit }: {
 
                 {/* Description */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-1.5">
                     Detailed Description <span className="text-red-500">*</span>
-                    <span className="normal-case font-normal text-slate-400 ml-1">(min. 20 characters)</span>
+                    <span className="normal-case font-normal text-stone-400 ml-1">(min. 20 characters)</span>
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
                     placeholder="Describe the specific circumstances that necessitate termination. Be as detailed as possible — this will be reviewed by DARA..."
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                    className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
                   />
-                  <p className={`text-[11px] mt-1 ${description.trim().length >= 20 ? "text-emerald-600" : "text-slate-400"}`}>
+                  <p className={`text-[11px] mt-1 ${description.trim().length >= 20 ? "text-emerald-600" : "text-stone-400"}`}>
                     {description.trim().length} / 20 characters minimum
                   </p>
                 </div>
 
                 {/* Expected vacate date */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-1.5">
                     Expected Vacate Date <span className="text-red-500">*</span>
-                    <span className="normal-case font-normal text-slate-400 ml-1">(min. 90 days notice required)</span>
+                    <span className="normal-case font-normal text-stone-400 ml-1">(min. 90 days notice required)</span>
                   </label>
                   <input
                     type="date"
                     value={vacateDate}
                     min={minVacate}
                     onChange={(e) => setVacateDate(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                    className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
                   />
                 </div>
 
                 {/* Notify tenant toggle */}
-                <div className="rounded-xl border border-slate-200 px-4 py-3">
+                <div className="rounded-xl border border-stone-200 px-4 py-3">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -602,8 +602,8 @@ function TerminationModal({ agreement, onClose, onSubmit }: {
                       className="mt-0.5 rounded accent-red-600"
                     />
                     <div>
-                      <p className="text-sm font-semibold text-slate-700">Notify tenant immediately</p>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-sm font-semibold text-stone-700">Notify tenant immediately</p>
+                      <p className="text-xs text-stone-400 mt-0.5">
                         {agreement.tenantName} will receive a notification upon submission.
                         If unchecked, DARA will inform the tenant after review.
                       </p>
@@ -644,7 +644,7 @@ function TerminationModal({ agreement, onClose, onSubmit }: {
 
               {/* Actions */}
               <div className="flex gap-3 mt-5">
-                <button onClick={onClose} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium transition-colors">
+                <button onClick={onClose} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium transition-colors">
                   Cancel
                 </button>
                 <button
@@ -652,8 +652,8 @@ function TerminationModal({ agreement, onClose, onSubmit }: {
                   disabled={!canSubmit}
                   className={`flex-1 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                     isEarly
-                      ? "bg-amber-600 hover:bg-amber-700 disabled:bg-slate-200 disabled:text-slate-400"
-                      : "bg-red-600 hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-400"
+                      ? "bg-amber-600 hover:bg-amber-700 disabled:bg-stone-200 disabled:text-stone-400"
+                      : "bg-red-600 hover:bg-red-700 disabled:bg-stone-200 disabled:text-stone-400"
                   }`}
                 >
                   <Send className="w-4 h-4" />
@@ -686,7 +686,7 @@ const LIVE_STATUS_LABEL: Record<LiveStatus, string> = {
 const LIVE_STATUS_COLOR: Record<LiveStatus, string> = {
   landlord_initiated:  "bg-violet-100 text-violet-700",
   tenant_signed:       "bg-amber-100 text-amber-700",
-  landlord_signed:     "bg-indigo-100 text-indigo-700",
+  landlord_signed:     "bg-primary-100 text-primary-700",
   dara_approved:       "bg-emerald-100 text-emerald-700",
   paid:                "bg-primary-100 text-primary-700",
   rejected:            "bg-red-100 text-red-700",
@@ -830,26 +830,26 @@ export default function AgreementsPage() {
         {/* Incoming extension requests for tenant */}
         {incomingExtensions.length > 0 && (
           <div className="mb-6 space-y-3">
-            <p className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 text-indigo-500" />
+            <p className="text-sm font-semibold text-stone-700 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-primary-500" />
               Extension Requests ({incomingExtensions.length})
             </p>
             {incomingExtensions.map((ext) => (
-              <div key={ext.id} className="bg-white border-2 border-indigo-200 rounded-2xl p-5">
+              <div key={ext.id} className="bg-white border-2 border-primary-200 rounded-2xl p-5">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="w-11 h-11 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
-                    <RefreshCw className="w-5 h-5 text-indigo-600" />
+                  <div className="w-11 h-11 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
+                    <RefreshCw className="w-5 h-5 text-primary-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{ext.propertyTitle}</p>
-                    <p className="text-sm text-slate-500">From: {ext.landlordName}</p>
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-600">
+                    <p className="font-semibold text-stone-900">{ext.propertyTitle}</p>
+                    <p className="text-sm text-stone-500">From: {ext.landlordName}</p>
+                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-stone-600">
                       <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> New end date: <strong>{new Date(ext.newEndDate).toLocaleDateString()}</strong></span>
                       {ext.newMonthlyRent && <span className="flex items-center gap-1"><Info className="w-3 h-3" /> New rent: <strong>ETB {ext.newMonthlyRent.toLocaleString()}/mo</strong></span>}
                     </div>
                   </div>
                 </div>
-                <div className="rounded-xl bg-indigo-50 border border-indigo-200 p-3 text-xs text-indigo-700 mb-4">
+                <div className="rounded-xl bg-primary-50 border border-primary-200 p-3 text-xs text-primary-700 mb-4">
                   Your landlord has requested to extend your tenancy. Review and sign to proceed to DARA verification.
                 </div>
                 <div className="flex gap-3">
@@ -861,7 +861,7 @@ export default function AgreementsPage() {
                   </button>
                   <button
                     onClick={() => tenantSignExtension(ext.id)}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold"
                   >
                     <FileSignature className="w-4 h-4" /> Sign Extension
                   </button>
@@ -874,7 +874,7 @@ export default function AgreementsPage() {
         {/* Incoming contract requests for tenant */}
         {incomingRequests.length > 0 && (
           <div className="mb-6 space-y-3">
-            <p className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <p className="text-sm font-semibold text-stone-700 flex items-center gap-2">
               <Send className="w-4 h-4 text-violet-500" />
               Rental Contract Requests ({incomingRequests.length})
             </p>
@@ -885,16 +885,16 @@ export default function AgreementsPage() {
                     <Building2 className="w-5 h-5 text-violet-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-900">{req.propertyTitle}</p>
-                    <p className="text-sm text-slate-500">{req.propertyAddress}</p>
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-600">
+                    <p className="font-semibold text-stone-900">{req.propertyTitle}</p>
+                    <p className="text-sm text-stone-500">{req.propertyAddress}</p>
+                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-stone-600">
                       <span className="flex items-center gap-1"><User className="w-3 h-3" /> {req.landlordName}</span>
                       <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Sent {new Date(req.landlordSignedAt ?? "").toLocaleDateString()}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="font-bold text-primary-700">{formatCurrency(req.monthlyRent)}/mo</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Advance: {formatCurrency(req.advanceAmount)}</p>
+                    <p className="text-xs text-stone-400 mt-0.5">Advance: {formatCurrency(req.advanceAmount)}</p>
                   </div>
                 </div>
                 <div className="rounded-xl bg-violet-50 border border-violet-200 p-3 text-xs text-violet-700 mb-4">
@@ -922,7 +922,7 @@ export default function AgreementsPage() {
         {/* Tenant-signed contracts awaiting landlord counter-signature */}
         {pendingLandlordSign.length > 0 && (
           <div className="mb-6 space-y-3">
-            <p className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <p className="text-sm font-semibold text-stone-700 flex items-center gap-2">
               <FileSignature className="w-4 h-4 text-amber-500" />
               Awaiting Your Counter-Signature ({pendingLandlordSign.length})
             </p>
@@ -933,16 +933,16 @@ export default function AgreementsPage() {
                     <Building2 className="w-5 h-5 text-amber-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-900">{req.propertyTitle}</p>
-                    <p className="text-sm text-slate-500">{req.propertyAddress}</p>
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-600">
+                    <p className="font-semibold text-stone-900">{req.propertyTitle}</p>
+                    <p className="text-sm text-stone-500">{req.propertyAddress}</p>
+                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-stone-600">
                       <span className="flex items-center gap-1"><User className="w-3 h-3" /> {req.tenantName}</span>
                       <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Signed {new Date(req.tenantSignedAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="font-bold text-primary-700">{formatCurrency(req.monthlyRent)}/mo</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Advance: {formatCurrency(req.advanceAmount)}</p>
+                    <p className="text-xs text-stone-400 mt-0.5">Advance: {formatCurrency(req.advanceAmount)}</p>
                   </div>
                 </div>
                 <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 mb-4">
@@ -971,10 +971,10 @@ export default function AgreementsPage() {
                 className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${
                   isActive
                     ? "bg-primary-600 text-white border-primary-600 shadow-sm shadow-primary-600/20"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-700"
+                    : "bg-white text-stone-600 border-stone-200 hover:border-primary-300 hover:text-primary-700"
                 }`}
               >
-                <tab.icon className={`w-3.5 h-3.5 ${isActive ? "" : "text-slate-400"}`} />
+                <tab.icon className={`w-3.5 h-3.5 ${isActive ? "" : "text-stone-400"}`} />
                 {tab.label}
                 {/* badge counts */}
                 {tab.value === "active" && (
@@ -996,8 +996,8 @@ export default function AgreementsPage() {
 
         {/* Search */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 max-w-sm">
-            <Search className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 max-w-sm">
+            <Search className="w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder="Search agreements..."
@@ -1009,30 +1009,30 @@ export default function AgreementsPage() {
         </div>
 
         {/* Agreements Table */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">
+                <tr className="bg-stone-50 border-b border-stone-200">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wider px-6 py-3">
                     Property
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wider px-6 py-3">
                     Parties
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wider px-6 py-3">
                     Duration / Signed
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wider px-6 py-3">
                     Rent
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase tracking-wider px-6 py-3">
                     Status
                   </th>
                   <th className="px-6 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-stone-100">
 
                 {/* ── Live / in-progress agreements ── */}
                 {liveFiltered.map((a) => (
@@ -1049,22 +1049,22 @@ export default function AgreementsPage() {
                           </span>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-900 truncate max-w-[200px]">
+                          <p className="text-sm font-medium text-stone-900 truncate max-w-[200px]">
                             {a.propertyTitle}
                           </p>
-                          <p className="text-xs text-slate-500 truncate max-w-[200px]">
+                          <p className="text-xs text-stone-500 truncate max-w-[200px]">
                             {a.propertyAddress}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-slate-900">{a.landlordName}</p>
-                      <p className="text-xs text-slate-500">→ {a.tenantName}</p>
+                      <p className="text-sm text-stone-900">{a.landlordName}</p>
+                      <p className="text-xs text-stone-500">→ {a.tenantName}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <div className="flex items-center gap-1.5 text-sm text-stone-600">
+                        <Clock className="w-3.5 h-3.5 text-stone-400" />
                         <span>
                           {new Date(a.tenantSignedAt).toLocaleDateString("en-GB", {
                             day: "2-digit",
@@ -1073,13 +1073,13 @@ export default function AgreementsPage() {
                           })}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 ml-5">Tenant signed</p>
+                      <p className="text-xs text-stone-400 ml-5">Tenant signed</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         {formatCurrency(a.monthlyRent)}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         Adv: {formatCurrency(a.advanceAmount)}
                       </p>
                     </td>
@@ -1101,7 +1101,7 @@ export default function AgreementsPage() {
                         <div className="flex flex-col gap-1.5">
                           <button
                             onClick={() => setExtensionTarget(a)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors whitespace-nowrap"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-xs font-semibold transition-colors whitespace-nowrap"
                           >
                             <RefreshCw className="w-3 h-3" /> Request Extension
                           </button>
@@ -1135,7 +1135,7 @@ export default function AgreementsPage() {
                 {staticFiltered.map((agreement) => (
                   <tr
                     key={agreement.id}
-                    className="hover:bg-slate-50 transition-colors"
+                    className="hover:bg-stone-50 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -1143,37 +1143,37 @@ export default function AgreementsPage() {
                           <FileText className="w-4 h-4 text-primary-600" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-900 truncate max-w-[200px]">
+                          <p className="text-sm font-medium text-stone-900 truncate max-w-[200px]">
                             {agreement.propertyTitle}
                           </p>
-                          <p className="text-xs text-slate-500 truncate max-w-[200px]">
+                          <p className="text-xs text-stone-500 truncate max-w-[200px]">
                             {agreement.propertyAddress}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-slate-900">
+                      <p className="text-sm text-stone-900">
                         {agreement.landlordName}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         → {agreement.tenantName}
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <div className="flex items-center gap-1.5 text-sm text-stone-600">
+                        <Calendar className="w-3.5 h-3.5 text-stone-400" />
                         <span>{formatDate(agreement.startDate)}</span>
                       </div>
-                      <p className="text-xs text-slate-400 ml-5">
+                      <p className="text-xs text-stone-400 ml-5">
                         to {formatDate(agreement.endDate)}
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-sm font-medium text-stone-900">
                         {formatCurrency(agreement.monthlyRent)}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-stone-500">
                         Adv: {formatCurrency(agreement.advancePayment)}
                       </p>
                     </td>
@@ -1200,19 +1200,19 @@ export default function AgreementsPage() {
 
           {totalCount === 0 && (
             <div className="text-center py-14">
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
                 {statusFilter === "active"
-                  ? <Home className="w-7 h-7 text-slate-400" />
-                  : <FileText className="w-7 h-7 text-slate-400" />}
+                  ? <Home className="w-7 h-7 text-stone-400" />
+                  : <FileText className="w-7 h-7 text-stone-400" />}
               </div>
-              <p className="text-sm font-semibold text-slate-700 mb-1">
+              <p className="text-sm font-semibold text-stone-700 mb-1">
                 {statusFilter === "active"
                   ? "No active tenancies"
                   : statusFilter === "in_progress"
                     ? "No agreements in progress"
                     : "No agreements found"}
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-stone-400">
                 {statusFilter === "active"
                   ? "Your confirmed, paid tenancies will appear here."
                   : "Try selecting a different status above."}

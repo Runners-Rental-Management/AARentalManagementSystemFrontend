@@ -59,7 +59,7 @@ export function AuthorityNavDropdown() {
         aria-haspopup="listbox"
         className={cn(
           "flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors",
-          "text-slate-400 hover:text-slate-600 focus-visible:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300",
+          "text-stone-400 hover:text-stone-600 focus-visible:text-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-300",
         )}
       >
         <span className="text-xs font-medium tracking-wide max-sm:sr-only">
@@ -71,22 +71,22 @@ export function AuthorityNavDropdown() {
       </button>
       {open && (
         <div
-          className="absolute right-0 mt-1 max-h-[min(80vh,28rem)] w-64 overflow-y-auto overflow-x-hidden rounded-xl border border-slate-200/90 bg-white py-1 shadow-xl"
+          className="absolute right-0 mt-1 max-h-[min(80vh,28rem)] w-64 overflow-y-auto overflow-x-hidden rounded-xl border border-stone-200/90 bg-white py-1 shadow-xl"
           role="listbox"
         >
           <Link
             href="/dashboard/authority"
             onClick={() => setOpen(false)}
             className={cn(
-              "flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-slate-50",
-              pathname === "/dashboard/authority" ? "bg-primary-50 text-primary-800" : "text-slate-800",
+              "flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-stone-50",
+              pathname === "/dashboard/authority" ? "bg-primary-50 text-primary-800" : "text-stone-800",
             )}
             role="option"
           >
             <LayoutDashboard className="h-4 w-4 shrink-0 text-primary-600" />
             <span className="truncate">{t("nav", "authorityWorkspace")}</span>
           </Link>
-          <div className="my-1 border-t border-slate-100" />
+          <div className="my-1 border-t border-stone-100" />
           {ADMIN_LINKS.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
@@ -95,17 +95,17 @@ export function AuthorityNavDropdown() {
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50",
-                  active ? "bg-slate-100 text-slate-900 font-medium" : "text-slate-700",
+                  "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-stone-50",
+                  active ? "bg-stone-100 text-stone-900 font-medium" : "text-stone-700",
                 )}
                 role="option"
               >
-                <item.icon className="h-4 w-4 shrink-0 text-slate-400" />
+                <item.icon className="h-4 w-4 shrink-0 text-stone-400" />
                 <span className="truncate">{t("nav", item.labelKey)}</span>
               </Link>
             );
           })}
-          <div className="my-1 border-t border-slate-100" />
+          <div className="my-1 border-t border-stone-100" />
           <button
             type="button"
             onClick={() => {

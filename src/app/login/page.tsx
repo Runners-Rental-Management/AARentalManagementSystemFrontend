@@ -72,11 +72,17 @@ function LoginPageInner() {
   const { showError } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
 
+  const returnUrl = searchParams.get("returnUrl");
+  const safeReturnUrl =
+    returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")
+      ? returnUrl
+      : null;
+
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace(safeReturnUrl ?? "/dashboard");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, safeReturnUrl]);
 
   const propertyIdParam = searchParams.get("propertyId");
   const roleParam = searchParams.get("role");
@@ -125,7 +131,7 @@ function LoginPageInner() {
         router.push(`/dashboard/properties/${selectedProperty.id}`);
         return;
       }
-      router.push("/dashboard");
+      router.push(safeReturnUrl ?? "/dashboard");
     } catch (err) {
       showError(err, (ns, key) => t(ns as "auth" | "common", key), {
         titleKey: "loginFailed",
@@ -135,14 +141,14 @@ function LoginPageInner() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-slate-50 flex">
+    <div className="min-h-screen bg-surface-muted flex">
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-end justify-start p-12">
         <img
           src="/addis-ababa-skyline.png"
           alt="Addis Ababa skyline"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-900/90 via-primary-800/50 to-primary-700/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-900/85 via-stone-900/40 to-stone-900/20" />
         <div className="relative z-10 max-w-md text-white">
           <div
             className="w-14 h-14 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 border border-white/20"
@@ -163,7 +169,7 @@ function LoginPageInner() {
           <div className="flex items-center justify-between mb-8 gap-3">
             <Link
               href={selectedProperty ? "/explore" : "/"}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-stone-100 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               {selectedProperty
@@ -182,7 +188,7 @@ function LoginPageInner() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setLocale(locale === "en" ? "am" : "en")}
-                className="text-sm font-medium text-slate-700 hover:text-primary-600 px-3 py-1.5 border border-slate-200 rounded-lg flex items-center gap-1.5"
+                className="text-sm font-medium text-stone-700 hover:text-primary-600 px-3 py-1.5 border border-stone-200 rounded-lg flex items-center gap-1.5"
               >
                 <Globe className="w-4 h-4" />
                 {locale === "en" ? "አማርኛ" : "English"}
@@ -190,25 +196,25 @@ function LoginPageInner() {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          <h1 className="text-2xl font-bold text-stone-900 mb-2">
             {t("auth", "welcomeBack")}
           </h1>
-          <p className="text-slate-500 mb-6">{t("auth", "selectRole")}</p>
+          <p className="text-stone-500 mb-6">{t("auth", "selectRole")}</p>
 
           {/* Property card shown when arriving from "Rent this home" */}
           {selectedProperty && (
-            <div className="mb-6 rounded-2xl border border-primary-200 bg-gradient-to-br from-primary-50 to-indigo-50 p-4 flex items-start gap-4">
-              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shrink-0 shadow-sm">
+            <div className="mb-6 rounded-2xl border border-primary-200 bg-gradient-to-br from-primary-50 to-primary-50 p-4 flex items-start gap-4">
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-600 to-primary-600 flex items-center justify-center shrink-0 shadow-sm">
                 <Heart className="w-7 h-7 text-white fill-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-1">
                   {t("explore", "rentThisHome")}
                 </div>
-                <div className="font-semibold text-slate-900 truncate">
+                <div className="font-semibold text-stone-900 truncate">
                   {selectedProperty.title}
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-0.5">
+                <div className="flex items-center gap-1.5 text-xs text-stone-600 mt-0.5">
                   <MapPin className="w-3.5 h-3.5" />
                   <span className="truncate">
                     {selectedProperty.subCity} · {selectedProperty.address}
@@ -221,7 +227,7 @@ function LoginPageInner() {
               </div>
               <Link
                 href="/explore"
-                className="text-xs font-medium text-slate-500 hover:text-primary-700 shrink-0"
+                className="text-xs font-medium text-stone-500 hover:text-primary-700 shrink-0"
               >
                 Change
               </Link>
@@ -241,18 +247,18 @@ function LoginPageInner() {
                   className={`p-4 rounded-xl border-2 text-left transition-all ${
                     isSelected
                       ? `${colors.border} ${colors.bg}`
-                      : "border-slate-200 hover:border-slate-300"
+                      : "border-stone-200 hover:border-stone-300"
                   }`}
                 >
                   <role.icon
-                    className={`w-6 h-6 mb-2 ${isSelected ? colors.icon : "text-slate-400"}`}
+                    className={`w-6 h-6 mb-2 ${isSelected ? colors.icon : "text-stone-400"}`}
                   />
                   <p
-                    className={`font-semibold text-sm ${isSelected ? colors.text : "text-slate-700"}`}
+                    className={`font-semibold text-sm ${isSelected ? colors.text : "text-stone-700"}`}
                   >
                     {t("auth", role.labelKey)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-stone-500 mt-0.5">
                     {t("auth", role.descKey)}
                   </p>
                 </button>
@@ -288,7 +294,7 @@ function LoginPageInner() {
               </p>
             ) : null}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-stone-700 mb-1.5">
                 {t("auth", "email")}
               </label>
               <input
@@ -298,13 +304,13 @@ function LoginPageInner() {
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-sm"
+                className="w-full px-4 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-sm"
                 placeholder="you@example.com"
               />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-stone-700">
                   {t("auth", "password")}
                 </label>
                 <Link
@@ -323,12 +329,12 @@ function LoginPageInner() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-sm pr-10"
+                  className="w-full px-4 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-sm pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -344,7 +350,7 @@ function LoginPageInner() {
               className={`w-full font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
                 selectedRole && !isBlockedRole
                   ? "bg-primary-600 hover:bg-primary-700 text-white"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  : "bg-stone-200 text-stone-400 cursor-not-allowed"
               }`}
             >
               <LogIn className="w-4 h-4" />
@@ -354,7 +360,7 @@ function LoginPageInner() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500 mt-6">
+          <p className="text-center text-sm text-stone-500 mt-6">
             {t("auth", "noAccount")}{" "}
             <Link
               href={
@@ -377,7 +383,7 @@ function LoginPageInner() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+    <Suspense fallback={<div className="min-h-screen bg-stone-50" />}>
       <LoginPageInner />
     </Suspense>
   );

@@ -94,7 +94,7 @@ export default function NotificationsPage() {
         <div className="max-w-3xl mx-auto">
           {loading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
             </div>
           ) : (
             <>
@@ -107,7 +107,7 @@ export default function NotificationsPage() {
                       "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                       filter === "all"
                         ? "bg-primary-100 text-primary-700"
-                        : "text-slate-500 hover:bg-slate-100"
+                        : "text-stone-500 hover:bg-stone-100"
                     )}
                   >
                     All ({items.length})
@@ -118,7 +118,7 @@ export default function NotificationsPage() {
                       "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                       filter === "unread"
                         ? "bg-primary-100 text-primary-700"
-                        : "text-slate-500 hover:bg-slate-100"
+                        : "text-stone-500 hover:bg-stone-100"
                     )}
                   >
                     Unread ({unreadCount})
@@ -143,7 +143,7 @@ export default function NotificationsPage() {
                     className={cn(
                       "bg-white rounded-xl border p-4 flex items-start gap-4 transition-colors",
                       notification.isRead
-                        ? "border-slate-200"
+                        ? "border-stone-200"
                         : "border-primary-200 bg-primary-50/30"
                     )}
                   >
@@ -156,17 +156,17 @@ export default function NotificationsPage() {
                           className={cn(
                             "text-sm",
                             notification.isRead
-                              ? "text-slate-700"
-                              : "text-slate-900 font-semibold"
+                              ? "text-stone-700"
+                              : "text-stone-900 font-semibold"
                           )}
                         >
                           {notification.title}
                         </h3>
-                        <span className="text-xs text-slate-400 shrink-0">
+                        <span className="text-xs text-stone-400 shrink-0">
                           {formatTimeAgo(notification.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5">
+                      <p className="text-sm text-stone-500 mt-0.5">
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-3 mt-2">
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
                         {!notification.isRead && (
                           <button
                             onClick={() => markRead(notification.id)}
-                            className="text-xs text-slate-400 hover:text-slate-600"
+                            className="text-xs text-stone-400 hover:text-stone-600"
                           >
                             Mark as read
                           </button>
@@ -194,8 +194,8 @@ export default function NotificationsPage() {
 
               {filtered.length === 0 && (
                 <div className="text-center py-16">
-                  <Bell className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                  <p className="text-slate-500 text-sm">No notifications</p>
+                  <Bell className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+                  <p className="text-stone-500 text-sm">No notifications</p>
                 </div>
               )}
             </>

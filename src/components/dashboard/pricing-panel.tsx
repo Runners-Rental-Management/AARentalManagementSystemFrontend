@@ -110,7 +110,7 @@ export function PricingPanel({
   })();
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm">
       {/* ── Header: policy banner ── */}
       <div className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 px-5 py-4 flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
@@ -137,11 +137,11 @@ export function PricingPanel({
       <div className="p-5 space-y-5">
         {/* Range summary */}
         <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-3">
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
               Floor
             </p>
-            <p className="text-base font-bold text-slate-700 mt-0.5">
+            <p className="text-base font-bold text-stone-700 mt-0.5">
               {fmtETB(range.floor)}
             </p>
           </div>
@@ -157,11 +157,11 @@ export function PricingPanel({
               {fmtETB(range.mid)}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-3">
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
               Ceiling
             </p>
-            <p className="text-base font-bold text-slate-700 mt-0.5">
+            <p className="text-base font-bold text-stone-700 mt-0.5">
               {fmtETB(range.ceiling)}
             </p>
           </div>
@@ -170,7 +170,7 @@ export function PricingPanel({
         {/* Range slider with zones */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-semibold text-slate-700">
+            <label className="text-sm font-semibold text-stone-700">
               Set Monthly Rent
             </label>
             <button
@@ -248,7 +248,7 @@ export function PricingPanel({
             />
 
             {/* tick labels */}
-            <div className="flex justify-between text-[10px] text-slate-400 mt-3 font-medium">
+            <div className="flex justify-between text-[10px] text-stone-400 mt-3 font-medium">
               <span>{fmtETB(range.floor)}</span>
               <span>{fmtETB(range.ceiling)}</span>
             </div>
@@ -267,9 +267,9 @@ export function PricingPanel({
                   if (!Number.isFinite(n)) return;
                   onChange(n);
                 }}
-                className="text-3xl font-bold text-slate-900 bg-transparent outline-none w-44 tabular-nums"
+                className="text-3xl font-bold text-stone-900 bg-transparent outline-none w-44 tabular-nums"
               />
-              <span className="text-sm font-semibold text-slate-500">
+              <span className="text-sm font-semibold text-stone-500">
                 ETB / month
               </span>
               <span
@@ -279,30 +279,30 @@ export function PricingPanel({
                 {tone.label}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1.5">{tone.note}</p>
+            <p className="text-xs text-stone-500 mt-1.5">{tone.note}</p>
           </div>
         </div>
 
         {/* Why this range — collapsible policy reference */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden">
+        <div className="rounded-xl border border-stone-200 bg-stone-50 overflow-hidden">
           <button
             type="button"
             onClick={() => setPolicyOpen((v) => !v)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-100 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-stone-100 transition-colors"
           >
             <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
               <Gavel className="w-4 h-4 text-emerald-700" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-sm font-semibold text-stone-800">
                 Why this range?
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-stone-500">
                 Ethiopian rent control policy basis & calculation
               </p>
             </div>
             <ChevronDown
-              className={`w-4 h-4 text-slate-400 transition-transform ${
+              className={`w-4 h-4 text-stone-400 transition-transform ${
                 policyOpen ? "rotate-180" : ""
               }`}
             />
@@ -310,30 +310,30 @@ export function PricingPanel({
           {policyOpen && (
             <div className="px-4 pb-4 pt-1 space-y-3">
               {/* Step 1 — base band (sub-city × type) */}
-              <div className="rounded-lg bg-white border border-slate-200 px-3 py-2.5">
+              <div className="rounded-lg bg-white border border-stone-200 px-3 py-2.5">
                 <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1.5">
                   Step 1 · Base Band
                 </p>
-                <div className="text-xs text-slate-700 leading-relaxed flex items-start gap-2">
-                  <Building2 className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                <div className="text-xs text-stone-700 leading-relaxed flex items-start gap-2">
+                  <Building2 className="w-4 h-4 text-stone-400 mt-0.5 shrink-0" />
                   <div>
                     Regulator&apos;s base band for{" "}
                     <strong>{propertyType}s in {subCity}</strong>:{" "}
-                    <span className="font-mono font-semibold text-slate-900">
+                    <span className="font-mono font-semibold text-stone-900">
                       {fmtETB(range.baseMin)} – {fmtETB(range.baseMax)}
                     </span>
-                    <span className="text-slate-500"> / month (typical-size unit)</span>
+                    <span className="text-stone-500"> / month (typical-size unit)</span>
                   </div>
                 </div>
               </div>
 
               {/* Step 2 — area scaler */}
-              <div className="rounded-lg bg-white border border-slate-200 px-3 py-2.5">
+              <div className="rounded-lg bg-white border border-stone-200 px-3 py-2.5">
                 <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1.5">
                   Step 2 · Area Adjustment
                 </p>
-                <div className="text-xs text-slate-700 leading-relaxed flex items-start gap-2">
-                  <Info className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                <div className="text-xs text-stone-700 leading-relaxed flex items-start gap-2">
+                  <Info className="w-4 h-4 text-stone-400 mt-0.5 shrink-0" />
                   <div>
                     Your unit is{" "}
                     <span className="font-mono font-semibold">{areaSqm} m²</span>.
@@ -350,7 +350,7 @@ export function PricingPanel({
                 <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-1.5">
                   Step 3 · Your Allowed Range
                 </p>
-                <div className="text-xs text-slate-800 leading-relaxed flex items-start gap-2">
+                <div className="text-xs text-stone-800 leading-relaxed flex items-start gap-2">
                   <Info className="w-4 h-4 text-emerald-700 mt-0.5 shrink-0" />
                   <div>
                     <span className="font-mono">{fmtETB(range.baseMin)}</span> ×{" "}
@@ -364,7 +364,7 @@ export function PricingPanel({
                     <span className="font-mono font-semibold text-emerald-800">
                       {fmtETB(range.recommendedMax)}
                     </span>
-                    <p className="text-[11px] text-slate-500 mt-1">
+                    <p className="text-[11px] text-stone-500 mt-1">
                       Equivalent per-m²: {range.perSqmMin.toLocaleString()}–
                       {range.perSqmMax.toLocaleString()} ETB / m²
                     </p>
@@ -372,21 +372,21 @@ export function PricingPanel({
                 </div>
               </div>
 
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider pt-1">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider pt-1">
                 Legal Basis
               </p>
               <ul className="space-y-2">
                 {range.citations.map((c) => (
                   <li
                     key={c.id}
-                    className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 flex items-start gap-2.5"
+                    className="rounded-lg bg-white border border-stone-200 px-3 py-2.5 flex items-start gap-2.5"
                   >
                     <Info className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-800">
+                      <p className="text-xs font-semibold text-stone-800">
                         {c.title}
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                      <p className="text-[11px] text-stone-500 mt-0.5 leading-relaxed">
                         {c.detail}
                       </p>
                     </div>

@@ -150,16 +150,16 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-slate-200 flex flex-col z-40 transition-all duration-300",
+        "fixed left-0 top-0 h-screen bg-white border-r border-stone-200 flex flex-col z-40 transition-all duration-300",
         collapsed ? "w-[68px]" : "w-64",
       )}
     >
-      <div className="h-16 flex items-center gap-2 px-4 border-b border-slate-200 shrink-0">
+      <div className="h-16 flex items-center gap-2 px-4 border-b border-stone-200 shrink-0">
         <div className="w-9 h-9 bg-primary-700 rounded-lg flex items-center justify-center shrink-0">
           <Building2 className="w-5 h-5 text-white" />
         </div>
         {!collapsed && (
-          <span className="font-bold text-sm text-slate-900 truncate">
+          <span className="font-bold text-sm text-stone-900 truncate">
             {t("landing", "brand")}
             <span className="text-primary-600">{t("landing", "brandAccent")}</span>
           </span>
@@ -170,14 +170,14 @@ export function Sidebar() {
         <button
           onClick={() => setLocale(locale === "en" ? "am" : "en")}
           className={cn(
-            "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-200 hover:bg-slate-50",
+            "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors border border-stone-200 hover:bg-stone-50",
             collapsed && "justify-center px-0",
           )}
           title={locale === "en" ? "ወደ አማርኛ ቀይር" : "Switch to English"}
         >
           <Globe className="w-4 h-4 text-primary-600 shrink-0" />
           {!collapsed && (
-            <span className="text-slate-700">
+            <span className="text-stone-700">
               {locale === "en" ? "አማርኛ" : "English"}
             </span>
           )}
@@ -202,14 +202,14 @@ export function Sidebar() {
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary-50 text-primary-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                      : "text-stone-600 hover:bg-stone-50 hover:text-stone-900",
                   )}
                   title={collapsed ? label : undefined}
                 >
                   <item.icon
                     className={cn(
                       "w-5 h-5 shrink-0",
-                      isActive ? "text-primary-600" : "text-slate-400",
+                      isActive ? "text-primary-600" : "text-stone-400",
                     )}
                   />
                   {!collapsed && <span className="truncate">{label}</span>}
@@ -220,10 +220,10 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      <div className="border-t border-slate-200 p-3 space-y-2">
+      <div className="border-t border-stone-200 p-3 space-y-2">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-stone-400 hover:bg-stone-50 hover:text-stone-600 transition-colors"
         >
           {collapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -240,10 +240,10 @@ export function Sidebar() {
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">
+              <p className="text-sm font-medium text-stone-900 truncate">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs text-slate-500 truncate">
+              <p className="text-xs text-stone-500 truncate">
                 {t("roles", role)}
               </p>
             </div>
@@ -254,7 +254,7 @@ export function Sidebar() {
                 logout();
                 window.location.href = "/login";
               }}
-              className="text-slate-400 hover:text-red-500 transition-colors"
+              className="text-stone-400 hover:text-red-500 transition-colors"
               title={t("nav", "signOut")}
             >
               <LogOut className="w-4 h-4" />

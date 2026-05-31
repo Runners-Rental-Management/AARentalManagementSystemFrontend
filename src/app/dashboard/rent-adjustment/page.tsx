@@ -43,7 +43,7 @@ export default function RentAdjustmentPage() {
               label: t("rentAdj", "totalRequests"),
               value: roleBasedList.length,
               icon: TrendingUp,
-              color: "text-slate-900",
+              color: "text-stone-900",
             },
             {
               label: t("rentAdj", "approved"),
@@ -70,7 +70,7 @@ export default function RentAdjustmentPage() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="bg-white rounded-xl border border-slate-200 p-5"
+              className="bg-white rounded-xl border border-stone-200 p-5"
             >
               <div className="flex items-center justify-between mb-2">
                 <stat.icon className={`w-5 h-5 ${stat.color}`} />
@@ -78,15 +78,15 @@ export default function RentAdjustmentPage() {
               <p className={`text-2xl font-bold ${stat.color}`}>
                 {stat.value}
               </p>
-              <p className="text-xs text-slate-500">{stat.label}</p>
+              <p className="text-xs text-stone-500">{stat.label}</p>
             </div>
           ))}
         </div>
 
         {/* Filters */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder="Search adjustments..."
@@ -94,11 +94,11 @@ export default function RentAdjustmentPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-stone-400" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white outline-none"
+              className="text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white outline-none"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -114,12 +114,12 @@ export default function RentAdjustmentPage() {
           {filtered.map((adj) => (
             <div
               key={adj.id}
-              className="bg-white rounded-xl border border-slate-200 p-6"
+              className="bg-white rounded-xl border border-stone-200 p-6"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-sm font-semibold text-slate-900">
+                    <h3 className="text-sm font-semibold text-stone-900">
                       {adj.propertyTitle}
                     </h3>
                     <span
@@ -128,7 +128,7 @@ export default function RentAdjustmentPage() {
                       {formatStatus(adj.status)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mb-4">
+                  <p className="text-xs text-stone-500 mb-4">
                     Requested by {adj.landlordName} for tenant{" "}
                     {adj.tenantName} &middot;{" "}
                     {formatDate(adj.createdAt)}
@@ -137,8 +137,8 @@ export default function RentAdjustmentPage() {
                   {/* Rent change visual */}
                   <div className="flex items-center gap-4 mb-3">
                     <div>
-                      <p className="text-xs text-slate-500">Current Rent</p>
-                      <p className="text-lg font-bold text-slate-700">
+                      <p className="text-xs text-stone-500">Current Rent</p>
+                      <p className="text-lg font-bold text-stone-700">
                         {formatCurrency(adj.currentRent)}
                       </p>
                     </div>
@@ -155,30 +155,30 @@ export default function RentAdjustmentPage() {
                       </span>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Proposed Rent</p>
-                      <p className="text-lg font-bold text-slate-900">
+                      <p className="text-xs text-stone-500">Proposed Rent</p>
+                      <p className="text-lg font-bold text-stone-900">
                         {formatCurrency(adj.proposedRent)}
                       </p>
                     </div>
-                    <div className="ml-4 px-3 py-1.5 bg-slate-100 rounded-lg">
-                      <p className="text-xs text-slate-500">Max Allowed</p>
-                      <p className="text-sm font-semibold text-slate-700">
+                    <div className="ml-4 px-3 py-1.5 bg-stone-100 rounded-lg">
+                      <p className="text-xs text-stone-500">Max Allowed</p>
+                      <p className="text-sm font-semibold text-stone-700">
                         {adj.maxAllowedPercentage}%
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-sm text-slate-600">
-                    <strong className="text-slate-700">Reason:</strong>{" "}
+                  <p className="text-sm text-stone-600">
+                    <strong className="text-stone-700">Reason:</strong>{" "}
                     {adj.reason}
                   </p>
 
                   {adj.reviewNotes && (
-                    <div className="mt-3 p-3 bg-slate-50 rounded-lg">
-                      <p className="text-xs text-slate-500 mb-0.5">
+                    <div className="mt-3 p-3 bg-stone-50 rounded-lg">
+                      <p className="text-xs text-stone-500 mb-0.5">
                         Review Notes ({formatDate(adj.reviewedAt!)})
                       </p>
-                      <p className="text-sm text-slate-700">
+                      <p className="text-sm text-stone-700">
                         {adj.reviewNotes}
                       </p>
                     </div>
@@ -212,8 +212,8 @@ export default function RentAdjustmentPage() {
 
         {filtered.length === 0 && (
           <div className="text-center py-16">
-            <TrendingUp className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-            <p className="text-slate-500 text-sm">
+            <TrendingUp className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+            <p className="text-stone-500 text-sm">
               No rent adjustment requests found
             </p>
           </div>

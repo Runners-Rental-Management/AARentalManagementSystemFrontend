@@ -72,11 +72,11 @@ const BEDROOM_OPTIONS: { value: BedroomFilter; labelKey: string }[] = [
 ];
 
 const GRADIENTS = [
-  "from-sky-500 via-blue-500 to-indigo-600",
+  "from-sky-500 via-blue-500 to-primary-600",
   "from-emerald-500 via-teal-500 to-cyan-600",
   "from-rose-500 via-pink-500 to-fuchsia-600",
   "from-amber-500 via-orange-500 to-red-500",
-  "from-violet-500 via-purple-500 to-indigo-600",
+  "from-violet-500 via-purple-500 to-primary-600",
   "from-lime-500 via-green-500 to-emerald-600",
   "from-cyan-500 via-sky-500 to-blue-600",
   "from-fuchsia-500 via-pink-500 to-rose-600",
@@ -240,7 +240,7 @@ export default function ExplorePage() {
       <nav
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-white/90 backdrop-blur-lg border-b border-slate-200 shadow-sm"
+            ? "bg-white/90 backdrop-blur-lg border-b border-stone-200 shadow-sm"
             : "bg-transparent border-b border-transparent"
         }`}
       >
@@ -254,7 +254,7 @@ export default function ExplorePage() {
               >
                 <Building2 className={`w-5 h-5 ${scrolled ? "text-white" : "text-white"}`} />
               </div>
-              <span className={`font-bold text-lg ${scrolled ? "text-slate-900" : "text-white"}`}>
+              <span className={`font-bold text-lg ${scrolled ? "text-stone-900" : "text-white"}`}>
                 {t("landing", "brand")}
                 <span className={scrolled ? "text-primary-600" : "text-primary-200"}>
                   {t("landing", "brandAccent")}
@@ -281,7 +281,7 @@ export default function ExplorePage() {
                 onClick={() => setLocale(locale === "en" ? "am" : "en")}
                 className={`text-sm font-medium px-3 py-2 rounded-full flex items-center gap-1.5 transition-colors ${
                   scrolled
-                    ? "text-slate-700 hover:bg-slate-100"
+                    ? "text-stone-700 hover:bg-stone-100"
                     : "text-white hover:bg-white/10"
                 }`}
               >
@@ -293,7 +293,7 @@ export default function ExplorePage() {
                   <Link
                     href="/dashboard"
                     className={`hidden sm:inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-full transition-colors ${
-                      scrolled ? "text-slate-700 hover:bg-slate-100" : "text-white hover:bg-white/10"
+                      scrolled ? "text-stone-700 hover:bg-stone-100" : "text-white hover:bg-white/10"
                     }`}
                   >
                     <LayoutDashboard className="w-4 h-4" />
@@ -308,7 +308,7 @@ export default function ExplorePage() {
                     }`}
                     title={`${user?.firstName} ${user?.lastName}`}
                   >
-                    <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                    <span className="w-7 h-7 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                       {user ? getInitials(`${user.firstName} ${user.lastName}`) : "?"}
                     </span>
                     <span className="hidden md:inline">{user?.firstName}</span>
@@ -319,7 +319,7 @@ export default function ExplorePage() {
                   <Link
                     href="/login"
                     className={`hidden sm:inline-flex text-sm font-medium px-4 py-2 rounded-full transition-colors ${
-                      scrolled ? "text-slate-700 hover:bg-slate-100" : "text-white hover:bg-white/10"
+                      scrolled ? "text-stone-700 hover:bg-stone-100" : "text-white hover:bg-white/10"
                     }`}
                   >
                     {t("landing", "signIn")}
@@ -344,7 +344,7 @@ export default function ExplorePage() {
       {/* HERO — animated gradient + floating blobs */}
       <section className="relative overflow-hidden text-white">
         {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-700 via-indigo-700 to-fuchsia-700 animate-gradient-pan" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-700 via-primary-700 to-fuchsia-700 animate-gradient-pan" />
 
         {/* Floating blobs */}
         <div className="absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-cyan-400/30 blur-3xl animate-blob" />
@@ -414,19 +414,19 @@ export default function ExplorePage() {
               style={{ animationDelay: "0.3s" }}
             >
               <div className="flex-1 flex items-center gap-3 px-4">
-                <Search className="w-5 h-5 text-slate-400 shrink-0 transition-colors group-focus-within:text-primary-600" />
+                <Search className="w-5 h-5 text-stone-400 shrink-0 transition-colors group-focus-within:text-primary-600" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t("explore", "searchPlaceholder")}
-                  className="w-full py-3 text-slate-800 outline-none text-sm sm:text-base placeholder:text-slate-400"
+                  className="w-full py-3 text-stone-800 outline-none text-sm sm:text-base placeholder:text-stone-400"
                   onFocus={scrollToResults}
                 />
                 {query && (
                   <button
                     onClick={() => setQuery("")}
-                    className="text-slate-400 hover:text-slate-700"
+                    className="text-stone-400 hover:text-stone-700"
                     aria-label="Clear"
                   >
                     <X className="w-4 h-4" />
@@ -481,10 +481,10 @@ export default function ExplorePage() {
       <section className="relative -mt-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+            <h2 className="text-lg sm:text-xl font-bold text-stone-900">
               {t("explore", "browseByType")}
             </h2>
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-stone-500">
               {filtered.length} {filtered.length === 1 ? t("explore", "homeCount_one") : t("explore", "homeCount_other")}
             </span>
           </div>
@@ -499,12 +499,12 @@ export default function ExplorePage() {
                   className={`group shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full border-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 ${
                     active
                       ? "border-primary-600 bg-primary-600 text-white shadow-lg shadow-primary-600/25"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-primary-300 hover:text-primary-700"
+                      : "border-stone-200 bg-white text-stone-700 hover:border-primary-300 hover:text-primary-700"
                   }`}
                 >
                   <Icon
                     className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                      active ? "text-white" : "text-slate-500 group-hover:text-primary-600"
+                      active ? "text-white" : "text-stone-500 group-hover:text-primary-600"
                     }`}
                   />
                   {t("explore", pt.labelKey)}
@@ -512,7 +512,7 @@ export default function ExplorePage() {
               );
             })}
 
-            <div className="h-6 w-px bg-slate-200 mx-1 shrink-0" />
+            <div className="h-6 w-px bg-stone-200 mx-1 shrink-0" />
 
             {/* Price pill */}
             <PillSelect
@@ -546,7 +546,7 @@ export default function ExplorePage() {
 
             <button
               onClick={() => setShowMoreFilters(true)}
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-primary-300 hover:text-primary-700 transition-all"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-stone-200 bg-white text-sm font-semibold text-stone-700 hover:border-primary-300 hover:text-primary-700 transition-all"
             >
               <SlidersHorizontal className="w-4 h-4" />
               More
@@ -568,9 +568,9 @@ export default function ExplorePage() {
       {/* Featured pick */}
       {featured && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="relative rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-xl shadow-slate-900/5 animate-fade-in-up group">
+          <div className="relative rounded-2xl overflow-hidden border border-stone-200 bg-white shadow-xl shadow-stone-900/5 animate-fade-in-up group">
             <div className="grid md:grid-cols-2">
-              <div className="relative h-64 md:min-h-[22rem] overflow-hidden bg-slate-900">
+              <div className="relative h-64 md:min-h-[22rem] overflow-hidden bg-stone-900">
                 {featured.images[0] ? (
                   <>
                     <PropertyCoverImage
@@ -599,35 +599,35 @@ export default function ExplorePage() {
                   <ShieldCheck className="w-3.5 h-3.5" />
                   {t("explore", "verified")}
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 leading-tight">
+                <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 mb-2 leading-tight">
                   {featured.title}
                 </h3>
-                <div className="flex items-center gap-1.5 text-slate-500 mb-5">
+                <div className="flex items-center gap-1.5 text-stone-500 mb-5">
                   <MapPin className="w-4 h-4" />
                   <span>{featured.subCity} · {featured.address}</span>
                 </div>
-                <p className="text-slate-600 mb-6 line-clamp-2">{featured.description}</p>
+                <p className="text-stone-600 mb-6 line-clamp-2">{featured.description}</p>
 
-                <div className="flex items-center gap-5 text-sm text-slate-600 mb-6">
+                <div className="flex items-center gap-5 text-sm text-stone-600 mb-6">
                   <span className="inline-flex items-center gap-1.5">
-                    <BedDouble className="w-4 h-4 text-slate-400" />
+                    <BedDouble className="w-4 h-4 text-stone-400" />
                     <span>{featured.bedrooms} {t("explore", "bedsShort")}</span>
                   </span>
                   <span className="inline-flex items-center gap-1.5">
-                    <Bath className="w-4 h-4 text-slate-400" />
+                    <Bath className="w-4 h-4 text-stone-400" />
                     <span>{featured.bathrooms} {t("explore", "bathsShort")}</span>
                   </span>
                   <span className="inline-flex items-center gap-1.5">
-                    <Ruler className="w-4 h-4 text-slate-400" />
+                    <Ruler className="w-4 h-4 text-stone-400" />
                     <span>{featured.area} {t("explore", "sqmShort")}</span>
                   </span>
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                   <div>
-                    <div className="text-3xl font-bold text-slate-900">
+                    <div className="text-3xl font-bold text-stone-900">
                       {featured.monthlyRent.toLocaleString()}{" "}
-                      <span className="text-base font-medium text-slate-500">ETB{t("explore", "perMonth")}</span>
+                      <span className="text-base font-medium text-stone-500">ETB{t("explore", "perMonth")}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -635,7 +635,7 @@ export default function ExplorePage() {
                       <button
                         type="button"
                         onClick={() => toggleFavorite(featured.id)}
-                        className="inline-flex items-center justify-center w-12 h-12 rounded-xl border-2 border-slate-200 bg-white text-slate-700 hover:border-rose-300 hover:bg-rose-50 transition-all shadow-sm"
+                        className="inline-flex items-center justify-center w-12 h-12 rounded-xl border-2 border-stone-200 bg-white text-stone-700 hover:border-rose-300 hover:bg-rose-50 transition-all shadow-sm"
                         aria-label={
                           isFav(featured.id)
                             ? t("explore", "favoriteAriaRemove")
@@ -644,7 +644,7 @@ export default function ExplorePage() {
                       >
                         <Heart
                           className={`w-5 h-5 ${
-                            isFav(featured.id) ? "fill-rose-500 text-rose-500" : "text-slate-600"
+                            isFav(featured.id) ? "fill-rose-500 text-rose-500" : "text-stone-600"
                           }`}
                         />
                       </button>
@@ -670,7 +670,7 @@ export default function ExplorePage() {
       {topAreas.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+            <h2 className="text-lg sm:text-xl font-bold text-stone-900">
               {t("explore", "popularAreas")}
             </h2>
             <TrendingUp className="w-5 h-5 text-primary-600" />
@@ -712,31 +712,31 @@ export default function ExplorePage() {
       <section ref={resultsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            <h2 className="text-2xl sm:text-3xl font-bold text-stone-900">
               {filtered.length}{" "}
               {filtered.length === 1 ? t("explore", "homeCount_one") : t("explore", "homeCount_other")}
             </h2>
-            <p className="text-slate-500 text-sm mt-1">{t("explore", "pageSubtitle")}</p>
+            <p className="text-stone-500 text-sm mt-1">{t("explore", "pageSubtitle")}</p>
           </div>
         </div>
 
         {isLoadingProperties ? (
-          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-12 text-center animate-fade-in-up">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Loading available homes...</h3>
-            <p className="text-slate-500 text-sm">Please wait while we fetch properties from the server.</p>
+          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-12 text-center animate-fade-in-up">
+            <h3 className="text-lg font-semibold text-stone-900 mb-2">Loading available homes...</h3>
+            <p className="text-stone-500 text-sm">Please wait while we fetch properties from the server.</p>
           </div>
         ) : propertiesError ? (
-          <div className="bg-rose-50 border border-rose-200 rounded-3xl p-12 text-center animate-fade-in-up">
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-12 text-center animate-fade-in-up">
             <h3 className="text-lg font-semibold text-rose-900 mb-2">Could not load homes</h3>
             <p className="text-rose-700 text-sm">{propertiesError}</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-12 text-center animate-fade-in-up">
+          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-12 text-center animate-fade-in-up">
             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <Search className="w-7 h-7 text-slate-400" />
+              <Search className="w-7 h-7 text-stone-400" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">{t("explore", "noMatches")}</h3>
-            <p className="text-slate-500 text-sm mb-6">{t("explore", "tryDifferent")}</p>
+            <h3 className="text-lg font-semibold text-stone-900 mb-2">{t("explore", "noMatches")}</h3>
+            <p className="text-stone-500 text-sm mb-6">{t("explore", "tryDifferent")}</p>
             <button
               onClick={clearFilters}
               className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 py-2.5 rounded-xl transition-colors text-sm"
@@ -766,14 +766,14 @@ export default function ExplorePage() {
       </section>
 
       {/* How it works */}
-      <section className="bg-gradient-to-b from-white to-slate-50 py-16">
+      <section className="bg-gradient-to-b from-white to-stone-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-700 px-3 py-1.5 rounded-full text-xs font-semibold mb-4">
               <BadgeCheck className="w-4 h-4" />
               {t("explore", "whyRent")}
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 mb-3">
               {t("explore", "step1")} · {t("explore", "step2")} · {t("explore", "step3")}
             </h2>
           </div>
@@ -785,7 +785,7 @@ export default function ExplorePage() {
             ].map((f, i) => (
               <div
                 key={f.titleKey}
-                className="relative p-6 rounded-2xl bg-white border border-slate-200 hover:border-primary-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up"
+                className="relative p-6 rounded-2xl bg-white border border-stone-200 hover:border-primary-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 <div
@@ -799,9 +799,9 @@ export default function ExplorePage() {
                 >
                   <f.icon className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-lg text-slate-900 mb-2">{t("explore", f.titleKey)}</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">{t("explore", f.descKey)}</p>
-                <ChevronRight className="absolute top-6 right-6 w-4 h-4 text-slate-300 transition-transform" />
+                <h3 className="font-bold text-lg text-stone-900 mb-2">{t("explore", f.titleKey)}</h3>
+                <p className="text-stone-600 text-sm leading-relaxed">{t("explore", f.descKey)}</p>
+                <ChevronRight className="absolute top-6 right-6 w-4 h-4 text-stone-300 transition-transform" />
               </div>
             ))}
           </div>
@@ -809,7 +809,7 @@ export default function ExplorePage() {
       </section>
 
       {/* CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-primary-700 via-indigo-700 to-fuchsia-700 animate-gradient-pan text-white">
+      <section className="relative overflow-hidden bg-gradient-to-r from-primary-700 via-primary-700 to-fuchsia-700 animate-gradient-pan text-white">
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-amber-300/20 blur-3xl animate-blob" />
         <div
           className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-cyan-300/20 blur-3xl animate-blob"
@@ -832,7 +832,7 @@ export default function ExplorePage() {
         </div>
       </section>
 
-      <footer className="bg-slate-900 text-slate-400 py-10">
+      <footer className="bg-stone-900 text-stone-400 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary-600 flex items-center justify-center">
@@ -854,27 +854,27 @@ export default function ExplorePage() {
       {/* More filters modal */}
       {showMoreFilters && (
         <div
-          className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm animate-fade-in flex items-end sm:items-center justify-center p-4"
+          className="fixed inset-0 z-[60] bg-stone-900/60 backdrop-blur-sm animate-fade-in flex items-end sm:items-center justify-center p-4"
           onClick={() => setShowMoreFilters(false)}
         >
           <div
-            className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-fade-in-up"
+            className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-fade-in-up"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-bold text-slate-900">{t("explore", "filtersTitle")}</h3>
+              <h3 className="text-xl font-bold text-stone-900">{t("explore", "filtersTitle")}</h3>
               <button
                 onClick={() => setShowMoreFilters(false)}
-                className="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center"
+                className="w-9 h-9 rounded-full hover:bg-stone-100 flex items-center justify-center"
                 aria-label="Close filters"
               >
-                <X className="w-5 h-5 text-slate-500" />
+                <X className="w-5 h-5 text-stone-500" />
               </button>
             </div>
 
             <div className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">
                   {t("explore", "anyPrice")}
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -885,7 +885,7 @@ export default function ExplorePage() {
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                         price === p.value
                           ? "bg-primary-600 text-white border-primary-600"
-                          : "bg-white text-slate-700 border-slate-200 hover:border-primary-300"
+                          : "bg-white text-stone-700 border-stone-200 hover:border-primary-300"
                       }`}
                     >
                       {t("explore", p.labelKey)}
@@ -895,7 +895,7 @@ export default function ExplorePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">
                   {t("explore", "anyBedrooms")}
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -906,7 +906,7 @@ export default function ExplorePage() {
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                         beds === b.value
                           ? "bg-primary-600 text-white border-primary-600"
-                          : "bg-white text-slate-700 border-slate-200 hover:border-primary-300"
+                          : "bg-white text-stone-700 border-stone-200 hover:border-primary-300"
                       }`}
                     >
                       {t("explore", b.labelKey)}
@@ -916,7 +916,7 @@ export default function ExplorePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">
                   {t("explore", "allSubCities")}
                 </label>
                 <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto scrollbar-thin">
@@ -925,7 +925,7 @@ export default function ExplorePage() {
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                       subCity === "any"
                         ? "bg-primary-600 text-white border-primary-600"
-                        : "bg-white text-slate-700 border-slate-200 hover:border-primary-300"
+                        : "bg-white text-stone-700 border-stone-200 hover:border-primary-300"
                     }`}
                   >
                     {t("explore", "allSubCities")}
@@ -937,7 +937,7 @@ export default function ExplorePage() {
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                         subCity === s
                           ? "bg-primary-600 text-white border-primary-600"
-                          : "bg-white text-slate-700 border-slate-200 hover:border-primary-300"
+                          : "bg-white text-stone-700 border-stone-200 hover:border-primary-300"
                       }`}
                     >
                       {s}
@@ -952,7 +952,7 @@ export default function ExplorePage() {
                 onClick={() => {
                   clearFilters();
                 }}
-                className="flex-1 py-2.5 rounded-xl font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="flex-1 py-2.5 rounded-xl font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 transition-colors"
               >
                 {t("explore", "clearFilters")}
               </button>
@@ -988,7 +988,7 @@ function PillSelect({
       className={`shrink-0 relative inline-flex items-center gap-2 px-4 py-2.5 rounded-full border-2 text-sm font-semibold cursor-pointer transition-all hover:-translate-y-0.5 ${
         active
           ? "border-primary-600 bg-primary-50 text-primary-700"
-          : "border-slate-200 bg-white text-slate-700 hover:border-primary-300 hover:text-primary-700"
+          : "border-stone-200 bg-white text-stone-700 hover:border-primary-300 hover:text-primary-700"
       }`}
     >
       <span>{label}</span>
@@ -1026,9 +1026,9 @@ function PropertyCard({
   const typeLabel = t("explore", property.propertyType);
 
   return (
-    <article className="group relative bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-500 hover:-translate-y-1 flex flex-col">
+    <article className="group relative bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md hover:shadow-stone-900/10 transition-all duration-500 hover:-translate-y-1 flex flex-col">
       {/* Image / gradient */}
-      <div className={`relative h-56 overflow-hidden bg-slate-900`}>
+      <div className={`relative h-56 overflow-hidden bg-stone-900`}>
         {property.images[0] ? (
           <>
             <PropertyCoverImage
@@ -1070,10 +1070,10 @@ function PropertyCard({
 
       {/* Body */}
       <div className="p-5 flex-1 flex flex-col">
-        <h3 className="font-bold text-slate-900 text-lg leading-snug mb-1.5 line-clamp-1 group-hover:text-primary-700 transition-colors">
+        <h3 className="font-bold text-stone-900 text-lg leading-snug mb-1.5 line-clamp-1 group-hover:text-primary-700 transition-colors">
           {property.title}
         </h3>
-        <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+        <div className="flex items-center gap-1.5 text-sm text-stone-500 mb-4">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
           <span className="line-clamp-1">
             {property.subCity}
@@ -1081,17 +1081,17 @@ function PropertyCard({
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-slate-600 mb-4 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-4 text-sm text-stone-600 mb-4 pb-4 border-b border-stone-100">
           <span className="inline-flex items-center gap-1.5">
-            <BedDouble className="w-4 h-4 text-slate-400" />
+            <BedDouble className="w-4 h-4 text-stone-400" />
             <span>{property.bedrooms} {t("explore", "bedsShort")}</span>
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <Bath className="w-4 h-4 text-slate-400" />
+            <Bath className="w-4 h-4 text-stone-400" />
             <span>{property.bathrooms} {t("explore", "bathsShort")}</span>
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <Ruler className="w-4 h-4 text-slate-400" />
+            <Ruler className="w-4 h-4 text-stone-400" />
             <span>{property.area} {t("explore", "sqmShort")}</span>
           </span>
         </div>
@@ -1101,13 +1101,13 @@ function PropertyCard({
             {property.amenities.slice(0, 3).map((a) => (
               <span
                 key={a}
-                className="inline-flex items-center text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md"
+                className="inline-flex items-center text-xs bg-stone-100 text-stone-600 px-2 py-1 rounded-md"
               >
                 {a}
               </span>
             ))}
             {property.amenities.length > 3 && (
-              <span className="inline-flex items-center text-xs text-slate-500 px-2 py-1">
+              <span className="inline-flex items-center text-xs text-stone-500 px-2 py-1">
                 +{property.amenities.length - 3}
               </span>
             )}
@@ -1119,14 +1119,14 @@ function PropertyCard({
             <button
               type="button"
               onClick={onToggleFavorite}
-              className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 hover:border-rose-300 hover:bg-rose-50 transition-all"
+              className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-2xl border-2 border-stone-200 bg-white text-stone-700 hover:border-rose-300 hover:bg-rose-50 transition-all"
               aria-label={
                 isFavorite ? t("explore", "favoriteAriaRemove") : t("explore", "favoriteAriaAdd")
               }
             >
               <Heart
                 className={`w-5 h-5 ${
-                  isFavorite ? "fill-rose-500 text-rose-500" : "text-slate-600"
+                  isFavorite ? "fill-rose-500 text-rose-500" : "text-stone-600"
                 }`}
               />
             </button>
@@ -1134,7 +1134,7 @@ function PropertyCard({
           <button
             type="button"
             onClick={onRent}
-            className={`inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-primary-600 text-white font-semibold py-3 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-primary-600/20 hover-shine ${
+            className={`inline-flex items-center justify-center gap-2 bg-stone-900 hover:bg-primary-600 text-white font-semibold py-3 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-primary-600/20 hover-shine ${
               showFavorite ? "flex-1 min-w-0" : "w-full"
             }`}
           >

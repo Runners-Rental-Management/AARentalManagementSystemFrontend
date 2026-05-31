@@ -3,9 +3,14 @@
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { rentPayments } from "@/lib/dummy-data";
+import { apiListRentPayments, getAccessToken } from "@/lib/api";
 import { RentPayment } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
+import {
+  buildPaymentCompleteUrl,
+  stashPendingPayment,
+  type PaymentMethodId,
+} from "@/lib/payment-flow";
 import {
   CreditCard,
   Search,
@@ -25,6 +30,7 @@ import {
   Printer,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 /* ── Amount → words (ETB style) ── */
 function amountToWords(amount: number): string {
@@ -99,7 +105,7 @@ function SmsToast({ phone, amount, txRef, method, onDismiss }: {
   }, [onDismiss]);
   return (
     <div className="fixed bottom-6 right-6 z-[60] w-80 animate-fade-in-up">
-      <div className="bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="bg-stone-900 rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center gap-2 bg-green-600 px-4 py-2">
           <MessageSquare className="w-3.5 h-3.5 text-white" />
           <span className="text-white text-xs font-bold">SMS Notification Sent</span>
@@ -108,7 +114,7 @@ function SmsToast({ phone, amount, txRef, method, onDismiss }: {
           </button>
         </div>
         <div className="px-4 py-3">
-          <p className="text-[10px] text-slate-400 mb-1">To: {phone}</p>
+          <p className="text-[10px] text-stone-400 mb-1">To: {phone}</p>
           <p className="text-xs text-white leading-relaxed">
             {method === "cbe_birr"
               ? `CBE Birr: Your rent payment of ETB ${amount.toLocaleString()} was successful. Ref: ${txRef}. DARA Rental System.`
@@ -122,11 +128,27 @@ function SmsToast({ phone, amount, txRef, method, onDismiss }: {
 
 export default function PaymentsPage() {
   const { t, locale } = useLanguage();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("unpaid");
   const { user } = useAuth();
   const role = user?.role || "tenant";
   const userId = user?.id || "";
+
+  const [payments, setPayments] = useState<RentPayment[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token) {
+      setPaymentsLoading(false);
+      return;
+    }
+    apiListRentPayments(token)
+      .then((res) => setPayments(res.items))
+      .catch(() => setPayments([]))
+      .finally(() => setPaymentsLoading(false));
+  }, [userId]);
 
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<RentPayment | null>(null);
@@ -144,10 +166,10 @@ export default function PaymentsPage() {
 
   const roleBasedList =
     role === "tenant"
-      ? rentPayments.filter((p) => p.payerId === userId)
+      ? payments.filter((p) => p.payerId === userId)
       : role === "landlord"
-        ? rentPayments.filter((p) => p.recipientId === userId)
-        : rentPayments;
+        ? payments.filter((p) => p.recipientId === userId)
+        : payments;
 
   const filtered = roleBasedList.filter((p) => {
     const matchesStatus =
@@ -169,7 +191,7 @@ export default function PaymentsPage() {
     .filter((p) => p.status !== "paid")
     .reduce((sum, p) => sum + p.amount, 0);
 
-  const getPayerRecipientDisplay = (p: (typeof rentPayments)[0]) => {
+  const getPayerRecipientDisplay = (p: RentPayment) => {
     if (role === "tenant") return p.recipientName;
     if (role === "landlord") return p.payerName;
     return `${p.payerName} → ${p.recipientName}`;
@@ -201,13 +223,21 @@ export default function PaymentsPage() {
   };
 
   const handleConfirmPayment = async () => {
+    if (!selectedPayment || !selectedMethod) return;
     setModalStep("processing");
-    await new Promise((r) => setTimeout(r, 2400));
+    await new Promise((r) => setTimeout(r, 1200));
     const ref = `TXN-${Date.now().toString(36).toUpperCase()}`;
-    setTxRef(ref);
-    setPaidAt(new Date().toISOString());
-    setShowSms(true);
-    setModalStep("receipt");
+    const params = {
+      type: "rent" as const,
+      paymentId: selectedPayment.id,
+      method: selectedMethod as PaymentMethodId,
+      reference: ref,
+      amount: selectedPayment.amount,
+      propertyTitle: selectedPayment.propertyTitle,
+    };
+    stashPendingPayment(params);
+    closePayModal();
+    router.push(buildPaymentCompleteUrl(params));
   };
 
   const isCbe = selectedMethod === "cbe_birr";
@@ -222,37 +252,37 @@ export default function PaymentsPage() {
       <main className="flex-1 p-6 overflow-y-auto">
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
             <div className="flex items-center justify-between mb-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             </div>
             <p className="text-2xl font-bold text-emerald-600">{totalPaid}</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-stone-500">
               {t("payments", "totalPaid")}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
             <div className="flex items-center justify-between mb-2">
               <Clock className="w-5 h-5 text-amber-600" />
             </div>
             <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
-            <p className="text-xs text-slate-500">{t("payments", "pending")}</p>
+            <p className="text-xs text-stone-500">{t("payments", "pending")}</p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
             <div className="flex items-center justify-between mb-2">
               <AlertCircle className="w-5 h-5 text-red-600" />
             </div>
             <p className="text-2xl font-bold text-red-600">{overdueCount}</p>
-            <p className="text-xs text-slate-500">{t("payments", "overdue")}</p>
+            <p className="text-xs text-stone-500">{t("payments", "overdue")}</p>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-white rounded-xl border border-stone-200 p-5">
             <div className="flex items-center justify-between mb-2">
-              <CreditCard className="w-5 h-5 text-slate-600" />
+              <CreditCard className="w-5 h-5 text-stone-600" />
             </div>
-            <p className="text-2xl font-bold text-slate-900">
+            <p className="text-2xl font-bold text-stone-900">
               {formatCurrency(totalDue)}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-stone-500">
               {t("payments", "totalDue")}
             </p>
           </div>
@@ -260,8 +290,8 @@ export default function PaymentsPage() {
 
         {/* Filter bar */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder={t("common", "search")}
@@ -271,11 +301,11 @@ export default function PaymentsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-stone-400" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white outline-none"
+              className="text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white outline-none"
             >
               <option value="unpaid">Unpaid (Pending &amp; Overdue)</option>
               <option value="all">{t("common", "all")} {t("common", "status")}</option>
@@ -287,62 +317,76 @@ export default function PaymentsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                <tr className="border-b border-stone-200 bg-stone-50">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("payments", "property")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {role === "tenant"
                       ? t("payments", "recipient")
                       : role === "landlord"
                         ? t("payments", "payer")
                         : `${t("payments", "payer")} / ${t("payments", "recipient")}`}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("payments", "amount")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("payments", "dueDate")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("payments", "paidDate")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("payments", "method")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("common", "status")}
                   </th>
                   {role === "tenant" && (
-                    <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                    <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                       {t("common", "actions")}
                     </th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((payment) => (
+                {paymentsLoading ? (
+                  <tr>
+                    <td colSpan={role === "tenant" ? 8 : 7} className="px-4 py-12 text-center text-sm text-stone-500">
+                      <Loader2 className="w-5 h-5 animate-spin inline-block mr-2 text-primary-600" />
+                      Loading payments…
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={role === "tenant" ? 8 : 7} className="px-4 py-12 text-center text-sm text-stone-500">
+                      No payments found.
+                    </td>
+                  </tr>
+                ) : (
+                filtered.map((payment) => (
                   <tr
                     key={payment.id}
-                    className="border-b border-slate-100 hover:bg-slate-50/50"
+                    className="border-b border-stone-100 hover:bg-stone-50/50"
                   >
-                    <td className="px-4 py-3 text-sm text-slate-900">
+                    <td className="px-4 py-3 text-sm text-stone-900">
                       {payment.propertyTitle}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
+                    <td className="px-4 py-3 text-sm text-stone-700">
                       {getPayerRecipientDisplay(payment)}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                    <td className="px-4 py-3 text-sm font-medium text-stone-900">
                       {formatCurrency(payment.amount)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-4 py-3 text-sm text-stone-600">
                       {formatDate(payment.dueDate)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-4 py-3 text-sm text-stone-600">
                       {payment.paidDate
                         ? formatDate(payment.paidDate)
                         : "—"}
@@ -351,7 +395,7 @@ export default function PaymentsPage() {
                       {payment.method ? (
                         <PaymentMethodBadge method={payment.method} t={t} />
                       ) : (
-                        <span className="text-sm text-slate-400">—</span>
+                        <span className="text-sm text-stone-400">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -380,18 +424,10 @@ export default function PaymentsPage() {
                       </td>
                     )}
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
-          {filtered.length === 0 && (
-            <div className="text-center py-16">
-              <CreditCard className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">
-                {t("payments", "noPayments")}
-              </p>
-            </div>
-          )}
         </div>
       </main>
 
@@ -412,7 +448,7 @@ export default function PaymentsPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
 
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary-700 to-indigo-700 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+            <div className="bg-gradient-to-r from-primary-700 to-primary-700 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-white" />
                 <span className="text-white font-bold text-sm">
@@ -428,7 +464,7 @@ export default function PaymentsPage() {
 
             {/* Step bar */}
             {!["processing", "receipt"].includes(modalStep) && (
-              <div className="flex border-b border-slate-100">
+              <div className="flex border-b border-stone-100">
                 {STEPS_BAR.map((s, i) => (
                   <div
                     key={s}
@@ -437,7 +473,7 @@ export default function PaymentsPage() {
                         ? "text-primary-700 border-b-2 border-primary-600"
                         : STEPS_BAR.indexOf(modalStep as (typeof STEPS_BAR)[number]) > i
                           ? "text-emerald-600"
-                          : "text-slate-400"
+                          : "text-stone-400"
                     }`}
                   >
                     {i + 1}. {STEP_LABELS[i]}
@@ -449,13 +485,13 @@ export default function PaymentsPage() {
             <div className="p-6">
               {/* Amount summary strip */}
               {!["processing", "receipt"].includes(modalStep) && (
-                <div className="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-xs text-slate-500 mb-0.5">Paying for</p>
-                  <p className="text-sm font-semibold text-slate-900">{selectedPayment.propertyTitle}</p>
-                  <p className="text-2xl font-black text-slate-900 mt-1">
+                <div className="mb-5 p-4 bg-stone-50 rounded-xl border border-stone-100">
+                  <p className="text-xs text-stone-500 mb-0.5">Paying for</p>
+                  <p className="text-sm font-semibold text-stone-900">{selectedPayment.propertyTitle}</p>
+                  <p className="text-2xl font-black text-stone-900 mt-1">
                     {formatCurrency(selectedPayment.amount)}
                   </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-stone-400 mt-0.5">
                     Due: {formatDate(selectedPayment.dueDate)}
                   </p>
                 </div>
@@ -464,7 +500,7 @@ export default function PaymentsPage() {
               {/* ── Step 1: Select method ── */}
               {modalStep === "select" && (
                 <>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
                     Choose Payment Method
                   </p>
                   <div className="space-y-3 mb-5">
@@ -475,17 +511,17 @@ export default function PaymentsPage() {
                           key={m.id}
                           onClick={() => setSelectedMethod(m.id)}
                           className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                            isSelected ? `${m.border} ${m.bg}` : "border-slate-200 hover:border-slate-300"
+                            isSelected ? `${m.border} ${m.bg}` : "border-stone-200 hover:border-stone-300"
                           }`}
                         >
                           <div className={`w-11 h-11 rounded-xl ${m.bg} flex items-center justify-center shrink-0`}>
                             <m.icon className={`w-5 h-5 ${m.color}`} />
                           </div>
                           <div className="text-left flex-1">
-                            <p className={`font-semibold text-sm ${isSelected ? m.color : "text-slate-900"}`}>
+                            <p className={`font-semibold text-sm ${isSelected ? m.color : "text-stone-900"}`}>
                               {locale === "am" ? m.amLabel : m.label}
                             </p>
-                            <p className="text-[11px] text-slate-400">{m.desc}</p>
+                            <p className="text-[11px] text-stone-400">{m.desc}</p>
                           </div>
                           {isSelected && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                         </button>
@@ -495,7 +531,7 @@ export default function PaymentsPage() {
                   <button
                     disabled={!selectedMethod}
                     onClick={() => setModalStep("account")}
-                    className="w-full py-3 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 rounded-xl transition-colors"
+                    className="w-full py-3 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 rounded-xl transition-colors"
                   >
                     Continue
                   </button>
@@ -510,31 +546,31 @@ export default function PaymentsPage() {
                       <methodInfo.icon className={`w-6 h-6 ${methodInfo.color}`} />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900 text-sm">{locale === "am" ? methodInfo.amLabel : methodInfo.label}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="font-bold text-stone-900 text-sm">{locale === "am" ? methodInfo.amLabel : methodInfo.label}</p>
+                      <p className="text-xs text-stone-500">
                         {isCbe ? "Enter your CBE account number" : "Enter your Telebirr phone number"}
                       </p>
                     </div>
                   </div>
 
                   <div className="mb-4">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
+                    <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5 block">
                       {isCbe ? "CBE Account Number" : "Telebirr Phone Number"}
                     </label>
                     <div className="relative">
                       {isCbe
-                        ? <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        : <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        ? <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                        : <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                       }
                       <input
                         type={isCbe ? "text" : "tel"}
                         value={account}
                         onChange={(e) => setAccount(isCbe ? e.target.value.replace(/\D/g, "") : e.target.value)}
                         placeholder={isCbe ? "1000XXXXXXXXX" : "+251 9XX XXX XXX"}
-                        className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 font-mono"
+                        className="w-full border border-stone-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 font-mono"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1.5">
+                    <p className="text-[11px] text-stone-400 mt-1.5">
                       {isCbe
                         ? "Your 13-digit CBE Birr account number."
                         : "The phone number registered with your Telebirr wallet."}
@@ -546,13 +582,13 @@ export default function PaymentsPage() {
                   </div>
 
                   <div className="flex gap-3">
-                    <button onClick={() => setModalStep("select")} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium transition-colors">
+                    <button onClick={() => setModalStep("select")} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium transition-colors">
                       Back
                     </button>
                     <button
                       onClick={() => setModalStep("pin")}
                       disabled={account.trim().length < 7}
-                      className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                      className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
                     >
                       Continue
                     </button>
@@ -568,14 +604,14 @@ export default function PaymentsPage() {
                       <KeyRound className={`w-6 h-6 ${methodInfo.color}`} />
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900 text-sm">
+                      <p className="font-bold text-stone-900 text-sm">
                         Enter your {isCbe ? "CBE Birr" : "Telebirr"} PIN
                       </p>
-                      <p className="text-xs text-slate-500">{account}</p>
+                      <p className="text-xs text-stone-500">{account}</p>
                     </div>
                   </div>
 
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5 block">
                     {isCbe ? "CBE Birr PIN" : "Telebirr Passkey"}
                   </label>
                   <div className="relative mb-1">
@@ -586,25 +622,25 @@ export default function PaymentsPage() {
                       onChange={(e) => { setPin(e.target.value.replace(/\D/g, "").slice(0, 6)); setPinError(""); }}
                       placeholder="••••••"
                       maxLength={6}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 pr-12 text-center"
+                      className="w-full border border-stone-200 rounded-xl px-4 py-3 text-2xl tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 pr-12 text-center"
                     />
                     <button
                       type="button"
                       onClick={() => setPinVisible((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                     >
                       {pinVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {pinError && <p className="text-xs text-red-600 mt-1">{pinError}</p>}
 
-                  <p className="text-xs text-slate-400 mt-2 mb-5">
+                  <p className="text-xs text-stone-400 mt-2 mb-5">
                     Your PIN is encrypted and sent directly to {isCbe ? "CBE Birr" : "Telebirr"}. It is never stored by DARA.
                   </p>
 
                   <div className="flex gap-3">
-                    <button onClick={() => setModalStep("account")} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium transition-colors">Back</button>
-                    <button onClick={handlePinNext} disabled={pin.length < 4} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">Authorise</button>
+                    <button onClick={() => setModalStep("account")} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium transition-colors">Back</button>
+                    <button onClick={handlePinNext} disabled={pin.length < 4} className="flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-stone-200 disabled:text-stone-400 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">Authorise</button>
                   </div>
                 </>
               )}
@@ -612,8 +648,8 @@ export default function PaymentsPage() {
               {/* ── Step 4: Confirm ── */}
               {modalStep === "confirm" && methodInfo && (
                 <>
-                  <p className="text-sm font-bold text-slate-900 mb-4">Review & Confirm</p>
-                  <div className="bg-slate-50 rounded-xl p-4 space-y-2.5 text-sm mb-2">
+                  <p className="text-sm font-bold text-stone-900 mb-4">Review & Confirm</p>
+                  <div className="bg-stone-50 rounded-xl p-4 space-y-2.5 text-sm mb-2">
                     {[
                       ["Amount",            formatCurrency(selectedPayment.amount)],
                       ["Property",          selectedPayment.propertyTitle],
@@ -622,8 +658,8 @@ export default function PaymentsPage() {
                       ["PIN",               "•".repeat(pin.length)],
                     ].map(([label, value]) => (
                       <div key={label} className="flex justify-between items-center">
-                        <span className="text-slate-500">{label}</span>
-                        <span className="font-semibold text-slate-800 font-mono">{value}</span>
+                        <span className="text-stone-500">{label}</span>
+                        <span className="font-semibold text-stone-800 font-mono">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -631,7 +667,7 @@ export default function PaymentsPage() {
                     After payment an <strong>SMS confirmation</strong> will be sent and a <strong>transaction receipt</strong> will be generated.
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={() => setModalStep("pin")} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium transition-colors">Back</button>
+                    <button onClick={() => setModalStep("pin")} className="flex-1 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium transition-colors">Back</button>
                     <button
                       onClick={handleConfirmPayment}
                       className={`flex-1 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${isCbe ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700"}`}
@@ -651,9 +687,9 @@ export default function PaymentsPage() {
                       <Loader2 className="w-9 h-9 text-primary-600 animate-spin" />
                     </div>
                   </div>
-                  <p className="font-bold text-slate-900 text-lg">Processing Payment…</p>
-                  <p className="text-sm text-slate-500 mt-1">Connecting to {methodInfo?.label ?? "payment provider"}…</p>
-                  <p className="text-xs text-slate-400 mt-3">Please do not close this window.</p>
+                  <p className="font-bold text-stone-900 text-lg">Processing Payment…</p>
+                  <p className="text-sm text-stone-500 mt-1">Connecting to {methodInfo?.label ?? "payment provider"}…</p>
+                  <p className="text-xs text-stone-400 mt-3">Please do not close this window.</p>
                 </div>
               )}
 
@@ -727,7 +763,7 @@ export default function PaymentsPage() {
                 return (
                   <>
                     {/* ── CBE-styled receipt ── */}
-                    <div className="border border-slate-200 rounded-2xl overflow-hidden mb-4 text-xs" style={{ fontFamily: "'Courier New', monospace" }}>
+                    <div className="border border-stone-200 rounded-2xl overflow-hidden mb-4 text-xs" style={{ fontFamily: "'Courier New', monospace" }}>
                       {/* Bank header */}
                       <div className="bg-[#1a3a6b] px-5 py-4 text-center">
                         <p className="text-white font-black text-base tracking-wide">Commercial Bank of Ethiopia</p>
@@ -742,8 +778,8 @@ export default function PaymentsPage() {
                       </div>
 
                       {/* Section: Company */}
-                      <div className="px-4 py-3 border-b border-dashed border-slate-200 bg-slate-50">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Company Address &amp; Other Information</p>
+                      <div className="px-4 py-3 border-b border-dashed border-stone-200 bg-stone-50">
+                        <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-2">Company Address &amp; Other Information</p>
                         {[
                           ["Country",               "Ethiopia"],
                           ["City",                  "Addis Ababa"],
@@ -755,15 +791,15 @@ export default function PaymentsPage() {
                           ["VAT Registration No",   "011140"],
                         ].map(([l, v]) => (
                           <div key={l} className="flex justify-between py-0.5">
-                            <span className="text-slate-400 shrink-0 w-36">{l}:</span>
-                            <span className="text-slate-700 font-semibold text-right">{v}</span>
+                            <span className="text-stone-400 shrink-0 w-36">{l}:</span>
+                            <span className="text-stone-700 font-semibold text-right">{v}</span>
                           </div>
                         ))}
                       </div>
 
                       {/* Section: Customer */}
-                      <div className="px-4 py-3 border-b border-dashed border-slate-200">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Customer Information</p>
+                      <div className="px-4 py-3 border-b border-dashed border-stone-200">
+                        <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-2">Customer Information</p>
                         {[
                           ["Customer Name",  ((user?.firstName ?? "") + " " + (user?.lastName ?? "")).toUpperCase()],
                           ["Region",         "Addis Ababa"],
@@ -774,15 +810,15 @@ export default function PaymentsPage() {
                           ["Branch",         "Mobile Banking"],
                         ].map(([l, v]) => (
                           <div key={l} className="flex justify-between py-0.5">
-                            <span className="text-slate-400 shrink-0 w-36">{l}:</span>
-                            <span className="text-slate-700 font-semibold text-right">{v}</span>
+                            <span className="text-stone-400 shrink-0 w-36">{l}:</span>
+                            <span className="text-stone-700 font-semibold text-right">{v}</span>
                           </div>
                         ))}
                       </div>
 
                       {/* Section: Transaction */}
-                      <div className="px-4 py-3 border-b border-dashed border-slate-200">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Payment / Transaction Information</p>
+                      <div className="px-4 py-3 border-b border-dashed border-stone-200">
+                        <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-2">Payment / Transaction Information</p>
                         {[
                           ["Payer",                   ((user?.firstName ?? "") + " " + (user?.lastName ?? "")).toUpperCase()],
                           ["Account",                 maskedAcc],
@@ -796,14 +832,14 @@ export default function PaymentsPage() {
                           ["15% VAT on Commission",   vat.toFixed(2) + " ETB"],
                           ["Total Debited",           totalDebited.toFixed(2) + " ETB"],
                         ].map(([l, v]) => (
-                          <div key={l} className={`flex justify-between py-0.5 ${l === "Total Debited" ? "font-black text-slate-900 pt-2 border-t border-slate-200 mt-1" : ""}`}>
-                            <span className={`shrink-0 w-40 ${l === "Total Debited" ? "text-slate-700" : "text-slate-400"}`}>{l}:</span>
-                            <span className="font-semibold text-slate-800 text-right">{v}</span>
+                          <div key={l} className={`flex justify-between py-0.5 ${l === "Total Debited" ? "font-black text-stone-900 pt-2 border-t border-stone-200 mt-1" : ""}`}>
+                            <span className={`shrink-0 w-40 ${l === "Total Debited" ? "text-stone-700" : "text-stone-400"}`}>{l}:</span>
+                            <span className="font-semibold text-stone-800 text-right">{v}</span>
                           </div>
                         ))}
-                        <div className="mt-2 pt-2 border-t border-slate-100">
-                          <p className="text-slate-400">Amount in Word:</p>
-                          <p className="text-slate-700 font-semibold mt-0.5">{amountToWords(totalDebited)}</p>
+                        <div className="mt-2 pt-2 border-t border-stone-100">
+                          <p className="text-stone-400">Amount in Word:</p>
+                          <p className="text-stone-700 font-semibold mt-0.5">{amountToWords(totalDebited)}</p>
                         </div>
                       </div>
 
@@ -818,7 +854,7 @@ export default function PaymentsPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => window.print()}
-                        className="flex-1 flex items-center justify-center gap-2 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium transition-colors"
+                        className="flex-1 flex items-center justify-center gap-2 border border-stone-200 text-stone-700 py-2.5 rounded-xl hover:bg-stone-50 text-sm font-medium transition-colors"
                       >
                         <Printer className="w-4 h-4" /> Print
                       </button>
@@ -856,10 +892,10 @@ function PaymentMethodBadge({
   const config: Record<string, { bg: string; text: string; icon: typeof Landmark }> = {
     cbe_birr: { bg: "bg-blue-50", text: "text-blue-700", icon: Landmark },
     telebirr: { bg: "bg-green-50", text: "text-green-700", icon: Smartphone },
-    bank_transfer: { bg: "bg-slate-50", text: "text-slate-700", icon: Landmark },
+    bank_transfer: { bg: "bg-stone-50", text: "text-stone-700", icon: Landmark },
     mobile_money: { bg: "bg-purple-50", text: "text-purple-700", icon: Smartphone },
     cash: { bg: "bg-amber-50", text: "text-amber-700", icon: CreditCard },
-    check: { bg: "bg-slate-50", text: "text-slate-600", icon: CreditCard },
+    check: { bg: "bg-stone-50", text: "text-stone-600", icon: CreditCard },
   };
 
   const c = config[method] || config.cash;

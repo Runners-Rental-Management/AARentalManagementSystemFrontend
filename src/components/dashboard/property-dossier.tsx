@@ -80,7 +80,7 @@ const LIVE_BANNER: Partial<Record<LiveStatus, { label: string; sub: string; cls:
   landlord_signed: {
     label: "Pending Officer Verification",
     sub:   "DARA is reviewing compliance",
-    cls:   "bg-indigo-100 text-indigo-800 border-indigo-300",
+    cls:   "bg-primary-100 text-primary-800 border-primary-300",
   },
   dara_approved: {
     label: "Awaiting Advance Payment",
@@ -139,15 +139,15 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
       style={{ transform: `rotate(${tilt})` }}
     >
       <div
-        className="dossier-paper relative paper-manila rounded-md overflow-hidden border border-slate-400/30"
+        className="dossier-paper relative paper-manila rounded-md overflow-hidden border border-stone-400/30"
         style={{ minHeight: 348 }}
       >
         {/* ── Folder tab w/ file # ── */}
         <div className="dossier-tab px-4 py-2.5 flex items-center justify-between gap-2">
-          <span className="typewriter text-[10px] font-bold text-slate-800 tracking-widest truncate">
+          <span className="typewriter text-[10px] font-bold text-stone-800 tracking-widest truncate">
             {fileNo}
           </span>
-          <span className="typewriter text-[9px] font-bold text-slate-600 shrink-0">
+          <span className="typewriter text-[9px] font-bold text-stone-600 shrink-0">
             FILED · {filed}
           </span>
         </div>
@@ -159,7 +159,7 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
             <div className="relative shrink-0">
               {/* Paperclip */}
               <Paperclip
-                className="absolute -top-2.5 -left-1 w-4.5 h-4.5 text-slate-500 drop-shadow z-10"
+                className="absolute -top-2.5 -left-1 w-4.5 h-4.5 text-stone-500 drop-shadow z-10"
                 style={{ transform: "rotate(-30deg)" }}
                 strokeWidth={2.5}
               />
@@ -175,8 +175,8 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                    <Building2 className="w-8 h-8 text-slate-300" />
+                  <div className="w-full h-full bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
+                    <Building2 className="w-8 h-8 text-stone-300" />
                   </div>
                 )}
               </div>
@@ -184,13 +184,13 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
 
             {/* Type-written subject */}
             <div className="min-w-0 pt-0.5">
-              <p className="typewriter text-[9px] font-bold tracking-widest text-slate-500 uppercase mb-1">
+              <p className="typewriter text-[9px] font-bold tracking-widest text-stone-500 uppercase mb-1">
                 Subject
               </p>
-              <p className="typewriter text-sm font-bold text-slate-900 leading-snug line-clamp-2 min-h-[2.35rem]">
+              <p className="typewriter text-sm font-bold text-stone-900 leading-snug line-clamp-2 min-h-[2.35rem]">
                 {property.title}
               </p>
-              <div className="typewriter text-[10px] text-slate-500 mt-1.5 flex items-start gap-1">
+              <div className="typewriter text-[10px] text-stone-500 mt-1.5 flex items-start gap-1">
                 <MapPin className="w-3.5 h-3.5 mt-[1px] shrink-0" />
                 <span className="line-clamp-1">{property.address}</span>
               </div>
@@ -198,7 +198,7 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
           </div>
 
           {/* Form-style key/value rows */}
-          <dl className="space-y-1.5 typewriter text-[11px] text-slate-800 border-t border-dashed border-slate-300 pt-2.5 min-h-[104px]">
+          <dl className="space-y-1.5 typewriter text-[11px] text-stone-800 border-t border-dashed border-stone-300 pt-2.5 min-h-[104px]">
             <Row label="Property" value={property.propertyType.toUpperCase()} />
             <Row
               label="Sub-City"
@@ -217,7 +217,7 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
 
           {/* "New" badge for just-submitted */}
           {isJustSubmitted && (
-            <div className="absolute top-2 right-2 inline-flex items-center gap-1 bg-indigo-600 text-white text-[9px] font-bold px-2 py-0.5 rounded tracking-wider shadow-sm">
+            <div className="absolute top-2 right-2 inline-flex items-center gap-1 bg-primary-600 text-white text-[9px] font-bold px-2 py-0.5 rounded tracking-wider shadow-sm">
               <Sparkles className="w-2.5 h-2.5" />
               NEW
             </div>
@@ -229,13 +229,13 @@ export function PropertyDossier({ property, isJustSubmitted = false, index = 0, 
               <p className="typewriter text-[9px] font-bold tracking-widest uppercase">
                 {liveBanner.label}
               </p>
-              <p className="typewriter text-[9px] text-slate-600 mt-0.5">{liveBanner.sub}</p>
+              <p className="typewriter text-[9px] text-stone-600 mt-0.5">{liveBanner.sub}</p>
             </div>
           )}
 
           {/* Footer meta + stamp (no overlap) */}
-          <div className="mt-3 pt-2 border-t border-dashed border-slate-300 flex items-center justify-between gap-2">
-            <span className="typewriter text-[10px] text-slate-500">
+          <div className="mt-3 pt-2 border-t border-dashed border-stone-300 flex items-center justify-between gap-2">
+            <span className="typewriter text-[10px] text-stone-500">
               DARA REVIEW TRACK
             </span>
             <div
@@ -267,12 +267,12 @@ function Row({
 }) {
   return (
     <div className="grid grid-cols-[74px_1fr] items-baseline gap-2">
-      <dt className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">
+      <dt className="text-[9px] font-bold tracking-widest text-stone-500 uppercase">
         {label}
       </dt>
       <dd
         className={`truncate ${
-          accent ? "text-indigo-700 font-bold text-[12px]" : "text-slate-800"
+          accent ? "text-primary-700 font-bold text-[12px]" : "text-stone-800"
         }`}
       >
         {value}
