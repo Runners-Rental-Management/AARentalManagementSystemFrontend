@@ -378,9 +378,9 @@ export default function RentToTenantPage() {
                 <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
                   <UserCheck className="w-6 h-6 text-emerald-600" />
                 </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{tenant.fullName}</p>
-                    <p className="text-sm text-slate-500 font-mono">FAN: {foundTenant.faydaNumber}</p>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900">{foundTenant.fullName}</p>
+                  <p className="text-sm text-slate-500 font-mono">FAN: {foundTenant.faydaNumber}</p>
                   <div className="flex items-center gap-1.5 mt-1">
                     <Phone className="w-3.5 h-3.5 text-slate-400" />
                     <p className="text-sm text-slate-500">{foundTenant.maskedPhone}</p>
