@@ -6,7 +6,8 @@ export type PaymentMethodId =
   | "bank_transfer"
   | "mobile_money"
   | "cash"
-  | "check";
+  | "check"
+  | "chapa";
 
 export type PaymentCompleteParams = {
   type: PaymentCompleteType;
@@ -53,9 +54,39 @@ export function clearPendingPayment() {
   sessionStorage.removeItem(PENDING_PAYMENT_KEY);
 }
 
+/** Chapa appends trx_ref / tx_ref when redirecting back to CHAPA_RETURN_URL. */
+export function parseChapaReturnTxRef(searchParams: URLSearchParams): string | null {
+  return (
+    searchParams.get("trx_ref") ??
+    searchParams.get("tx_ref") ??
+    searchParams.get("reference") ??
+    null
+  );
+}
+
+export function isChapaReturn(searchParams: URLSearchParams): boolean {
+  return Boolean(parseChapaReturnTxRef(searchParams));
+}
+
 export function parsePaymentCompleteParams(
   searchParams: URLSearchParams,
 ): PaymentCompleteParams | null {
+  const txRef = parseChapaReturnTxRef(searchParams);
+  if (txRef) {
+    const stashed = readPendingPayment();
+    return {
+      type: (searchParams.get("type") as PaymentCompleteType) ?? stashed?.type ?? "rent",
+      paymentId: searchParams.get("paymentId") ?? stashed?.paymentId,
+      agreementId: searchParams.get("agreementId") ?? stashed?.agreementId,
+      method: "chapa",
+      reference: txRef,
+      amount: searchParams.get("amount")
+        ? Number(searchParams.get("amount"))
+        : stashed?.amount,
+      propertyTitle: searchParams.get("propertyTitle") ?? stashed?.propertyTitle,
+    };
+  }
+
   const type = searchParams.get("type");
   if (type !== "agreement" && type !== "rent") {
     const stashed = readPendingPayment();
@@ -82,10 +113,13 @@ export function parsePaymentCompleteParams(
 export function validatePaymentCompleteParams(
   params: PaymentCompleteParams,
 ): string | null {
+  if (params.method === "chapa" && params.reference) {
+    return null;
+  }
   if (params.type === "agreement" && !params.agreementId) {
     return "Missing agreement ID for agreement payment.";
   }
-  if (params.type === "rent" && !params.paymentId) {
+  if (params.type === "rent" && !params.paymentId && params.method !== "chapa") {
     return "Missing payment ID for rent payment.";
   }
   return null;

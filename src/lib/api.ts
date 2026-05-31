@@ -769,6 +769,48 @@ export async function apiConfirmRentPayment(
   return mapBackendRentPayment(result);
 }
 
+export type ChapaInitResponse = {
+  checkoutUrl: string;
+  txRef: string;
+  amount: number | string;
+  currency: string;
+};
+
+export async function apiInitiateChapaPayment(token: string, paymentId: string) {
+  return apiRequest<ChapaInitResponse>(`/payments/${paymentId}/pay-with-chapa`, {
+    method: "POST",
+    token,
+  });
+}
+
+export async function apiInitiateChapaAdvancePayment(token: string, agreementId: string) {
+  return apiRequest<ChapaInitResponse & { paymentId: string }>(
+    `/agreements/${agreementId}/pay-with-chapa`,
+    {
+      method: "POST",
+      token,
+    },
+  );
+}
+
+export type ChapaVerifyResponse = {
+  txRef: string;
+  verified: boolean;
+  chapaStatus?: string;
+  payment: BackendRentPayment | null;
+};
+
+export async function apiVerifyChapaPayment(token: string, txRef: string) {
+  const result = await apiRequest<ChapaVerifyResponse>(
+    `/payments/chapa/verify/${encodeURIComponent(txRef)}`,
+    { token },
+  );
+  return {
+    ...result,
+    payment: result.payment ? mapBackendRentPayment(result.payment) : null,
+  };
+}
+
 export async function apiRequestAgreementTermination(
   token: string,
   id: string,

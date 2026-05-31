@@ -178,7 +178,7 @@ export interface RentPayment {
   dueDate: string;
   paidDate?: string;
   status: PaymentStatus;
-  method?: 'cbe_birr' | 'telebirr' | 'bank_transfer' | 'mobile_money' | 'cash' | 'check';
+  method?: 'cbe_birr' | 'telebirr' | 'bank_transfer' | 'mobile_money' | 'cash' | 'check' | 'chapa';
   reference?: string;
 }
 

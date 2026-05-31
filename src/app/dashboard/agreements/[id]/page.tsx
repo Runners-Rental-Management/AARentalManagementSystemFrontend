@@ -4,7 +4,7 @@ import { Header } from "@/components/dashboard/header";
 import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { getAccessToken, apiGetAgreementById, apiTenantSignAgreement, apiWithdrawAgreement, apiRequestAgreementTermination, apiRequestAgreementExtension } from "@/lib/api";
+import { getAccessToken, apiGetAgreementById, apiTenantSignAgreement, apiWithdrawAgreement, apiRequestAgreementTermination, apiRequestAgreementExtension, apiInitiateChapaAdvancePayment } from "@/lib/api";
 import type { TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
@@ -14,13 +14,9 @@ import {
   Loader2, Download, Printer, MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import {
-  buildPaymentCompleteUrl,
-  stashPendingPayment,
-  type PaymentMethodId,
-} from "@/lib/payment-flow";
+import { stashPendingPayment } from "@/lib/payment-flow";
 
 /* ─── small helpers ─── */
 function amountToWords(n: number): string {
@@ -98,158 +94,6 @@ function signedAtDate(agreement: TenancyAgreement) {
   const dates = [agreement.landlordSignedAt, agreement.tenantSignedAt, agreement.signedAt].filter(Boolean) as string[];
   if (dates.length === 0) return undefined;
   return dates.sort().at(-1);
-}
-
-/* ─── Advance Payment Modal (placeholder for payment gateway) ─── */
-type PayStep = "method"|"account"|"pin"|"confirm"|"processing"|"done";
-function AdvancePaymentModal({
-  agreementId,
-  amount,
-  propertyTitle,
-  onClose,
-}: {
-  agreementId: string;
-  amount: number;
-  propertyTitle: string;
-  onClose: () => void;
-}) {
-  const router = useRouter();
-  const [step, setStep] = useState<PayStep>("method");
-  const [method, setMethod] = useState<PayMethod | null>(null);
-  const [account, setAccount] = useState("");
-  const [pin, setPin] = useState("");
-  const [pinVis, setPinVis] = useState(false);
-  const [pinErr, setPinErr] = useState("");
-  const [payErr, setPayErr] = useState<string | null>(null);
-
-  const mi = PAY_METHODS.find((m) => m.id === method);
-
-  const handleConfirm = async () => {
-    if (!method) return;
-    setStep("processing");
-    setPayErr(null);
-    try {
-      await new Promise((r) => setTimeout(r, 1200));
-      const ref = `PAY-${Date.now().toString(36).toUpperCase()}`;
-      const params = {
-        type: "agreement" as const,
-        agreementId,
-        method: method as PaymentMethodId,
-        reference: ref,
-        amount,
-        propertyTitle,
-      };
-      stashPendingPayment(params);
-      router.push(buildPaymentCompleteUrl(params));
-    } catch (err) {
-      setPayErr(err instanceof Error ? err.message : "Payment failed");
-      setStep("confirm");
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="px-6 py-4 bg-emerald-600 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-white">
-            <CreditCard className="w-5 h-5" />
-            <span className="font-bold text-sm">Pay Advance Rent</span>
-          </div>
-          {step !== "processing" && (
-            <button onClick={onClose} className="text-white/70 hover:text-white">
-              <XCircle className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        <div className="p-6">
-          {step === "method" && (
-            <>
-              <p className="text-sm text-stone-600 mb-1">{propertyTitle}</p>
-              <p className="text-2xl font-black text-stone-900 mb-4">{formatCurrency(amount)}</p>
-              <p className="text-xs text-stone-500 mb-3">Select payment method. Your real payment gateway can be wired to this step later.</p>
-              <div className="space-y-2">
-                {PAY_METHODS.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => { setMethod(m.id); setStep("account"); }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border ${m.border} ${m.bg} hover:opacity-90 transition-opacity`}
-                  >
-                    <m.icon className={`w-5 h-5 ${m.color}`} />
-                    <span className={`text-sm font-semibold ${m.color}`}>{m.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          {step === "account" && mi && (
-            <>
-              <p className="text-sm font-semibold text-stone-900 mb-3">{mi.label} account</p>
-              <input
-                value={account}
-                onChange={(e) => setAccount(e.target.value)}
-                placeholder={mi.ph}
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm mb-4"
-              />
-              <button
-                disabled={account.trim().length < 5}
-                onClick={() => setStep("pin")}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 text-white py-2.5 rounded-xl text-sm font-semibold"
-              >
-                Continue
-              </button>
-            </>
-          )}
-          {step === "pin" && (
-            <>
-              <p className="text-sm font-semibold text-stone-900 mb-3">Enter PIN</p>
-              <div className="relative mb-1">
-                <input
-                  type={pinVis ? "text" : "password"}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="••••"
-                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm pr-10"
-                />
-                <button type="button" onClick={() => setPinVis(!pinVis)} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">
-                  {pinVis ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {pinErr && <p className="text-xs text-red-600 mb-3">{pinErr}</p>}
-              <button
-                onClick={() => {
-                  if (pin.length < 4) { setPinErr("PIN must be at least 4 digits."); return; }
-                  setPinErr("");
-                  setStep("confirm");
-                }}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-semibold mt-3"
-              >
-                Review payment
-              </button>
-            </>
-          )}
-          {step === "confirm" && (
-            <>
-              <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 text-sm space-y-2 mb-4">
-                <div className="flex justify-between"><span className="text-stone-500">Amount</span><span className="font-bold">{formatCurrency(amount)}</span></div>
-                <div className="flex justify-between"><span className="text-stone-500">Method</span><span className="font-medium">{mi?.label}</span></div>
-                <div className="flex justify-between"><span className="text-stone-500">Account</span><span className="font-medium">{maskAcc(account)}</span></div>
-              </div>
-              {payErr && <p className="text-xs text-red-600 mb-3">{payErr}</p>}
-              <button onClick={handleConfirm} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-semibold">
-                Confirm & Pay
-              </button>
-            </>
-          )}
-          {step === "processing" && (
-            <div className="flex flex-col items-center py-10 text-center">
-              <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mb-3" />
-              <p className="font-semibold text-stone-900">Redirecting to confirmation…</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /* ─── Extension Modal ─── */
@@ -822,7 +666,8 @@ export default function AgreementDetailPage() {
   const [showExtension, setShowExtension] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showTerminationRequest, setShowTerminationRequest] = useState(false);
-  const [showAdvancePayment, setShowAdvancePayment] = useState(false);
+  const [payingAdvance, setPayingAdvance] = useState(false);
+  const [advancePayError, setAdvancePayError] = useState<string | null>(null);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState<string | null>(null);
 
@@ -831,6 +676,42 @@ export default function AgreementDetailPage() {
     if (!token || !agreementId) return Promise.resolve();
     return apiGetAgreementById(token, agreementId).then((data) => setAgreement(data));
   }, [agreementId]);
+
+  const startChapaAdvanceCheckout = async () => {
+    if (!agreement) return;
+    const token = getAccessToken();
+    if (!token) {
+      setAdvancePayError("Please sign in to pay.");
+      return;
+    }
+
+    setPayingAdvance(true);
+    setAdvancePayError(null);
+
+    try {
+      stashPendingPayment({
+        type: "agreement",
+        agreementId: agreement.id,
+        method: "chapa",
+        amount: agreement.advancePayment,
+        propertyTitle: agreement.propertyTitle,
+      });
+
+      const init = await apiInitiateChapaAdvancePayment(token, agreement.id);
+      stashPendingPayment({
+        type: "agreement",
+        agreementId: agreement.id,
+        paymentId: init.paymentId,
+        method: "chapa",
+        amount: agreement.advancePayment,
+        propertyTitle: agreement.propertyTitle,
+      });
+      window.location.assign(init.checkoutUrl);
+    } catch (err) {
+      setAdvancePayError(err instanceof Error ? err.message : "Failed to open Chapa checkout.");
+      setPayingAdvance(false);
+    }
+  };
 
   useEffect(() => {
     const token = getAccessToken();
@@ -955,14 +836,6 @@ export default function AgreementDetailPage() {
             await apiRequestAgreementTermination(token, agreement.id, reason);
             await reloadAgreement();
           }}
-        />
-      )}
-      {showAdvancePayment && (
-        <AdvancePaymentModal
-          agreementId={agreement.id}
-          amount={agreement.advancePayment}
-          propertyTitle={agreement.propertyTitle}
-          onClose={() => setShowAdvancePayment(false)}
         />
       )}
         <Header title={t("agreements", "agreementDetails")} />
@@ -1271,11 +1144,20 @@ export default function AgreementDetailPage() {
                   Your agreement has been verified by the authority. Pay the advance rent of{" "}
                   <strong>{formatCurrency(agreement.advancePayment)}</strong> to activate your tenancy.
                 </p>
+                {advancePayError && (
+                  <p className="text-xs text-red-600">{advancePayError}</p>
+                )}
                 <button
-                  onClick={() => setShowAdvancePayment(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors"
+                  onClick={() => void startChapaAdvanceCheckout()}
+                  disabled={payingAdvance}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:bg-stone-300 disabled:cursor-wait transition-colors"
                 >
-                  <CreditCard className="w-4 h-4" /> Pay Now
+                  {payingAdvance ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="w-4 h-4" />
+                  )}
+                  {payingAdvance ? "Opening Chapa…" : "Pay Now"}
                 </button>
               </div>
             )}

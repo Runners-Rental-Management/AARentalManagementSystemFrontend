@@ -14,13 +14,15 @@ import {
 import { useAuth } from "@/context/auth-context";
 import {
   apiConfirmAgreementPayment,
-  apiConfirmRentPayment,
   apiGetAgreementById,
   apiGetRentPaymentById,
+  apiVerifyChapaPayment,
   getAccessToken,
 } from "@/lib/api";
 import {
   clearPendingPayment,
+  isChapaReturn,
+  parseChapaReturnTxRef,
   parsePaymentCompleteParams,
   validatePaymentCompleteParams,
   type PaymentCompleteParams,
@@ -53,6 +55,8 @@ function methodLabel(method: string) {
       return "Cash";
     case "check":
       return "Check";
+    case "chapa":
+      return "Chapa";
     default:
       return method.replace(/_/g, " ");
   }
@@ -99,6 +103,63 @@ function PaymentCompleteInner() {
 
     (async () => {
       try {
+        const chapaTxRef = parseChapaReturnTxRef(searchParams);
+        const isChapa = params.method === "chapa" || isChapaReturn(searchParams);
+
+        if (isChapa && chapaTxRef) {
+          const verify = await apiVerifyChapaPayment(token, chapaTxRef);
+          clearPendingPayment();
+
+          if (verify.verified && verify.payment) {
+            const isAgreement = params.type === "agreement";
+            let agreementActive = false;
+            if (isAgreement && params.agreementId) {
+              const agreement = await apiGetAgreementById(token, params.agreementId);
+              agreementActive = agreement.status === "active";
+            }
+
+            setState({
+              phase: "success",
+              params: { ...params, method: "chapa", reference: chapaTxRef },
+              reference: verify.payment.reference ?? chapaTxRef,
+              propertyTitle: verify.payment.propertyTitle,
+              amount: Number(verify.payment.amount),
+              agreementActive: isAgreement ? agreementActive : undefined,
+            });
+            return;
+          }
+
+          if (verify.payment?.status === "paid") {
+            const isAgreement = params.type === "agreement";
+            let agreementActive = false;
+            if (isAgreement && params.agreementId) {
+              const agreement = await apiGetAgreementById(token, params.agreementId);
+              agreementActive = agreement.status === "active";
+            }
+
+            setState({
+              phase: "success",
+              params: { ...params, method: "chapa", reference: chapaTxRef },
+              reference: verify.payment.reference ?? chapaTxRef,
+              propertyTitle: verify.payment.propertyTitle,
+              amount: verify.payment.amount,
+              agreementActive: isAgreement ? agreementActive : undefined,
+            });
+            return;
+          }
+
+          setState({
+            phase: "error",
+            message:
+              verify.chapaStatus === "pending"
+                ? "Payment is still processing. Please wait a moment and refresh, or check your Chapa receipt."
+                : "Chapa could not verify this payment. If you were charged, contact support with reference: " +
+                  chapaTxRef,
+            params,
+          });
+          return;
+        }
+
         if (params.type === "agreement") {
           const agreementId = params.agreementId!;
           const existing = await apiGetAgreementById(token, agreementId);
@@ -137,36 +198,27 @@ function PaymentCompleteInner() {
           return;
         }
 
-        const paymentId = params.paymentId!;
-        const existing = await apiGetRentPaymentById(token, paymentId);
+        if (params.paymentId) {
+          const paymentId = params.paymentId;
+          const existing = await apiGetRentPaymentById(token, paymentId);
 
-        if (existing.status === "paid") {
-          clearPendingPayment();
-          setState({
-            phase: "success",
-            params,
-            reference: existing.reference ?? params.reference ?? "—",
-            propertyTitle: params.propertyTitle ?? existing.propertyTitle,
-            amount: params.amount ?? existing.amount,
-          });
-          return;
+          if (existing.status === "paid") {
+            clearPendingPayment();
+            setState({
+              phase: "success",
+              params,
+              reference: existing.reference ?? params.reference ?? "—",
+              propertyTitle: params.propertyTitle ?? existing.propertyTitle,
+              amount: params.amount ?? existing.amount,
+            });
+            return;
+          }
         }
 
-        const reference =
-          params.reference ?? `TXN-${Date.now().toString(36).toUpperCase()}`;
-
-        const paid = await apiConfirmRentPayment(token, paymentId, {
-          method: params.method,
-          reference,
-        });
-
-        clearPendingPayment();
         setState({
-          phase: "success",
+          phase: "error",
+          message: "Could not confirm this payment. Please try paying again from the payments page.",
           params,
-          reference: paid.reference ?? reference,
-          propertyTitle: params.propertyTitle ?? paid.propertyTitle,
-          amount: params.amount ?? paid.amount,
         });
       } catch (err) {
         setState({
