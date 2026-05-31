@@ -4,7 +4,7 @@ import { Header } from "@/components/dashboard/header";
 import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
-import { getAccessToken, apiGetAgreementById, apiLandlordSignAgreement, apiTenantSignAgreement } from "@/lib/api";
+import { getAccessToken, apiGetAgreementById, apiTenantSignAgreement, apiConfirmAgreementPayment, apiWithdrawAgreement, apiRequestAgreementTermination, apiRequestAgreementExtension } from "@/lib/api";
 import type { TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
@@ -38,14 +38,14 @@ function maskAcc(a: string) { return a.length<=4?a:a[0]+"****"+a.slice(-4); }
 
 const EXT_FEE = 500;
 const TERM_GROUNDS = [
-  {value:"",              label:"Select grounds…"},
-  {value:"end_of_term",  label:"End of agreed contract term"},
-  {value:"owner_occ",    label:"Owner or immediate family occupation"},
-  {value:"sale",         label:"Sale of the property"},
-  {value:"renovation",   label:"Major renovation / demolition"},
-  {value:"breach",       label:"Tenant breach of contract"},
-  {value:"non_payment",  label:"Persistent non-payment of rent"},
-  {value:"other",        label:"Other (explain below)"},
+  { value: "", label: "Select grounds…" },
+  { value: "end_of_term", label: "End of agreed contract term" },
+  { value: "owner_occ", label: "Owner or immediate family occupation" },
+  { value: "sale", label: "Sale of the property" },
+  { value: "renovation", label: "Major renovation / demolition" },
+  { value: "breach", label: "Tenant breach of contract" },
+  { value: "non_payment", label: "Persistent non-payment of rent" },
+  { value: "other", label: "Other (explain below)" },
 ];
 type PayMethod = "cbe_birr"|"telebirr";
 const PAY_METHODS = [
@@ -53,10 +53,204 @@ const PAY_METHODS = [
   {id:"telebirr" as PayMethod, label:"Telebirr", icon:Smartphone, color:"text-green-700", bg:"bg-green-50", border:"border-green-300", ph:"+251 9XX XXX XXX"},
 ];
 
+const WITHDRAWABLE_STATUSES = [
+  "draft",
+  "pending_tenant_signature",
+  "pending_verification",
+  "pending_dara_verification",
+  "pending_payment",
+] as const;
+
+function canWithdraw(status: string) {
+  return (WITHDRAWABLE_STATUSES as readonly string[]).includes(status);
+}
+
+function isActiveTenancy(status: string) {
+  return status === "active" || status === "extended";
+}
+
+function isPendingAuthorityAction(status: string) {
+  return status === "extension_requested" || status === "termination_requested";
+}
+
+function landlordTerminationEligible(startDate: string) {
+  const twoYears = new Date(startDate);
+  twoYears.setFullYear(twoYears.getFullYear() + 2);
+  return new Date() >= twoYears;
+}
+
+function landlordTerminationAvailableFrom(startDate: string) {
+  const d = new Date(startDate);
+  d.setFullYear(d.getFullYear() + 2);
+  return d;
+}
+
+function bothPartiesSigned(agreement: TenancyAgreement) {
+  return !!(agreement.tenantSignedAt && agreement.landlordSignedAt);
+}
+
+function signedAtDate(agreement: TenancyAgreement) {
+  const dates = [agreement.landlordSignedAt, agreement.tenantSignedAt, agreement.signedAt].filter(Boolean) as string[];
+  if (dates.length === 0) return undefined;
+  return dates.sort().at(-1);
+}
+
+/* ─── Advance Payment Modal (placeholder for payment gateway) ─── */
+type PayStep = "method"|"account"|"pin"|"confirm"|"processing"|"done";
+function AdvancePaymentModal({
+  amount,
+  propertyTitle,
+  onClose,
+  onPaid,
+}: {
+  amount: number;
+  propertyTitle: string;
+  onClose: () => void;
+  onPaid: (method: PayMethod, reference?: string) => Promise<void>;
+}) {
+  const [step, setStep] = useState<PayStep>("method");
+  const [method, setMethod] = useState<PayMethod | null>(null);
+  const [account, setAccount] = useState("");
+  const [pin, setPin] = useState("");
+  const [pinVis, setPinVis] = useState(false);
+  const [pinErr, setPinErr] = useState("");
+  const [payErr, setPayErr] = useState<string | null>(null);
+
+  const mi = PAY_METHODS.find((m) => m.id === method);
+
+  const handleConfirm = async () => {
+    if (!method) return;
+    setStep("processing");
+    setPayErr(null);
+    try {
+      const ref = `PAY-${Date.now().toString(36).toUpperCase()}`;
+      await onPaid(method, ref);
+      setStep("done");
+    } catch (err) {
+      setPayErr(err instanceof Error ? err.message : "Payment failed");
+      setStep("confirm");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="px-6 py-4 bg-emerald-600 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-white">
+            <CreditCard className="w-5 h-5" />
+            <span className="font-bold text-sm">Pay Advance Rent</span>
+          </div>
+          {step !== "processing" && step !== "done" && (
+            <button onClick={onClose} className="text-white/70 hover:text-white">
+              <XCircle className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="p-6">
+          {step === "method" && (
+            <>
+              <p className="text-sm text-slate-600 mb-1">{propertyTitle}</p>
+              <p className="text-2xl font-black text-slate-900 mb-4">{formatCurrency(amount)}</p>
+              <p className="text-xs text-slate-500 mb-3">Select payment method. Your real payment gateway can be wired to this step later.</p>
+              <div className="space-y-2">
+                {PAY_METHODS.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => { setMethod(m.id); setStep("account"); }}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border ${m.border} ${m.bg} hover:opacity-90 transition-opacity`}
+                  >
+                    <m.icon className={`w-5 h-5 ${m.color}`} />
+                    <span className={`text-sm font-semibold ${m.color}`}>{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {step === "account" && mi && (
+            <>
+              <p className="text-sm font-semibold text-slate-900 mb-3">{mi.label} account</p>
+              <input
+                value={account}
+                onChange={(e) => setAccount(e.target.value)}
+                placeholder={mi.ph}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm mb-4"
+              />
+              <button
+                disabled={account.trim().length < 5}
+                onClick={() => setStep("pin")}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white py-2.5 rounded-xl text-sm font-semibold"
+              >
+                Continue
+              </button>
+            </>
+          )}
+          {step === "pin" && (
+            <>
+              <p className="text-sm font-semibold text-slate-900 mb-3">Enter PIN</p>
+              <div className="relative mb-1">
+                <input
+                  type={pinVis ? "text" : "password"}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="••••"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm pr-10"
+                />
+                <button type="button" onClick={() => setPinVis(!pinVis)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  {pinVis ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {pinErr && <p className="text-xs text-red-600 mb-3">{pinErr}</p>}
+              <button
+                onClick={() => {
+                  if (pin.length < 4) { setPinErr("PIN must be at least 4 digits."); return; }
+                  setPinErr("");
+                  setStep("confirm");
+                }}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-semibold mt-3"
+              >
+                Review payment
+              </button>
+            </>
+          )}
+          {step === "confirm" && (
+            <>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm space-y-2 mb-4">
+                <div className="flex justify-between"><span className="text-slate-500">Amount</span><span className="font-bold">{formatCurrency(amount)}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Method</span><span className="font-medium">{mi?.label}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Account</span><span className="font-medium">{maskAcc(account)}</span></div>
+              </div>
+              {payErr && <p className="text-xs text-red-600 mb-3">{payErr}</p>}
+              <button onClick={handleConfirm} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-semibold">
+                Confirm & Pay
+              </button>
+            </>
+          )}
+          {step === "processing" && (
+            <div className="flex flex-col items-center py-10 text-center">
+              <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mb-3" />
+              <p className="font-semibold text-slate-900">Processing payment…</p>
+            </div>
+          )}
+          {step === "done" && (
+            <div className="flex flex-col items-center py-8 text-center">
+              <CheckCircle2 className="w-12 h-12 text-emerald-600 mb-3" />
+              <p className="font-bold text-slate-900 text-lg">Payment confirmed</p>
+              <p className="text-sm text-slate-500 mt-2 mb-6">Your tenancy is now active.</p>
+              <button onClick={onClose} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold">Close</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Extension Modal ─── */
 type ExtStep = "details"|"method"|"account"|"pin"|"confirm"|"processing"|"receipt"|"done";
-function ExtensionModal({ tenantName, propertyTitle, monthlyRent, onClose }:{
-  tenantName:string; propertyTitle:string; monthlyRent:number; onClose:()=>void;
+function ExtensionModal({ tenantName, propertyTitle, monthlyRent, onClose, onComplete }:{
+  tenantName:string; propertyTitle:string; monthlyRent:number;
+  onClose:()=>void;
+  onComplete:(payload:{ newEndDate:string; newMonthlyRent?:number; reference:string })=>Promise<void>;
 }) {
   const [step,setStep]             = useState<ExtStep>("details");
   const [newEndDate,setNewEndDate] = useState("");
@@ -78,9 +272,17 @@ function ExtensionModal({ tenantName, propertyTitle, monthlyRent, onClose }:{
   const handlePinNext=()=>{ if(pin.length<4){setPinErr("PIN must be at least 4 digits.");return;} setPinErr("");setStep("confirm"); };
   const handleConfirm=async()=>{
     setStep("processing");
-    await new Promise(r=>setTimeout(r,2400));
     const ref=`EXT-${Date.now().toString(36).toUpperCase()}`;
-    setFeeRef(ref); setPaidAt(new Date().toISOString()); setShowSms(true); setStep("receipt");
+    try {
+      await onComplete({
+        newEndDate,
+        newMonthlyRent: adjustRent ? newRent : undefined,
+        reference: ref,
+      });
+      setFeeRef(ref); setPaidAt(new Date().toISOString()); setShowSms(true); setStep("receipt");
+    } catch {
+      setStep("confirm");
+    }
   };
 
   const SBAR=["details","method","account","pin","confirm"] as const;
@@ -294,7 +496,7 @@ function ExtensionModal({ tenantName, propertyTitle, monthlyRent, onClose }:{
               <div className="flex flex-col items-center py-8 text-center">
                 <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4"><CheckCircle2 className="w-8 h-8 text-emerald-600"/></div>
                 <p className="font-black text-slate-900 text-lg">Extension Request Sent!</p>
-                <p className="text-sm text-slate-500 mt-2 mb-6">Sent to <strong>{tenantName}</strong> for signature. After both sign, DARA will verify.</p>
+                <p className="text-sm text-slate-500 mt-2 mb-6">Your extension request has been submitted to the authority for review.</p>
                 <button onClick={onClose} className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold">Close</button>
               </div>
             )}
@@ -305,115 +507,293 @@ function ExtensionModal({ tenantName, propertyTitle, monthlyRent, onClose }:{
   );
 }
 
-/* ─── Termination Modal ─── */
-type TermStep = "form"|"submitted";
-function TerminationModal({ tenantName, propertyTitle, startDate, monthlyRent, onClose }:{
-  tenantName:string; propertyTitle:string; startDate:string; monthlyRent:number; onClose:()=>void;
+/* ─── Withdraw Agreement Modal (before tenant payment only) ─── */
+type WithdrawStep = "form" | "submitted";
+function WithdrawAgreementModal({
+  propertyTitle,
+  otherPartyName,
+  onClose,
+  onSubmit,
+}: {
+  propertyTitle: string;
+  otherPartyName: string;
+  onClose: () => void;
+  onSubmit: (reason: string) => Promise<void>;
+}) {
+  const [step, setStep] = useState<WithdrawStep>("form");
+  const [reason, setReason] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitErr, setSubmitErr] = useState<string | null>(null);
+
+  const canSubmit = reason.trim().length >= 10 && confirmed;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="px-6 py-4 bg-amber-600 flex items-center justify-between rounded-t-2xl">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-white" />
+            <span className="text-white font-bold text-sm">Withdraw from Agreement</span>
+          </div>
+          {step !== "submitted" && (
+            <button onClick={onClose} className="text-white/70 hover:text-white">
+              <XCircle className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="p-6">
+          {step === "submitted" ? (
+            <div className="flex flex-col items-center py-6 text-center">
+              <CheckCircle2 className="w-12 h-12 text-emerald-600 mb-3" />
+              <p className="font-black text-slate-900 text-lg mb-2">Agreement Withdrawn</p>
+              <p className="text-sm text-slate-500 mb-6">
+                <strong>{otherPartyName}</strong> has been notified. This agreement is no longer active.
+              </p>
+              <button onClick={onClose} className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold">
+                Close
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-slate-600 mb-1">{propertyTitle}</p>
+              <p className="text-xs text-slate-500 mb-4">
+                You may withdraw before the tenant pays the advance rent. After payment, withdrawal is no longer available.
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
+                    Reason for withdrawal <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    rows={4}
+                    placeholder="Briefly explain why you are withdrawing from this agreement…"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none"
+                  />
+                  <p className={`text-[11px] mt-1 ${reason.trim().length >= 10 ? "text-emerald-600" : "text-slate-400"}`}>
+                    {reason.trim().length} / 10 minimum
+                  </p>
+                </div>
+                <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                    className="mt-0.5 rounded accent-amber-600"
+                  />
+                  <p className="text-xs text-amber-800">
+                    I understand this will cancel the agreement before tenancy is activated.
+                  </p>
+                </label>
+              </div>
+              {submitErr && <p className="text-xs text-red-600 mt-3">{submitErr}</p>}
+              <div className="flex gap-3 mt-5">
+                <button onClick={onClose} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium">
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!canSubmit) return;
+                    setSubmitting(true);
+                    setSubmitErr(null);
+                    try {
+                      await onSubmit(reason.trim());
+                      setStep("submitted");
+                    } catch (err) {
+                      setSubmitErr(err instanceof Error ? err.message : "Withdrawal failed");
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                  disabled={!canSubmit || submitting}
+                  className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Confirm Withdrawal
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Request Termination Modal (after payment — tenant anytime, landlord after 2 years) ─── */
+type TermStep = "form" | "submitted";
+function TerminationRequestModal({
+  tenantName,
+  propertyTitle,
+  startDate,
+  monthlyRent,
+  role,
+  onClose,
+  onSubmit,
+}: {
+  tenantName: string;
+  propertyTitle: string;
+  startDate: string;
+  monthlyRent: number;
+  role: "tenant" | "landlord";
+  onClose: () => void;
+  onSubmit: (reason: string) => Promise<void>;
 }) {
   const start = new Date(startDate);
-  const twoYears = new Date(start.getTime()+2*365.25*24*3600*1000);
-  const isEarly = new Date()<twoYears;
-  const daysLeft = Math.ceil((twoYears.getTime()-Date.now())/(24*3600*1000));
-  const minVacate = new Date(Date.now()+90*24*3600*1000).toISOString().split("T")[0];
+  const minVacate = new Date(Date.now() + 90 * 24 * 3600 * 1000).toISOString().split("T")[0];
 
-  const [step,setStep]             = useState<TermStep>("form");
-  const [grounds,setGrounds]       = useState("");
-  const [description,setDescription] = useState("");
-  const [vacateDate,setVacateDate] = useState("");
-  const [notifyTenant,setNotifyTenant] = useState(true);
-  const [noticePeriod,setNoticePeriod] = useState(false);
-  const [declaration,setDeclaration] = useState(false);
+  const [step, setStep] = useState<TermStep>("form");
+  const [grounds, setGrounds] = useState("");
+  const [description, setDescription] = useState("");
+  const [vacateDate, setVacateDate] = useState("");
+  const [noticePeriod, setNoticePeriod] = useState(false);
+  const [declaration, setDeclaration] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitErr, setSubmitErr] = useState<string | null>(null);
 
-  const canSubmit = grounds!==""&&description.trim().length>=20&&vacateDate!==""&&noticePeriod&&declaration;
+  const canSubmit =
+    grounds !== "" &&
+    description.trim().length >= 20 &&
+    vacateDate !== "" &&
+    noticePeriod &&
+    declaration;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className={`px-6 py-4 flex items-center justify-between rounded-t-2xl ${isEarly?"bg-amber-600":"bg-red-600"}`}>
+        <div className="px-6 py-4 flex items-center justify-between rounded-t-2xl bg-red-600">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-white"/>
-            <span className="text-white font-bold text-sm">{isEarly?"Early Termination Notice":"Termination Notice"}</span>
+            <AlertTriangle className="w-5 h-5 text-white" />
+            <span className="text-white font-bold text-sm">Request Termination</span>
           </div>
-          {step!=="submitted"&&<button onClick={onClose} className="text-white/70 hover:text-white"><XCircle className="w-4 h-4"/></button>}
+          {step !== "submitted" && (
+            <button onClick={onClose} className="text-white/70 hover:text-white">
+              <XCircle className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         <div className="p-6">
-          {step==="submitted"?(
+          {step === "submitted" ? (
             <div className="flex flex-col items-center py-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4"><CheckCircle2 className="w-8 h-8 text-emerald-600"/></div>
-              <p className="font-black text-slate-900 text-lg mb-2">Termination Notice Submitted</p>
-              {isEarly&&<div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-700 mb-3">DARA must review and approve this early termination request before it becomes effective.</div>}
-              <p className="text-sm text-slate-500 mb-1">{notifyTenant?<><strong>{tenantName}</strong> has been notified.</>:<>DARA will inform the tenant after review.</>}</p>
-              <p className="text-xs text-slate-400 mb-6">Expected vacate: <strong>{new Date(vacateDate).toLocaleDateString()}</strong></p>
-              <button onClick={onClose} className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold">Close</button>
+              <CheckCircle2 className="w-12 h-12 text-emerald-600 mb-3" />
+              <p className="font-black text-slate-900 text-lg mb-2">Termination Request Submitted</p>
+              <p className="text-sm text-slate-500 mb-2">
+                The {role === "tenant" ? "landlord" : "tenant"} and the authority have been notified.
+              </p>
+              <p className="text-xs text-slate-400 mb-6">
+                Expected vacate: <strong>{new Date(vacateDate).toLocaleDateString()}</strong>
+              </p>
+              <button onClick={onClose} className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold">
+                Close
+              </button>
             </div>
-          ):(
+          ) : (
             <>
-              {isEarly&&(
-                <div className="rounded-xl bg-amber-50 border border-amber-300 px-4 py-4 mb-5">
-                  <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5"/>
-                    <div>
-                      <p className="text-sm font-bold text-amber-800">Contract Under 2 Years — DARA Review Required</p>
-                      <p className="text-xs text-amber-700 mt-1">Standard termination is allowed after <strong>2 years</strong>. Available in <strong>{daysLeft} day{daysLeft!==1?"s":""}</strong> ({twoYears.toLocaleDateString()}). You may file an early notice subject to DARA approval.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="bg-slate-50 rounded-xl p-3 mb-5 text-xs text-slate-600 space-y-1">
                 <p><span className="font-semibold">Property:</span> {propertyTitle}</p>
                 <p><span className="font-semibold">Tenant:</span> {tenantName}</p>
-                <p><span className="font-semibold">Contract since:</span> {start.toLocaleDateString()}</p>
+                <p><span className="font-semibold">Tenancy since:</span> {start.toLocaleDateString()}</p>
                 <p><span className="font-semibold">Monthly rent:</span> ETB {monthlyRent.toLocaleString()}</p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">Legal Grounds <span className="text-red-500">*</span></label>
-                  <select value={grounds} onChange={e=>setGrounds(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white">
-                    {TERM_GROUNDS.map(g=><option key={g.value} value={g.value} disabled={g.value===""}>{g.label}</option>)}
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
+                    Legal Grounds <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={grounds}
+                    onChange={(e) => setGrounds(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
+                  >
+                    {TERM_GROUNDS.map((g) => (
+                      <option key={g.value} value={g.value} disabled={g.value === ""}>
+                        {g.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">Detailed Description <span className="text-red-500">*</span> <span className="normal-case font-normal text-slate-400">(min. 20 chars)</span></label>
-                  <textarea value={description} onChange={e=>setDescription(e.target.value)} rows={4}
-                    placeholder="Describe the specific circumstances that necessitate termination..."
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"/>
-                  <p className={`text-[11px] mt-1 ${description.trim().length>=20?"text-emerald-600":"text-slate-400"}`}>{description.trim().length} / 20 minimum</p>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
+                    Detailed Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                    placeholder="Describe the circumstances for this termination request…"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                  />
+                  <p className={`text-[11px] mt-1 ${description.trim().length >= 20 ? "text-emerald-600" : "text-slate-400"}`}>
+                    {description.trim().length} / 20 minimum
+                  </p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">Expected Vacate Date <span className="text-red-500">*</span> <span className="normal-case font-normal text-slate-400">(min. 90 days)</span></label>
-                  <input type="date" value={vacateDate} min={minVacate} onChange={e=>setVacateDate(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"/>
-                </div>
-                <div className="rounded-xl border border-slate-200 px-4 py-3">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input type="checkbox" checked={notifyTenant} onChange={e=>setNotifyTenant(e.target.checked)} className="mt-0.5 rounded accent-red-600"/>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">Notify tenant immediately</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{tenantName} will receive a notification upon submission. If unchecked, DARA will inform them after review.</p>
-                    </div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
+                    Expected Vacate Date <span className="text-red-500">*</span>
                   </label>
+                  <input
+                    type="date"
+                    value={vacateDate}
+                    min={minVacate}
+                    onChange={(e) => setVacateDate(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                  />
                 </div>
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input type="checkbox" checked={noticePeriod} onChange={e=>setNoticePeriod(e.target.checked)} className="mt-0.5 rounded accent-amber-600"/>
-                    <p className="text-xs text-amber-700">I acknowledge that a minimum <strong>90-day notice period</strong> is required and the tenant is entitled to remain until the vacate date.</p>
-                  </label>
-                </div>
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input type="checkbox" checked={declaration} onChange={e=>setDeclaration(e.target.checked)} className="mt-0.5 rounded accent-red-600"/>
-                    <p className="text-xs text-red-700">I declare this information is accurate. Filing a false notice is an offence under Proclamation No. 1320/2016.</p>
-                  </label>
-                </div>
+                <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={noticePeriod}
+                    onChange={(e) => setNoticePeriod(e.target.checked)}
+                    className="mt-0.5 rounded accent-amber-600"
+                  />
+                  <p className="text-xs text-amber-700">
+                    I acknowledge the required notice period and that the other party will be informed.
+                  </p>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={declaration}
+                    onChange={(e) => setDeclaration(e.target.checked)}
+                    className="mt-0.5 rounded accent-red-600"
+                  />
+                  <p className="text-xs text-red-700">
+                    I declare this information is accurate. This request will be reviewed by the authority.
+                  </p>
+                </label>
               </div>
 
+              {submitErr && <p className="text-xs text-red-600 mt-3">{submitErr}</p>}
               <div className="flex gap-3 mt-5">
-                <button onClick={onClose} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium">Cancel</button>
-                <button onClick={()=>setStep("submitted")} disabled={!canSubmit}
-                  className={`flex-1 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${isEarly?"bg-amber-600 hover:bg-amber-700 disabled:bg-slate-200 disabled:text-slate-400":"bg-red-600 hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-400"}`}>
-                  <Send className="w-4 h-4"/>{isEarly?"Submit Early Notice":"Submit Termination Notice"}
+                <button onClick={onClose} className="flex-1 border border-slate-200 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-medium">
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!canSubmit) return;
+                    const groundsLabel = TERM_GROUNDS.find((g) => g.value === grounds)?.label ?? grounds;
+                    const reason = `[${groundsLabel}] Expected vacate: ${vacateDate}. ${description.trim()}`;
+                    setSubmitting(true);
+                    setSubmitErr(null);
+                    try {
+                      await onSubmit(reason);
+                      setStep("submitted");
+                    } catch (err) {
+                      setSubmitErr(err instanceof Error ? err.message : "Request failed");
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                  disabled={!canSubmit || submitting}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-400 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Submit Termination Request
                 </button>
               </div>
             </>
@@ -432,8 +812,10 @@ export default function AgreementDetailPage() {
   const [agreement, setAgreement] = useState<TenancyAgreement | null>(null);
   const [loading, setLoading] = useState(true);
   const agreementId = String(params.id ?? "");
-  const [showExtension,   setShowExtension]   = useState(false);
-  const [showTermination, setShowTermination] = useState(false);
+  const [showExtension, setShowExtension] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showTerminationRequest, setShowTerminationRequest] = useState(false);
+  const [showAdvancePayment, setShowAdvancePayment] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState<string | null>(null);
 
@@ -485,8 +867,8 @@ export default function AgreementDetailPage() {
     },
     {
       label: "Signed",
-      date: agreement.signedAt,
-      done: !!agreement.signedAt,
+      date: signedAtDate(agreement),
+      done: bothPartiesSigned(agreement),
       icon: CheckCircle2,
     },
     {
@@ -496,8 +878,16 @@ export default function AgreementDetailPage() {
       icon: CheckCircle2,
     },
     {
+      label: "Pending Payment",
+      date: agreement.initialPaymentAt,
+      done: agreement.status === "active" || agreement.status === "terminated",
+      icon: CreditCard,
+    },
+    {
       label: agreement.status === "terminated" ? "Terminated" : "Active",
-      date: agreement.verifiedAt || undefined,
+      date: agreement.status === "active"
+        ? agreement.initialPaymentAt
+        : agreement.terminatedAt,
       done: agreement.status === "active" || agreement.status === "terminated",
       icon: agreement.status === "terminated" ? XCircle : CheckCircle2,
     },
@@ -510,16 +900,62 @@ export default function AgreementDetailPage() {
           tenantName={agreement.tenantName}
           propertyTitle={agreement.propertyTitle}
           monthlyRent={agreement.monthlyRent}
-          onClose={() => setShowExtension(false)}
+          onClose={async () => {
+            setShowExtension(false);
+            await reloadAgreement();
+          }}
+          onComplete={async (payload) => {
+            const token = getAccessToken();
+            if (!token) throw new Error("Not signed in");
+            await apiRequestAgreementExtension(token, agreement.id, payload);
+            await reloadAgreement();
+          }}
         />
       )}
-      {showTermination && (
-        <TerminationModal
+      {showWithdraw && (
+        <WithdrawAgreementModal
+          propertyTitle={agreement.propertyTitle}
+          otherPartyName={role === "tenant" ? agreement.landlordName : agreement.tenantName}
+          onClose={() => setShowWithdraw(false)}
+          onSubmit={async (reason) => {
+            const token = getAccessToken();
+            if (!token) throw new Error("Not signed in");
+            await apiWithdrawAgreement(token, agreement.id, reason);
+            await reloadAgreement();
+            setShowWithdraw(false);
+          }}
+        />
+      )}
+      {showTerminationRequest && (
+        <TerminationRequestModal
           tenantName={agreement.tenantName}
           propertyTitle={agreement.propertyTitle}
           startDate={agreement.startDate}
           monthlyRent={agreement.monthlyRent}
-          onClose={() => setShowTermination(false)}
+          role={role === "landlord" ? "landlord" : "tenant"}
+          onClose={() => setShowTerminationRequest(false)}
+          onSubmit={async (reason) => {
+            const token = getAccessToken();
+            if (!token) throw new Error("Not signed in");
+            await apiRequestAgreementTermination(token, agreement.id, reason);
+            await reloadAgreement();
+          }}
+        />
+      )}
+      {showAdvancePayment && (
+        <AdvancePaymentModal
+          amount={agreement.advancePayment}
+          propertyTitle={agreement.propertyTitle}
+          onClose={async () => {
+            setShowAdvancePayment(false);
+            await reloadAgreement();
+          }}
+          onPaid={async (method, reference) => {
+            const token = getAccessToken();
+            if (!token) throw new Error("Not signed in");
+            await apiConfirmAgreementPayment(token, agreement.id, { method, reference });
+            await reloadAgreement();
+          }}
         />
       )}
         <Header title={t("agreements", "agreementDetails")} />
@@ -753,34 +1189,15 @@ export default function AgreementDetailPage() {
                   Counter-Sign Agreement
                 </h3>
                 <p className="text-xs text-slate-500">
-                  The tenant has signed this contract. Review the terms and counter-sign to submit for authority verification.
+                  The tenant has signed this contract. Review the terms and apply your e-signature to counter-sign.
                 </p>
-                {signError && (
-                  <p className="text-xs text-red-600">{signError}</p>
-                )}
-                <button
-                  disabled={signing}
-                  onClick={async () => {
-                    const token = getAccessToken();
-                    if (!token) return;
-                    setSigning(true);
-                    setSignError(null);
-                    try {
-                      await apiLandlordSignAgreement(token, agreement.id);
-                      await reloadAgreement();
-                    } catch (err) {
-                      setSignError(
-                        err instanceof Error ? err.message : "Counter-sign failed",
-                      );
-                    } finally {
-                      setSigning(false);
-                    }
-                  }}
-                  className="w-full px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-slate-300 transition-colors flex items-center justify-center gap-2"
+                <Link
+                  href={`/dashboard/agreements/${agreement.id}/counter-sign`}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
                 >
-                  {signing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-                  Counter-Sign Agreement
-                </button>
+                  <FileText className="w-4 h-4" />
+                  Review & Counter-Sign
+                </Link>
               </div>
             )}
 
@@ -837,23 +1254,123 @@ export default function AgreementDetailPage() {
               </div>
             )}
 
-            {/* Tenant & Landlord: Extension / Termination */}
-            {agreement.status === "active" && (role === "tenant" || role === "landlord") && (
+            {/* Tenant: pay advance after authority verification */}
+            {agreement.status === "pending_payment" && role === "tenant" && (
+              <div className="bg-white rounded-xl border border-emerald-200 p-6 space-y-3">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Pay Advance Rent
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Your agreement has been verified by the authority. Pay the advance rent of{" "}
+                  <strong>{formatCurrency(agreement.advancePayment)}</strong> to activate your tenancy.
+                </p>
+                <button
+                  onClick={() => setShowAdvancePayment(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors"
+                >
+                  <CreditCard className="w-4 h-4" /> Pay Now
+                </button>
+              </div>
+            )}
+
+            {/* Landlord: waiting for tenant payment */}
+            {agreement.status === "pending_payment" && role === "landlord" && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Awaiting Tenant Payment</p>
+                    <p className="text-xs text-amber-600 mt-1">
+                      The agreement is verified. The tenant has been notified to pay the advance rent before the tenancy becomes active.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Pending extension / termination review */}
+            {isPendingAuthorityAction(agreement.status) && (role === "tenant" || role === "landlord") && (
+              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-indigo-800">
+                      {agreement.status === "extension_requested"
+                        ? "Extension Request Pending"
+                        : "Termination Request Pending"}
+                    </p>
+                    <p className="text-xs text-indigo-600 mt-1">
+                      The authority is reviewing this request. You will be notified once a decision is made.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Active tenancy actions (after payment) */}
+            {isActiveTenancy(agreement.status) && (role === "tenant" || role === "landlord") && (
               <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3">
                 <h3 className="text-sm font-semibold text-slate-900">
-                  {t("common", "actions")}
+                  Active Tenancy
                 </h3>
+                <p className="text-xs text-slate-500">
+                  Withdrawal is no longer available. Use the options below to manage your active tenancy.
+                </p>
+
+                {/* Extension — landlord only, anytime */}
+                {role === "landlord" && (
+                  <button
+                    onClick={() => setShowExtension(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-indigo-700 border border-indigo-200 rounded-xl hover:bg-indigo-50 transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Request Extension
+                  </button>
+                )}
+
+                {/* Termination — tenant anytime; landlord after 2 years */}
+                {role === "tenant" && (
+                  <button
+                    onClick={() => setShowTerminationRequest(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors"
+                  >
+                    <AlertTriangle className="w-4 h-4" /> Request Termination
+                  </button>
+                )}
+                {role === "landlord" && landlordTerminationEligible(agreement.startDate) && (
+                  <button
+                    onClick={() => setShowTerminationRequest(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors"
+                  >
+                    <AlertTriangle className="w-4 h-4" /> Request Termination
+                  </button>
+                )}
+                {role === "landlord" && !landlordTerminationEligible(agreement.startDate) && (
+                  <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-600">
+                    <p className="font-semibold text-slate-700 mb-1">Request Termination</p>
+                    <p>
+                      Available from{" "}
+                      <strong>{landlordTerminationAvailableFrom(agreement.startDate).toLocaleDateString()}</strong>{" "}
+                      (after 2 years of the tenancy). You can request an extension at any time.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Withdraw before tenant payment */}
+            {canWithdraw(agreement.status) && (role === "tenant" || role === "landlord") && (
+              <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Withdraw from Agreement
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Either party may withdraw until the tenant pays the advance rent and the tenancy is activated.
+                </p>
                 <button
-                  onClick={() => setShowExtension(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-indigo-700 border border-indigo-200 rounded-xl hover:bg-indigo-50 transition-colors"
+                  onClick={() => setShowWithdraw(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-amber-700 border border-amber-200 rounded-xl hover:bg-amber-50 transition-colors"
                 >
-                  <RefreshCw className="w-4 h-4" /> Request Extension
-                </button>
-                <button
-                  onClick={() => setShowTermination(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors"
-                >
-                  <AlertTriangle className="w-4 h-4" /> Request Termination
+                  <AlertTriangle className="w-4 h-4" /> Withdraw from Agreement
                 </button>
               </div>
             )}
@@ -861,7 +1378,7 @@ export default function AgreementDetailPage() {
             {/* Authorities only: Approve / Reject */}
             {(agreement.status === "pending_verification" ||
               agreement.status === "pending_dara_verification") &&
-              role === "dara_agent" && (
+              role === "admin" && (
               <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3">
                 <h3 className="text-sm font-semibold text-slate-900">
                   {t("agreements", "verificationActions")}
@@ -925,7 +1442,7 @@ export default function AgreementDetailPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {agreement.signedAt ? (
+                  {bothPartiesSigned(agreement) ? (
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   ) : (
                     <Clock className="w-4 h-4 text-amber-500" />

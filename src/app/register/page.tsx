@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -62,11 +62,17 @@ function RegisterPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, locale, setLocale } = useLanguage();
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const { withLoading } = useLoading();
   const { showError } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm]   = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, router]);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);

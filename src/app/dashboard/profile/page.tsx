@@ -3,6 +3,7 @@
 import { Header } from "@/components/dashboard/header";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
+import { apiChangePassword, apiUpdateMe, getAccessToken } from "@/lib/api";
 import { getInitials, formatDate } from "@/lib/utils";
 import {
   User,
@@ -21,7 +22,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function ReadOnlyField({
   icon: Icon,
@@ -79,7 +80,94 @@ function ReadOnlyField({
 
 export default function ProfilePage() {
   const { t } = useLanguage();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
+  const [address, setAddress] = useState("");
+  const [accountMessage, setAccountMessage] = useState<string | null>(null);
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [credentialEmail, setCredentialEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    setAddress(currentUser.address ?? "");
+    setCredentialEmail(currentUser.email);
+  }, [currentUser]);
+
+  const handleSaveAddress = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!currentUser) return;
+    const token = getAccessToken();
+    if (!token) {
+      setAccountError("Please sign in again.");
+      return;
+    }
+    setAccountError(null);
+    setAccountMessage(null);
+    setSavingAddress(true);
+    try {
+      await apiUpdateMe(token, { address });
+      await refreshUser();
+      setAccountMessage("Address updated successfully.");
+    } catch (error) {
+      setAccountError(
+        error instanceof Error ? error.message : "Failed to update address.",
+      );
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const handleChangePassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!currentUser) return;
+    setPasswordError(null);
+    setPasswordMessage(null);
+
+    if (credentialEmail.trim().toLowerCase() !== currentUser.email.toLowerCase()) {
+      setPasswordError("Email credential must match your account email.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirmation do not match.");
+      return;
+    }
+
+    const token = getAccessToken();
+    if (!token) {
+      setPasswordError("Please sign in again.");
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      await apiChangePassword(token, {
+        email: credentialEmail,
+        currentPassword,
+        newPassword,
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordMessage("Password updated successfully.");
+    } catch (error) {
+      setPasswordError(
+        error instanceof Error ? error.message : "Failed to update password.",
+      );
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   if (!currentUser) return null;
 
   const isFaydaVerified = !!currentUser.faydaVerified;
@@ -91,11 +179,11 @@ export default function ProfilePage() {
     <>
       <Header title={t("profilePage", "title")} />
       <main className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-3xl space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
 
           {/* Profile Header */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <div className="flex items-center gap-5">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5">
               <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-sm">
                 {getInitials(`${currentUser.firstName} ${currentUser.lastName}`)}
               </div>
@@ -128,7 +216,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Fayda Identity Card — read-only */}
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-primary-50 to-indigo-50">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center shadow-sm">
@@ -224,33 +312,35 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Account Information — editable */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          {/* Account Information — address editable */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-5">
               Account Information
             </h3>
-            <form className="space-y-4">
+            <form onSubmit={handleSaveAddress} className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-1">
                     <User className="w-4 h-4 text-slate-400" />
-                    First Name
+                    First Name (read-only)
                   </label>
                   <input
                     type="text"
-                    defaultValue={currentUser.firstName}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                    value={currentUser.firstName}
+                    disabled
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                   />
                 </div>
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-1">
                     <User className="w-4 h-4 text-slate-400" />
-                    Last Name
+                    Last Name (read-only)
                   </label>
                   <input
                     type="text"
-                    defaultValue={currentUser.lastName}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                    value={currentUser.lastName}
+                    disabled
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -258,12 +348,13 @@ export default function ProfilePage() {
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-1">
                   <Mail className="w-4 h-4 text-slate-400" />
-                  Email Address
+                  Email Address (read-only)
                 </label>
                 <input
                   type="email"
-                  defaultValue={currentUser.email}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  value={currentUser.email}
+                  disabled
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                 />
               </div>
 
@@ -271,13 +362,13 @@ export default function ProfilePage() {
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-1">
                     <Phone className="w-4 h-4 text-slate-400" />
-                    Phone Number
+                    Phone Number (read-only)
                   </label>
                   <input
                     type="tel"
-                    defaultValue={currentUser.phone}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-                    placeholder="+251 9XX XXX XXX"
+                    value={currentUser.phone}
+                    disabled
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -287,7 +378,7 @@ export default function ProfilePage() {
                   </label>
                   <input
                     type="text"
-                    defaultValue={currentUser.idNumber}
+                    value={currentUser.idNumber ?? ""}
                     disabled
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
                   />
@@ -301,53 +392,115 @@ export default function ProfilePage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue={currentUser.address}
+                  value={address}
+                  onChange={(event) => setAddress(event.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  placeholder="Enter your current address"
                 />
               </div>
 
+              {accountError && <p className="text-sm text-rose-600">{accountError}</p>}
+              {accountMessage && (
+                <p className="text-sm text-emerald-600">{accountMessage}</p>
+              )}
+
               <div className="pt-4 border-t border-slate-100 flex justify-end">
                 <button
-                  type="button"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors"
+                  type="submit"
+                  disabled={savingAddress}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   <Save className="w-4 h-4" />
-                  Save Changes
+                  {savingAddress ? "Saving..." : "Save Address"}
                 </button>
               </div>
             </form>
           </div>
 
           {/* Password Change */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-4">
               Change Password
             </h3>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <input
-                type="password"
-                placeholder="Current password"
-                className="px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-              />
-              <input
-                type="password"
-                placeholder="New password"
-                className="px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-              />
-              <input
-                type="password"
-                placeholder="Confirm new password"
-                className="px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
-              />
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-50 transition-colors"
-              >
-                Update Password
-              </button>
-            </div>
+            <p className="text-sm text-slate-500 mb-5">
+              For security, enter your account email and current password before
+              setting a new password.
+            </p>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Account Email Credential
+                  </label>
+                  <input
+                    type="email"
+                    value={credentialEmail}
+                    onChange={(event) => setCredentialEmail(event.target.value)}
+                    autoComplete="email"
+                    placeholder={currentUser.email}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    autoComplete="current-password"
+                    placeholder="Enter current password"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    autoComplete="new-password"
+                    placeholder="At least 8 characters"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    placeholder="Re-enter new password"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  />
+                </div>
+              </div>
+              {passwordError && <p className="text-sm text-rose-600">{passwordError}</p>}
+              {passwordMessage && (
+                <p className="text-sm text-emerald-600">{passwordMessage}</p>
+              )}
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={
+                    savingPassword ||
+                    !credentialEmail.trim() ||
+                    !currentPassword ||
+                    !newPassword ||
+                    !confirmPassword
+                  }
+                  className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                >
+                  {savingPassword ? "Updating..." : "Update Password"}
+                </button>
+              </div>
+            </form>
           </div>
 
         </div>

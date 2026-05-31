@@ -6,10 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   ChevronDown,
-  Gavel,
   LogOut,
-  ShieldCheck,
-  AlertTriangle,
   TrendingUp,
   Users,
   Settings,
@@ -21,26 +18,6 @@ import { useAuth } from "@/context/auth-context";
 import { useLanguage } from "@/context/language-context";
 import { cn } from "@/lib/utils";
 
-type Bucket = "dara_agent" | "admin";
-
-function roleBucket(role: string | undefined): Bucket | null {
-  if (role === "dara_agent") return "dara_agent";
-  if (role === "admin" || role === "system_admin") return "admin";
-  return null;
-}
-
-const DARA_LINKS: {
-  href: string;
-  labelKey: string;
-  icon: React.ComponentType<{ className?: string }>;
-}[] = [
-  { href: "/dashboard/admin/verifications", labelKey: "verifyAgreements", icon: ShieldCheck },
-  { href: "/dashboard/disputes", labelKey: "reviewViolations", icon: AlertTriangle },
-  { href: "/dashboard/rent-adjustment", labelKey: "approveRentAdjustment", icon: TrendingUp },
-  { href: "/dashboard/penalty-notices", labelKey: "penaltyNotices", icon: Gavel },
-  { href: "/dashboard/analytics", labelKey: "analytics", icon: BarChart3 },
-];
-
 const ADMIN_LINKS: {
   href: string;
   labelKey: string;
@@ -50,6 +27,7 @@ const ADMIN_LINKS: {
   { href: "/dashboard/admin/parameters", labelKey: "systemParameters", icon: Settings },
   { href: "/dashboard/admin/audit-logs", labelKey: "auditLogs", icon: ScrollText },
   { href: "/dashboard/admin/roles", labelKey: "rolesPermissions", icon: Shield },
+  { href: "/dashboard/rent-adjustment", labelKey: "approveRentAdjustment", icon: TrendingUp },
   { href: "/dashboard/analytics", labelKey: "analytics", icon: BarChart3 },
 ];
 
@@ -59,7 +37,6 @@ export function AuthorityNavDropdown() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const bucket = roleBucket(user?.role);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -71,9 +48,7 @@ export function AuthorityNavDropdown() {
 
   useEffect(() => setOpen(false), [pathname]);
 
-  if (!bucket) return null;
-
-  const links = bucket === "dara_agent" ? DARA_LINKS : ADMIN_LINKS;
+  if (user?.role !== "admin") return null;
 
   return (
     <div ref={wrapRef} className="fixed top-2 right-2 z-[110]">
@@ -84,7 +59,7 @@ export function AuthorityNavDropdown() {
         aria-haspopup="listbox"
         className={cn(
           "flex items-center gap-1 rounded-md px-2.5 py-1.5 transition-colors",
-          "text-slate-400 hover:text-slate-600 focus-visible:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+          "text-slate-400 hover:text-slate-600 focus-visible:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300",
         )}
       >
         <span className="text-xs font-medium tracking-wide max-sm:sr-only">
@@ -104,7 +79,7 @@ export function AuthorityNavDropdown() {
             onClick={() => setOpen(false)}
             className={cn(
               "flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-slate-50",
-              pathname === "/dashboard/authority" ? "bg-primary-50 text-primary-800" : "text-slate-800"
+              pathname === "/dashboard/authority" ? "bg-primary-50 text-primary-800" : "text-slate-800",
             )}
             role="option"
           >
@@ -112,7 +87,7 @@ export function AuthorityNavDropdown() {
             <span className="truncate">{t("nav", "authorityWorkspace")}</span>
           </Link>
           <div className="my-1 border-t border-slate-100" />
-          {links.map((item) => {
+          {ADMIN_LINKS.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
@@ -121,7 +96,7 @@ export function AuthorityNavDropdown() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50",
-                  active ? "bg-slate-100 text-slate-900 font-medium" : "text-slate-700"
+                  active ? "bg-slate-100 text-slate-900 font-medium" : "text-slate-700",
                 )}
                 role="option"
               >

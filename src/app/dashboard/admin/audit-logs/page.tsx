@@ -20,8 +20,6 @@ const ROLE_COLORS: Record<string, string> = {
   admin: "bg-purple-100 text-purple-700",
   landlord: "bg-blue-100 text-blue-700",
   tenant: "bg-emerald-100 text-emerald-700",
-  dara_agent: "bg-amber-100 text-amber-700",
-  system_admin: "bg-red-100 text-red-700",
 };
 
 export default function AuditLogsPage() {

@@ -1,7 +1,6 @@
 import { ApiError } from "@/lib/api-error";
 import type { Property, RentAdjustment, TenantPublicProfile, User, UserRole } from "@/lib/types";
 import type { TenancyAgreement } from "@/lib/types";
-import type { Dispute } from "@/lib/types";
 
 const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
@@ -220,6 +219,31 @@ export function apiGetMe(token: string) {
   return apiRequest<User>("/users/me", { token });
 }
 
+export function apiUpdateMe(token: string, input: { address?: string }) {
+  return apiRequest<User>("/users/me", {
+    method: "PATCH",
+    token,
+    body: {
+      address: input.address?.trim() || undefined,
+    },
+  });
+}
+
+export function apiChangePassword(
+  token: string,
+  input: { email: string; currentPassword: string; newPassword: string },
+) {
+  return apiRequest<{ ok: boolean }>("/users/me/password", {
+    method: "PATCH",
+    token,
+    body: {
+      email: input.email.trim().toLowerCase(),
+      currentPassword: input.currentPassword,
+      newPassword: input.newPassword,
+    },
+  });
+}
+
 export type VerifyFaydaInput = {
   faydaNumber: string;
   firstName: string;
@@ -386,6 +410,59 @@ export async function apiPostPropertyToExplore(token: string, id: string) {
   return mapBackendProperty(raw);
 }
 
+export type UploadedFile = {
+  url: string;
+  storageKey: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+};
+
+export type UploadFileType = "photos" | "ownership";
+
+/**
+ * Upload files to Cloudinary via the backend and return permanent URLs + metadata.
+ */
+export async function apiUploadFiles(
+  token: string,
+  files: File[],
+  type: UploadFileType = "photos",
+): Promise<UploadedFile[]> {
+  if (!files.length) return [];
+
+  const formData = new FormData();
+  files.forEach((f) => formData.append("files", f));
+
+  const candidates = [
+    ...(activeApiBaseUrl ? [activeApiBaseUrl] : []),
+    ...API_BASE_URLS.filter((u) => u !== activeApiBaseUrl),
+  ];
+
+  let response: Response | null = null;
+  for (const baseUrl of candidates) {
+    try {
+      response = await fetch(`${baseUrl}/upload/files?type=${type}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      activeApiBaseUrl = baseUrl;
+      break;
+    } catch {
+      // try next base
+    }
+  }
+
+  if (!response) throw new ApiError("Cannot reach upload endpoint", 0);
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new ApiError(payload.message ?? `Upload failed: ${response.status}`, response.status);
+  }
+
+  const data = (await response.json()) as { files: UploadedFile[] };
+  return data.files;
+}
+
 export async function apiCreateProperty(
   token: string,
   payload: {
@@ -402,6 +479,7 @@ export async function apiCreateProperty(
     images: string[];
     description: string;
     homeCondition?: Property["homeCondition"];
+    ownershipDocuments?: UploadedFile[];
   },
 ) {
   const raw = await apiRequest<BackendProperty>("/properties", {
@@ -427,6 +505,9 @@ type BackendAgreement = {
   tenantSignedAt?: string | null;
   landlordSignedAt?: string | null;
   verifiedAt?: string | null;
+  initialPaymentAt?: string | null;
+  proposedEndDate?: string | null;
+  proposedMonthlyRent?: number | string | null;
   terminatedAt?: string | null;
   terminationReason?: string | null;
   utilities?: string[];
@@ -490,6 +571,16 @@ function mapBackendAgreement(raw: BackendAgreement): TenancyAgreement {
       ? toIsoDate(raw.landlordSignedAt)
       : undefined,
     verifiedAt: raw.verifiedAt ? toIsoDate(raw.verifiedAt) : undefined,
+    initialPaymentAt: raw.initialPaymentAt
+      ? toIsoDate(raw.initialPaymentAt)
+      : undefined,
+    proposedEndDate: raw.proposedEndDate
+      ? toIsoDate(raw.proposedEndDate)
+      : undefined,
+    proposedMonthlyRent:
+      raw.proposedMonthlyRent != null
+        ? Number(raw.proposedMonthlyRent)
+        : undefined,
     terminatedAt: raw.terminatedAt ? toIsoDate(raw.terminatedAt) : undefined,
     terminationReason: raw.terminationReason ?? undefined,
     utilities: Array.isArray(raw.utilities) ? raw.utilities : [],
@@ -565,6 +656,68 @@ export async function apiLandlordSignAgreement(token: string, id: string) {
     method: "PATCH",
     token,
   });
+  return mapBackendAgreement(result);
+}
+
+export async function apiConfirmAgreementPayment(
+  token: string,
+  id: string,
+  payload: { method?: "cbe_birr" | "telebirr" | "bank_transfer" | "mobile_money" | "cash" | "check"; reference?: string },
+) {
+  const result = await apiRequest<BackendAgreement>(`/agreements/${id}/confirm-payment`, {
+    method: "PATCH",
+    token,
+    body: payload,
+  });
+  return mapBackendAgreement(result);
+}
+
+export async function apiWithdrawAgreement(
+  token: string,
+  id: string,
+  reason: string,
+) {
+  const result = await apiRequest<BackendAgreement>(`/agreements/${id}/withdraw`, {
+    method: "PATCH",
+    token,
+    body: { reason },
+  });
+  return mapBackendAgreement(result);
+}
+
+export async function apiRequestAgreementTermination(
+  token: string,
+  id: string,
+  reason: string,
+) {
+  const result = await apiRequest<BackendAgreement>(
+    `/agreements/${id}/request-termination`,
+    {
+      method: "PATCH",
+      token,
+      body: { reason },
+    },
+  );
+  return mapBackendAgreement(result);
+}
+
+export async function apiRequestAgreementExtension(
+  token: string,
+  id: string,
+  payload: {
+    newEndDate: string;
+    newMonthlyRent?: number;
+    reference?: string;
+  },
+) {
+  const result = await apiRequest<BackendAgreement>(
+    `/agreements/${id}/request-extension`,
+    {
+      method: "PATCH",
+      token,
+      body: payload,
+    },
+  );
   return mapBackendAgreement(result);
 }
 
@@ -648,122 +801,43 @@ export async function apiListRentAdjustments(
   };
 }
 
-type BackendDispute = {
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export type BackendNotification = {
   id: string;
-  agreementId: string;
-  propertyId: string;
-  reporterId: string;
-  respondentId: string;
-  violationType: Dispute["violationType"];
+  userId: string;
   title: string;
-  description: string;
-  evidence: string[];
-  status: Dispute["status"];
-  priority: Dispute["priority"];
+  message: string;
+  type: "info" | "warning" | "success" | "error";
+  category: "agreement" | "rent_adjustment" | "verification" | "system";
+  isRead: boolean;
+  link?: string | null;
   createdAt: string;
-  updatedAt: string;
-  resolvedAt?: string | null;
-  resolution?: string | null;
-  assignedToId?: string | null;
-  agreement?: { id: string };
-  reporter?: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    role?: UserRole;
-  };
-  respondent?: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    role?: UserRole;
-  };
-  assignedTo?: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-  };
+  readAt?: string | null;
 };
 
-type DisputeListResponse = {
-  items: BackendDispute[];
-  meta: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
+export type NotificationListResponse = {
+  items: BackendNotification[];
+  meta: { page: number; pageSize: number; total: number; totalPages: number };
 };
 
-function mapBackendDispute(raw: BackendDispute): Dispute {
-  const reporterName =
-    raw.reporter?.firstName && raw.reporter?.lastName
-      ? `${raw.reporter.firstName} ${raw.reporter.lastName}`.trim()
-      : "Reporter";
-  const respondentName =
-    raw.respondent?.firstName && raw.respondent?.lastName
-      ? `${raw.respondent.firstName} ${raw.respondent.lastName}`.trim()
-      : "Respondent";
-  const assignedTo =
-    raw.assignedTo?.firstName && raw.assignedTo?.lastName
-      ? `${raw.assignedTo.firstName} ${raw.assignedTo.lastName}`.trim()
-      : undefined;
-
-  return {
-    id: raw.id,
-    agreementId: raw.agreementId,
-    reporterId: raw.reporterId,
-    reporterName,
-    reporterRole: raw.reporter?.role === "landlord" ? "landlord" : "tenant",
-    respondentId: raw.respondentId,
-    respondentName,
-    violationType: raw.violationType,
-    title: raw.title,
-    description: raw.description,
-    evidence: Array.isArray(raw.evidence) ? raw.evidence : [],
-    status: raw.status,
-    priority: raw.priority,
-    createdAt: toIsoDate(raw.createdAt),
-    updatedAt: toIsoDate(raw.updatedAt),
-    resolvedAt: raw.resolvedAt ? toIsoDate(raw.resolvedAt) : undefined,
-    resolution: raw.resolution ?? undefined,
-    assignedTo,
-  };
-}
-
-export async function apiListDisputes(
+export async function apiListNotifications(
   token: string,
-  query = "page=1&pageSize=100",
-) {
-  const result = await apiRequest<DisputeListResponse>(`/disputes?${query}`, {
-    token,
-  });
-  return {
-    ...result,
-    items: result.items.map(mapBackendDispute),
-  };
+  query = "page=1&pageSize=50",
+): Promise<NotificationListResponse> {
+  const suffix = query ? `?${query}` : "";
+  return apiRequest<NotificationListResponse>(`/notifications${suffix}`, { token });
 }
 
-export async function apiGetDisputeById(token: string, id: string) {
-  const result = await apiRequest<BackendDispute>(`/disputes/${id}`, { token });
-  return mapBackendDispute(result);
+export async function apiGetUnreadCount(token: string): Promise<number> {
+  const res = await apiRequest<{ count: number }>("/notifications/unread-count", { token });
+  return res.count;
 }
 
-export async function apiCreateDispute(
-  token: string,
-  payload: {
-    agreementId: string;
-    violationType: Dispute["violationType"];
-    title: string;
-    description: string;
-    priority?: Dispute["priority"];
-    evidence: string[];
-  },
-) {
-  const result = await apiRequest<BackendDispute>("/disputes", {
-    method: "POST",
-    token,
-    body: payload,
-  });
-  return mapBackendDispute(result);
+export async function apiMarkNotificationRead(token: string, id: string): Promise<void> {
+  await apiRequest(`/notifications/${id}/read`, { method: "PATCH", token });
+}
+
+export async function apiMarkAllNotificationsRead(token: string): Promise<void> {
+  await apiRequest("/notifications/read-all", { method: "PATCH", token });
 }

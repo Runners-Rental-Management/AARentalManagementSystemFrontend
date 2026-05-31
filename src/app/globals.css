@@ -58,6 +58,31 @@ body {
   scrollbar-width: none;
 }
 
+/* Dashboard form polish: keep working forms centered and readable without
+   changing the standalone login/register screens. */
+.dashboard-shell main > div[class*="max-w-3xl"]:not([class*="mx-auto"]),
+.dashboard-shell main > div[class*="max-w-4xl"]:not([class*="mx-auto"]),
+.dashboard-shell main > div[class*="max-w-xl"]:not([class*="mx-auto"]) {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dashboard-shell form label {
+  color: #334155;
+}
+
+.dashboard-shell form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.dashboard-shell form select,
+.dashboard-shell form textarea {
+  background-color: #fff;
+}
+
+.dashboard-shell form input::placeholder,
+.dashboard-shell form textarea::placeholder {
+  color: #94a3b8;
+}
+
 /* ---------- Animations ---------- */
 @keyframes fade-in-up {
   from {

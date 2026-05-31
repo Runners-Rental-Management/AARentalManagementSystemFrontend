@@ -53,7 +53,6 @@ import { useAuth } from "@/context/auth-context";
 import { useRentalFlow, type LiveAgreement } from "@/context/rental-flow-context";
 import { useLoading } from "@/context/loading-context";
 import { users } from "@/lib/dummy-data";
-import { proceduralSignatureDataUrl } from "@/lib/procedural-signature";
 import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 
 /* ------------------------------------------------------------------ */
@@ -760,7 +759,6 @@ export default function LiveAgreementPage() {
   const {
     agreements,
     notifs,
-    landlordSign,
     daraApprove,
     recordPayment,
     getLandlordPhone,
@@ -773,7 +771,6 @@ export default function LiveAgreementPage() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [phoneVisible, setPhoneVisible] = useState(false);
   const [daraLoading, setDaraLoading] = useState(false);
-  const [landlordSigning, setLandlordSigning] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showLandlordCancelConfirm, setShowLandlordCancelConfirm] = useState(false);
 
@@ -782,18 +779,6 @@ export default function LiveAgreementPage() {
   ) as LiveAgreement | undefined;
 
   const myNotifs = notifs.filter((n) => n.agreementId === params.id);
-
-  const handleLandlordSign = useCallback(async () => {
-    if (!agreement) return;
-    setLandlordSigning(true);
-    await withLoading(async () => {
-      await new Promise((r) => setTimeout(r, 800));
-      const sig = proceduralSignatureDataUrl(agreement.landlordName, "landlord");
-      landlordSign(agreement.id, sig);
-      myNotifs.forEach((n) => markRead(n.id));
-    }, "Recording your counter-signature…");
-    setLandlordSigning(false);
-  }, [agreement, landlordSign, markRead, myNotifs, withLoading]);
 
   const doDaraApprove = useCallback(async () => {
     if (!agreement) return;
@@ -834,7 +819,7 @@ export default function LiveAgreementPage() {
   const role = user?.role ?? "tenant";
   const isTenant = role === "tenant";
   const isLandlord = role === "landlord";
-  const isAuthority = role === "dara_agent" || role === "admin" || role === "system_admin";
+  const isAuthority = role === "admin";
   const stageIdx = getAgreementStageIndex(agreement);
   const progressStages = getAgreementStages(agreement);
 
@@ -1116,18 +1101,13 @@ export default function LiveAgreementPage() {
                         label="View tenant profile"
                       />
                       <div className="flex flex-col sm:flex-row gap-3">
-                        <button
-                          onClick={handleLandlordSign}
-                          disabled={landlordSigning}
-                          className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+                        <Link
+                          href={`/dashboard/agreements/live/${agreement.id}/counter-sign`}
+                          className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
                         >
-                          {landlordSigning ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <FileSignature className="w-4 h-4" />
-                          )}
-                          Counter-Sign Agreement
-                        </button>
+                          <FileSignature className="w-4 h-4" />
+                          Review & Counter-Sign
+                        </Link>
                         <button
                           onClick={() => setShowLandlordCancelConfirm(true)}
                           className="inline-flex items-center justify-center gap-2 border border-red-300 text-red-700 hover:bg-red-50 font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"

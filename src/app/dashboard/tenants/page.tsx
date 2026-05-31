@@ -78,8 +78,8 @@ export default function FindTenantPage() {
     <>
       <Header title="Find Tenant" />
       <main className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-3xl space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
             <div className="flex items-start gap-4">
               <div className="w-11 h-11 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
                 <UserSearch className="w-5 h-5 text-primary-600" />

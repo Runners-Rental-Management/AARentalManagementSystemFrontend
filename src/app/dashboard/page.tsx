@@ -26,14 +26,13 @@ import { useAuth } from "@/context/auth-context";
 import { useFavorites } from "@/context/favorites-context";
 import {
   apiListAgreements,
-  apiListDisputes,
   apiListProperties,
   apiListRentAdjustments,
   getAccessToken,
 } from "@/lib/api";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import { PropertyCoverImage } from "@/components/property-cover-image";
-import type { Dispute, Property, RentAdjustment, TenancyAgreement } from "@/lib/types";
+import type { Property, RentAdjustment, TenancyAgreement } from "@/lib/types";
 
 export default function DashboardPage() {
   const { t } = useLanguage();
@@ -43,11 +42,9 @@ export default function DashboardPage() {
   const role = user?.role || "tenant";
   const userId = user?.id || "";
 
-  const isAuthority =
-    role === "admin" || role === "dara_agent" || role === "system_admin";
+  const isAuthority = role === "admin";
   const [landlordProperties, setLandlordProperties] = useState<Property[]>([]);
   const [landlordAgreements, setLandlordAgreements] = useState<TenancyAgreement[]>([]);
-  const [landlordDisputes, setLandlordDisputes] = useState<Dispute[]>([]);
   const [landlordRentAdjustments, setLandlordRentAdjustments] = useState<RentAdjustment[]>([]);
   const [landlordDashboardLoading, setLandlordDashboardLoading] = useState(false);
   const [landlordDashboardError, setLandlordDashboardError] = useState<string | null>(null);
@@ -79,7 +76,6 @@ export default function DashboardPage() {
 
         const propertiesResult = await apiListProperties(token, "page=1&pageSize=1000");
         const agreementsResult = await apiListAgreements(token, "page=1&pageSize=1000");
-        const disputesResult = await apiListDisputes(token, "page=1&pageSize=1000");
         const rentAdjustmentsResult = await apiListRentAdjustments(
           token,
           "page=1&pageSize=1000",
@@ -88,7 +84,6 @@ export default function DashboardPage() {
         if (!mounted) return;
         setLandlordProperties(propertiesResult.items);
         setLandlordAgreements(agreementsResult.items);
-        setLandlordDisputes(disputesResult.items);
         setLandlordRentAdjustments(rentAdjustmentsResult.items);
       } catch (error) {
         if (!mounted) return;
@@ -107,9 +102,6 @@ export default function DashboardPage() {
   }, [isAuthority, role, user?.id]);
 
   const myAgreementsAsTenant = landlordAgreements.filter((a) => a.tenantId === userId);
-  const myDisputes = landlordDisputes.filter(
-    (d) => d.reporterId === userId || d.respondentId === userId
-  );
   const availableProperties = landlordProperties.filter((p) => p.status === "available");
 
   const titleKey =
@@ -476,15 +468,6 @@ export default function DashboardPage() {
               tone: "bg-violet-50 text-violet-700",
             },
             {
-              title: t("dashboard", "myDisputes"),
-              value: landlordDisputes.filter((d) => !["resolved", "closed"].includes(d.status))
-                .length,
-              sub: `${landlordDisputes.length} total`,
-              icon: AlertTriangle,
-              href: "/dashboard/disputes",
-              tone: "bg-amber-50 text-amber-700",
-            },
-            {
               title: t("nav", "payments"),
               value: landlordActiveAgreements.length,
               sub: `${landlordPendingAgreementActions.length} pending actions`,
@@ -552,32 +535,6 @@ export default function DashboardPage() {
 
                 <div className="bg-white rounded-xl border border-slate-200">
                   <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-slate-900">Recent disputes</h3>
-                    <Link href="/dashboard/disputes" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
-                      View all
-                    </Link>
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    {landlordDisputes.slice(0, 4).map((dispute) => (
-                      <Link
-                        key={dispute.id}
-                        href={`/dashboard/disputes/${dispute.id}`}
-                        className="block px-4 py-3 hover:bg-slate-50"
-                      >
-                        <p className="text-sm font-medium text-slate-900 truncate">
-                          {dispute.title}
-                        </p>
-                        <p className="text-xs text-slate-500">{formatDate(dispute.createdAt)}</p>
-                      </Link>
-                    ))}
-                    {landlordDisputes.length === 0 && (
-                      <p className="px-4 py-6 text-xs text-slate-500">No disputes found.</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl border border-slate-200">
-                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-slate-900">Recent rent adjustments</h3>
                     <Link href="/dashboard/rent-adjustment" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
                       View all
@@ -607,9 +564,6 @@ export default function DashboardPage() {
             </div>
           );
         })()}
-
-        {/* (DARA block removed — dara_agent redirects to /dashboard/analytics) */}
-        {false && role === "dara_agent" && null}
       </main>
     </>
   );

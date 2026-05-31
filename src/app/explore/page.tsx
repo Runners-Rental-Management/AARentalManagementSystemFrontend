@@ -163,7 +163,7 @@ export default function ExplorePage() {
 
   const rentable = useMemo(
     () => properties.filter((p) => p.status === "available"),
-    []
+    [properties],
   );
 
   const subCities = useMemo(() => {

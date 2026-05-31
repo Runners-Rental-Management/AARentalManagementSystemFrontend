@@ -34,12 +34,14 @@ export default function DashboardLayout({
   }
 
   const role = user?.role || "tenant";
-  const authorityUi =
-    role === "admin" || role === "dara_agent" || role === "system_admin";
+  const authorityUi = role === "admin";
 
   return (
     <div
-      className={cn("min-h-screen", authorityUi ? "bg-white" : "bg-slate-50")}
+      className={cn(
+        "dashboard-shell min-h-screen",
+        authorityUi ? "bg-white" : "bg-slate-50"
+      )}
     >
       <OnboardingRedirect />
       {authorityUi ? (

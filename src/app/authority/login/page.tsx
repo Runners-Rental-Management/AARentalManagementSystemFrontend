@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -17,22 +17,24 @@ import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useLoading } from "@/context/loading-context";
 import { useAlert } from "@/context/alert-context";
-import type { UserRole } from "@/lib/types";
-
-const AUTHORITY_ROLES: UserRole[] = ["dara_agent", "admin", "system_admin"];
 
 export default function AuthorityLoginPage() {
   const router = useRouter();
   const { t, locale, setLocale } = useLanguage();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const { withLoading } = useLoading();
   const { showError } = useAlert();
 
-  const [role, setRole] = useState<UserRole>("system_admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.replace(user.role === "admin" ? "/dashboard/authority" : "/dashboard");
+    }
+  }, [isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +50,7 @@ export default function AuthorityLoginPage() {
     }
     try {
       await withLoading(async () => {
-        await login({ role, email: trimmedEmail, password });
+        await login({ role: "admin", email: trimmedEmail, password });
       }, "Authenticating…");
       router.push("/dashboard/authority");
     } catch (err) {
@@ -94,7 +96,7 @@ export default function AuthorityLoginPage() {
             </span>
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-xs">
-            Secure portal for the Addis Ababa Residential Rental Administration Authority to manage compliance, verify agreements, and resolve disputes.
+            Secure portal for the Addis Ababa Residential Rental Administration Authority to manage compliance and verify agreements.
           </p>
         </div>
 
@@ -158,7 +160,7 @@ export default function AuthorityLoginPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input type="hidden" name="role" value={role} readOnly />
+            <input type="hidden" name="role" value="admin" readOnly />
             {formError ? (
               <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
                 {formError}
@@ -168,17 +170,9 @@ export default function AuthorityLoginPage() {
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                 Role
               </label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-              >
-                {AUTHORITY_ROLES.map((r) => (
-                  <option key={r} value={r} className="text-slate-900">
-                    {r.replace("_", " ")}
-                  </option>
-                ))}
-              </select>
+              <div className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm">
+                Location-based Admin
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">

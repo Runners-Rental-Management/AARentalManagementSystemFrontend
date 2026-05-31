@@ -43,7 +43,7 @@ export default function AnalyticsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const isAuthorised = user?.role === "dara_agent" || user?.role === "admin" || user?.role === "system_admin";
+  const isAuthorised = user?.role === "admin";
 
   useEffect(() => {
     if (user && !isAuthorised) {
@@ -62,8 +62,7 @@ export default function AnalyticsPage() {
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-2">Access Restricted</h2>
             <p className="text-slate-500 text-sm">
-              This page is only available to DARA agents and system administrators.
-              Tenants and landlords do not have access to market analytics.
+              This page is only available to authority administrators.
             </p>
           </div>
         </main>
@@ -78,17 +77,13 @@ export default function AnalyticsPage() {
   const avgOccupancy =
     analyticsData.occupancyRates.reduce((sum, d) => sum + d.rate, 0) /
     analyticsData.occupancyRates.length;
-  const totalDisputes = analyticsData.disputeStats.reduce(
-    (sum, d) => sum + d.count,
-    0
-  );
 
   return (
     <>
       <Header title={t("analyticsPage", "title")} />
       <main className="flex-1 p-6 overflow-y-auto">
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {[
             {
               label: t("analyticsPage", "registeredProperties"),
@@ -103,7 +98,6 @@ export default function AnalyticsPage() {
                 ].averageRent
               ),
             },
-            { label: t("analyticsPage", "totalDisputes"), value: totalDisputes.toString() },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -196,47 +190,6 @@ export default function AnalyticsPage() {
                 />
                 <Bar dataKey="count" name="Properties" fill="#3b82f6" radius={[0, 4, 4, 0]} />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Dispute Distribution */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">
-              Dispute Types Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={analyticsData.disputeStats}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={3}
-                  dataKey="count"
-                  nameKey="type"
-                >
-                  {analyticsData.disputeStats.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
-                    fontSize: "12px",
-                  }}
-                />
-                <Legend
-                  layout="vertical"
-                  verticalAlign="middle"
-                  align="right"
-                  wrapperStyle={{ fontSize: "11px" }}
-                />
-              </PieChart>
             </ResponsiveContainer>
           </div>
 

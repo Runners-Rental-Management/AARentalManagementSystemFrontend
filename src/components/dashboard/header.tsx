@@ -10,8 +10,7 @@ export function Header({ title }: { title: string }) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const role = user?.role;
-  const authorityUi =
-    role === "admin" || role === "dara_agent" || role === "system_admin";
+  const authorityUi = role === "admin";
   if (authorityUi) return null;
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;

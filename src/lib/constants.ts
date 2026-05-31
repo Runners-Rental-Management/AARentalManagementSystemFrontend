@@ -19,16 +19,6 @@ export const PROPERTY_TYPES = [
   { value: 'villa', label: 'Villa' },
 ] as const;
 
-export const VIOLATION_TYPES = [
-  { value: 'illegal_rent_increase', label: 'Illegal Rent Increase' },
-  { value: 'wrongful_eviction', label: 'Wrongful Eviction' },
-  { value: 'maintenance_neglect', label: 'Maintenance Neglect' },
-  { value: 'deposit_withholding', label: 'Deposit Withholding' },
-  { value: 'harassment', label: 'Harassment' },
-  { value: 'lease_violation', label: 'Lease Violation' },
-  { value: 'other', label: 'Other' },
-] as const;
-
 export const AMENITIES = [
   'Parking',
   'Guard/Security',
@@ -54,6 +44,4 @@ export const ROLE_LABELS: Record<string, string> = {
   tenant: 'Tenant',
   landlord: 'Landlord',
   admin: 'Government Administrator',
-  dara_agent: 'Authorities Agent',
-  system_admin: 'System Administrator',
 };

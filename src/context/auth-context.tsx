@@ -58,6 +58,8 @@ interface AuthContextType {
 
   logout: () => Promise<void>;
 
+  refreshUser: () => Promise<void>;
+
   applyFaydaVerification: (
     result: FaydaConfirmResult,
     otpCode: string,
@@ -215,6 +217,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const token = getAccessToken();
+    if (!token) return;
+    const next = await apiGetMe(token);
+    setUser(next);
+    persist(next);
+  }, []);
+
 
 
   const applyFaydaVerification = useCallback(
@@ -255,6 +265,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
 
         logout,
+
+        refreshUser,
 
         applyFaydaVerification,
 

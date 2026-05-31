@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -67,10 +67,16 @@ function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, locale, setLocale } = useLanguage();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { withLoading } = useLoading();
   const { showError } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const propertyIdParam = searchParams.get("propertyId");
   const roleParam = searchParams.get("role");

@@ -29,24 +29,22 @@ import {
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useFavorites } from "@/context/favorites-context";
-import { useRentalFlow, type NotifRecipient } from "@/context/rental-flow-context";
-import { notifications } from "@/lib/dummy-data";
+import { apiGetUnreadCount, getAccessToken } from "@/lib/api";
 import { cn, getInitials } from "@/lib/utils";
 
 type NavItem = {
   labelKey: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  roles: Array<"admin" | "landlord" | "tenant" | "dara_agent">;
+  roles: Array<"admin" | "landlord" | "tenant">;
 };
 
 type NavRole = NavItem["roles"][number];
 
 function toNavRole(role: string | undefined): NavRole {
-  if (role === "admin" || role === "landlord" || role === "tenant" || role === "dara_agent") {
+  if (role === "admin" || role === "landlord" || role === "tenant") {
     return role;
   }
-  if (role === "system_admin") return "admin";
   return "tenant";
 }
 
@@ -54,22 +52,16 @@ const ALL_ITEMS: NavItem[] = [
   { labelKey: "favorites", href: "/dashboard/favorites", icon: Heart, roles: ["tenant"] },
   { labelKey: "myAgreements", href: "/dashboard/agreements", icon: FileText, roles: ["tenant"] },
   { labelKey: "payments", href: "/dashboard/payments", icon: CreditCard, roles: ["tenant"] },
-  { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["dara_agent", "admin"] },
+  { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin"] },
   { labelKey: "userManagement", href: "/dashboard/admin/users", icon: Users, roles: ["admin"] },
   { labelKey: "systemParameters", href: "/dashboard/admin/parameters", icon: Settings, roles: ["admin"] },
   { labelKey: "auditLogs", href: "/dashboard/admin/audit-logs", icon: ScrollText, roles: ["admin"] },
   { labelKey: "rolesPermissions", href: "/dashboard/admin/roles", icon: Shield, roles: ["admin"] },
-  { labelKey: "verifyAgreements", href: "/dashboard/admin/verifications", icon: ShieldCheck, roles: ["dara_agent"] },
-  { labelKey: "reviewViolations", href: "/dashboard/disputes", icon: AlertTriangle, roles: ["dara_agent"] },
-  { labelKey: "approveRentAdjustment", href: "/dashboard/rent-adjustment", icon: TrendingUp, roles: ["dara_agent"] },
-  { labelKey: "penaltyNotices", href: "/dashboard/penalty-notices", icon: Gavel, roles: ["dara_agent"] },
 ];
 
-// Per-role primary nav shown inline ("More" holds analytics & extras for authority)
 const PRIMARY: Record<string, string[]> = {
   tenant: ["favorites", "myAgreements", "payments"],
   admin: ["userManagement", "systemParameters", "auditLogs", "rolesPermissions"],
-  dara_agent: ["verifyAgreements", "reviewViolations", "approveRentAdjustment", "penaltyNotices"],
 };
 
 export function TopNav() {
@@ -79,8 +71,7 @@ export function TopNav() {
   const { count: favCount } = useFavorites();
   const role = toNavRole(user?.role);
 
-  const { unreadFor } = useRentalFlow();
-
+  const [unread, setUnread] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
@@ -111,17 +102,33 @@ export function TopNav() {
     setUserOpen(false);
   }, [pathname]);
 
+  // Poll unread notification count every 30 s
+  useEffect(() => {
+    let active = true;
+    const fetch = async () => {
+      const token = getAccessToken();
+      if (!token) return;
+      try {
+        const count = await apiGetUnreadCount(token);
+        if (active) setUnread(count);
+      } catch {
+        // ignore
+      }
+    };
+    void fetch();
+    const id = window.setInterval(fetch, 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+    };
+  }, []);
+
   const roleItems = ALL_ITEMS.filter((i) => i.roles.includes(role));
   const primaryKeys = PRIMARY[role] ?? [];
   const primaryItems = primaryKeys
     .map((k) => roleItems.find((i) => i.labelKey === k))
     .filter(Boolean) as NavItem[];
   const secondaryItems = roleItems.filter((i) => !primaryKeys.includes(i.labelKey));
-
-  const staticUnread = notifications.filter((n) => !n.isRead).length;
-  const liveRole: NotifRecipient =
-    role === "landlord" ? "landlord" : role === "dara_agent" ? "dara_agent" : "tenant";
-  const unread = staticUnread + unreadFor(liveRole);
 
   const labelFor = (item: NavItem) => t("nav", item.labelKey);
 
@@ -143,7 +150,7 @@ export function TopNav() {
             <div className="flex items-center gap-2 lg:gap-8">
               <Link
                 href={
-                  role === "admin" || role === "dara_agent" ? "/dashboard/authority" : "/dashboard"
+                  role === "admin" ? "/dashboard/authority" : "/dashboard"
                 }
                 className="flex items-center gap-2 group shrink-0"
               >
@@ -323,7 +330,7 @@ export function TopNav() {
                     <button
                       onClick={() => {
                         const isAuthority =
-                          role === "admin" || role === "dara_agent";
+                          role === "admin";
                         logout();
                         window.location.href = isAuthority
                           ? "/authority/login"

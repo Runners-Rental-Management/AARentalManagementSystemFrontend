@@ -13,7 +13,7 @@ import {
 import type { TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
-  Clock, FileText, Plus, Search, Calendar, ArrowRight, Zap,
+  Clock, FileText, Search, Calendar, ArrowRight, Zap,
   XCircle, Send, Building2, User, FileSignature, AlertTriangle,
   Home, Loader2, ListFilter, RefreshCw, CreditCard, CheckCircle2,
   Eye, EyeOff, KeyRound, Landmark, Smartphone, MessageSquare,
@@ -776,7 +776,7 @@ export default function AgreementsPage() {
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "active"      && a.status === "active") ||
-      (statusFilter === "in_progress" && ["pending_tenant_signature", "pending_verification", "pending_dara_verification"].includes(a.status)) ||
+      (statusFilter === "in_progress" && ["pending_tenant_signature", "pending_verification", "pending_dara_verification", "pending_payment", "draft"].includes(a.status)) ||
       (statusFilter === "rejected"    && ["rejected", "terminated", "expired"].includes(a.status));
 
     const matchesSearch =
@@ -802,7 +802,6 @@ export default function AgreementsPage() {
     ? extensionRequests.filter((e) => e.tenantId === userId && e.status === "pending_tenant_sign")
     : [];
 
-  const showNewAgreementButton = role === "landlord";
   const totalCount = liveFiltered.length + staticFiltered.length;
 
   return (
@@ -951,7 +950,7 @@ export default function AgreementsPage() {
                 </div>
                 <ViewTenantProfileLink tenantId={req.tenantId} className="mb-4 inline-flex" />
                 <Link
-                  href={`/dashboard/agreements/live/${req.id}`}
+                  href={`/dashboard/agreements/live/${req.id}/counter-sign`}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors"
                 >
                   <FileSignature className="w-4 h-4" /> Review &amp; Counter-Sign
@@ -987,7 +986,7 @@ export default function AgreementsPage() {
                 {tab.value === "in_progress" && (
                   <span className={`ml-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/25 text-white" : "bg-amber-100 text-amber-700"}`}>
                     {liveAgreements.filter(a => (role === "tenant" ? a.tenantId === userId : a.landlordId === userId) && IN_PROGRESS_LIVE.includes(a.status)).length
-                      + roleBasedList.filter(a => ["pending_tenant_signature","pending_verification","pending_dara_verification"].includes(a.status)).length}
+                      + roleBasedList.filter(a => ["pending_tenant_signature","pending_verification","pending_dara_verification","pending_payment","draft"].includes(a.status)).length}
                   </span>
                 )}
               </button>
@@ -995,9 +994,9 @@ export default function AgreementsPage() {
           })}
         </div>
 
-        {/* Search + new agreement */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
+        {/* Search */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 max-w-sm">
             <Search className="w-4 h-4 text-slate-400" />
             <input
               type="text"
@@ -1007,15 +1006,6 @@ export default function AgreementsPage() {
               className="bg-transparent text-sm outline-none flex-1"
             />
           </div>
-          {showNewAgreementButton && (
-            <Link
-              href="/dashboard/agreements/create"
-              className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              {t("agreements", "newAgreement")}
-            </Link>
-          )}
         </div>
 
         {/* Agreements Table */}

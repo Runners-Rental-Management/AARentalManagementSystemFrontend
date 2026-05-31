@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/context/auth-context";
-import { apiGetProperty, apiListAgreements, apiPostPropertyToExplore, getAccessToken } from "@/lib/api";
+import { apiGetProperty, apiListAgreements, getAccessToken } from "@/lib/api";
 import type { Property, TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
   Building2, MapPin, BedDouble, Bath, Ruler, User, Calendar,
   ArrowLeft, CheckCircle2, FileText, FileSignature, ArrowRight,
-  Globe, UserSearch, Scissors, TrendingUp, Clock, AlertTriangle,
+  UserSearch, Scissors, TrendingUp, Clock, AlertTriangle,
   Info, X, Loader2,
 } from "lucide-react";
 import Link from "next/link";
@@ -47,9 +47,8 @@ export default function PropertyDetailPage() {
   const [agreements, setAgreements] = useState<TenancyAgreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modal, setModal] = useState<"" | "termination" | "upscaling" | "posted">("");
+  const [modal, setModal] = useState<"" | "termination" | "upscaling">("");
   const [submitted, setSubmitted] = useState(false);
-  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     const token = getAccessToken();
@@ -119,21 +118,6 @@ export default function PropertyDetailPage() {
   const isOccupied = property.status === "rented";
   const isApproved = property.status === "available";
 
-  const handlePostToExplore = async () => {
-    const token = getAccessToken();
-    if (!token || !property || property.isPostedToExplore) return;
-    setPosting(true);
-    try {
-      const updated = await apiPostPropertyToExplore(token, property.id);
-      setProperty(updated);
-      setModal("posted");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to post property");
-    } finally {
-      setPosting(false);
-    }
-  };
-
   return (
     <>
       <Header title="Property Details" />
@@ -191,28 +175,6 @@ export default function PropertyDetailPage() {
               Submit Upscaling Request
             </button>
           )}
-        </Modal>
-      )}
-
-      {modal === "posted" && (
-        <Modal title="Property Posted to Explore" onClose={() => setModal("")}>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-900">{property.title}</p>
-              <p className="text-sm text-slate-500">
-                Your property is now publicly listed on the Explore page. Tenants can find and apply.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setModal("")}
-            className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-sm transition-colors"
-          >
-            Done
-          </button>
         </Modal>
       )}
 
@@ -391,27 +353,12 @@ export default function PropertyDetailPage() {
               {isOwner && isApproved && (
                 <div className="mt-5 space-y-3">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Landlord Actions</p>
-                  {property.isPostedToExplore ? (
-                    <button
-                      disabled
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-medium cursor-default"
-                    >
-                      <CheckCircle2 className="w-4 h-4" /> Posted
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handlePostToExplore}
-                      disabled={posting}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-60 text-sm font-medium transition-all"
-                    >
-                      {posting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Globe className="w-4 h-4" />
-                      )}
-                      Post to Explore
-                    </button>
-                  )}
+                  <button
+                    disabled
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-medium cursor-default"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Listed on Explore
+                  </button>
                   <Link
                     href={`/dashboard/properties/${property.id}/rent-to-tenant`}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-all"

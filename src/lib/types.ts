@@ -1,4 +1,4 @@
-export type UserRole = 'tenant' | 'landlord' | 'admin' | 'dara_agent' | 'system_admin';
+export type UserRole = 'tenant' | 'landlord' | 'admin';
 
 export interface User {
   id: string;
@@ -7,6 +7,8 @@ export interface User {
   email: string;
   phone: string;
   role: UserRole;
+  adminSubCities?: string[];
+  adminAllLocations?: boolean;
   avatar?: string;
   createdAt: string;
   isVerified: boolean;
@@ -76,7 +78,10 @@ export type AgreementStatus =
   | 'pending_tenant_signature'
   | 'pending_verification'
   | 'pending_dara_verification'
+  | 'pending_payment'
   | 'active'
+  | 'extension_requested'
+  | 'termination_requested'
   | 'extended'
   | 'terminated'
   | 'expired'
@@ -101,40 +106,12 @@ export interface TenancyAgreement {
   tenantSignedAt?: string;
   landlordSignedAt?: string;
   verifiedAt?: string;
+  initialPaymentAt?: string;
+  proposedEndDate?: string;
+  proposedMonthlyRent?: number;
   terminatedAt?: string;
   terminationReason?: string;
   utilities: string[];
-}
-
-export type DisputeStatus = 'open' | 'under_review' | 'mediation' | 'resolved' | 'closed' | 'escalated';
-export type ViolationType =
-  | 'illegal_rent_increase'
-  | 'wrongful_eviction'
-  | 'maintenance_neglect'
-  | 'deposit_withholding'
-  | 'harassment'
-  | 'lease_violation'
-  | 'other';
-
-export interface Dispute {
-  id: string;
-  agreementId: string;
-  reporterId: string;
-  reporterName: string;
-  reporterRole: 'tenant' | 'landlord';
-  respondentId: string;
-  respondentName: string;
-  violationType: ViolationType;
-  title: string;
-  description: string;
-  evidence: string[];
-  status: DisputeStatus;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  createdAt: string;
-  updatedAt: string;
-  resolvedAt?: string;
-  resolution?: string;
-  assignedTo?: string;
 }
 
 export type RentAdjustmentStatus = 'pending' | 'approved' | 'rejected' | 'under_review';
@@ -181,7 +158,7 @@ export interface Notification {
   title: string;
   message: string;
   type: 'info' | 'warning' | 'success' | 'error';
-  category: 'agreement' | 'dispute' | 'rent_adjustment' | 'verification' | 'system';
+  category: 'agreement' | 'rent_adjustment' | 'verification' | 'system';
   isRead: boolean;
   createdAt: string;
   link?: string;
@@ -209,7 +186,7 @@ export interface SupportingDocument {
   id: string;
   uploaderId: string;
   uploaderName: string;
-  relatedEntityType: 'agreement' | 'dispute' | 'property' | 'rent_adjustment';
+  relatedEntityType: 'agreement' | 'property' | 'rent_adjustment';
   relatedEntityId: string;
   relatedEntityTitle: string;
   fileName: string;
@@ -238,7 +215,6 @@ export interface PenaltyNotice {
   issuedToName: string;
   issuedBy: string;
   issuedByName: string;
-  disputeId?: string;
   agreementId?: string;
   type: 'warning' | 'fine' | 'suspension' | 'legal_action';
   reason: string;
@@ -263,7 +239,6 @@ export interface DashboardStats {
   totalProperties: number;
   activeAgreements: number;
   pendingVerifications: number;
-  openDisputes: number;
   totalRevenue: number;
   monthlyTrend: { month: string; value: number }[];
 }
@@ -272,6 +247,5 @@ export interface AnalyticsData {
   rentalTrends: { month: string; averageRent: number; agreements: number }[];
   propertyDistribution: { subCity: string; count: number; avgRent: number }[];
   occupancyRates: { subCity: string; rate: number }[];
-  disputeStats: { type: string; count: number }[];
   revenueProjection: { quarter: string; projected: number; actual: number }[];
 }

@@ -91,8 +91,8 @@ export default function CreateAgreementPage() {
           Back to Agreements
         </Link>
 
-        <div className="max-w-3xl">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900 mb-1">
               New Tenancy Agreement
             </h2>
@@ -128,6 +128,9 @@ export default function CreateAgreementPage() {
                 <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
                   Select Property
                 </h3>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Verified Property
+                </label>
                 <select
                   value={selectedProperty}
                   onChange={(e) => {

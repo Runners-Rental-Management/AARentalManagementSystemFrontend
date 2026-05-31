@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/context/language-context";
+import { useAuth } from "@/context/auth-context";
 import {
   Building2,
   ShieldCheck,
   ArrowRight,
   Globe,
+  LayoutDashboard,
 } from "lucide-react";
 import { LandingPlatformSections } from "@/components/landing-platform-sections";
 
 export default function LandingPage() {
   const { t, locale, setLocale } = useLanguage();
+  const { isAuthenticated } = useAuth();
 
   const stats = [
     { valueKey: "stat1Value", labelKey: "stat1Label" },
@@ -53,18 +56,30 @@ export default function LandingPage() {
                 <Globe className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">{locale === "en" ? "አማርኛ" : "English"}</span>
               </button>
-              <Link
-                href="/login"
-                className="hidden sm:inline text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors px-3 py-2"
-              >
-                {t("landing", "signIn")}
-              </Link>
-              <Link
-                href="/register"
-                className="text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
-              >
-                {t("landing", "register")}
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="hidden sm:inline text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors px-3 py-2"
+                  >
+                    {t("landing", "signIn")}
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
+                  >
+                    {t("landing", "register")}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
