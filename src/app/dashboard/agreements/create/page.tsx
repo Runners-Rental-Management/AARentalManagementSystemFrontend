@@ -85,18 +85,18 @@ export default function CreateAgreementPage() {
       <main className="flex-1 p-6 overflow-y-auto">
         <Link
           href="/dashboard/agreements"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary-600 mb-4"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary-600 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Agreements
         </Link>
 
-        <div className="max-w-3xl">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-1">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-stone-900 mb-1">
               New Tenancy Agreement
             </h2>
-            <p className="text-sm text-slate-500 mb-6">
+            <p className="text-sm text-stone-500 mb-6">
               Create a standardized rental agreement. Terms are automatically
               validated against the proclamation.
             </p>
@@ -125,9 +125,12 @@ export default function CreateAgreementPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Property Selection */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   Select Property
                 </h3>
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                  Verified Property
+                </label>
                 <select
                   value={selectedProperty}
                   onChange={(e) => {
@@ -137,7 +140,7 @@ export default function CreateAgreementPage() {
                     );
                     if (prop) setMonthlyRent(prop.monthlyRent.toString());
                   }}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                 >
                   <option value="">Choose a verified property</option>
                   {isLoading && <option value="">Loading properties...</option>}
@@ -151,47 +154,47 @@ export default function CreateAgreementPage() {
 
               {/* Tenant */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   Tenant Information
                 </h3>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-stone-700 mb-1">
                   Tenant ID (registered tenant user id)
                 </label>
                 <input
                   type="text"
                   value={tenantId}
                   onChange={(e) => setTenantId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                   placeholder="e.g. cm9x..."
                 />
               </div>
 
               {/* Financial Terms */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   Financial Terms
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       Monthly Rent (ETB)
                     </label>
                     <input
                       type="number"
                       value={monthlyRent}
                       onChange={(e) => setMonthlyRent(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       Advance Payment (ETB)
                     </label>
                     <input
                       type="number"
                       value={advancePayment}
                       onChange={(e) => setAdvancePayment(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                     {advance > 0 && (
                       <div className="flex items-center gap-1 mt-1">
@@ -214,30 +217,30 @@ export default function CreateAgreementPage() {
 
               {/* Lease Duration */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3 pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-semibold text-stone-700 mb-3 pb-2 border-b border-stone-100">
                   Lease Duration
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       Start Date
                     </label>
                     <input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
                       End Date
                     </label>
                     <input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                     />
                     {start && end && (
                       <div className="flex items-center gap-1 mt-1">
@@ -259,24 +262,24 @@ export default function CreateAgreementPage() {
 
               {/* Utilities */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-stone-700 mb-1">
                   Included Utilities
                 </label>
                 <input
                   type="text"
                   value={utilities}
                   onChange={(e) => setUtilities(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm"
                   placeholder="e.g., Water, Electricity (shared)"
                 />
               </div>
               {error && <p className="text-sm text-red-600">{error}</p>}
 
               {/* Submit */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100">
                 <Link
                   href="/dashboard/agreements"
-                  className="px-5 py-2.5 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-5 py-2.5 text-sm font-medium text-stone-600 border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors"
                 >
                   Cancel
                 </Link>

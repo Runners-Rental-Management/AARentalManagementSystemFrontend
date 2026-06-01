@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/context/auth-context";
-import { apiGetProperty, apiListAgreements, apiPostPropertyToExplore, getAccessToken } from "@/lib/api";
+import { apiGetProperty, apiListAgreements, getAccessToken } from "@/lib/api";
 import type { Property, TenancyAgreement } from "@/lib/types";
 import { formatCurrency, formatDate, getStatusColor, formatStatus } from "@/lib/utils";
 import {
   Building2, MapPin, BedDouble, Bath, Ruler, User, Calendar,
   ArrowLeft, CheckCircle2, FileText, FileSignature, ArrowRight,
-  Globe, UserSearch, Scissors, TrendingUp, Clock, AlertTriangle,
+  UserSearch, Scissors, TrendingUp, Clock, AlertTriangle,
   Info, X, Loader2,
 } from "lucide-react";
 import Link from "next/link";
@@ -27,8 +27,8 @@ function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <h3 className="text-lg font-bold text-stone-900">{title}</h3>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -47,9 +47,8 @@ export default function PropertyDetailPage() {
   const [agreements, setAgreements] = useState<TenancyAgreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modal, setModal] = useState<"" | "termination" | "upscaling" | "posted">("");
+  const [modal, setModal] = useState<"" | "termination" | "upscaling">("");
   const [submitted, setSubmitted] = useState(false);
-  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     const token = getAccessToken();
@@ -72,7 +71,7 @@ export default function PropertyDetailPage() {
       <>
         <Header title="Property Details" />
         <main className="flex-1 p-6 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
+          <div className="flex flex-col items-center gap-3 text-stone-400">
             <Loader2 className="w-8 h-8 animate-spin" />
             <p className="text-sm">Loading property…</p>
           </div>
@@ -87,8 +86,8 @@ export default function PropertyDetailPage() {
         <Header title="Property Not Found" />
         <main className="flex-1 p-6 flex items-center justify-center">
           <div className="text-center">
-            <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600 font-medium">{error ?? "Property not found."}</p>
+            <Building2 className="w-12 h-12 text-stone-300 mx-auto mb-3" />
+            <p className="text-stone-600 font-medium">{error ?? "Property not found."}</p>
             <Link href="/dashboard/properties" className="mt-3 inline-block text-primary-600 text-sm hover:underline">
               Back to Properties
             </Link>
@@ -119,28 +118,13 @@ export default function PropertyDetailPage() {
   const isOccupied = property.status === "rented";
   const isApproved = property.status === "available";
 
-  const handlePostToExplore = async () => {
-    const token = getAccessToken();
-    if (!token || !property || property.isPostedToExplore) return;
-    setPosting(true);
-    try {
-      const updated = await apiPostPropertyToExplore(token, property.id);
-      setProperty(updated);
-      setModal("posted");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to post property");
-    } finally {
-      setPosting(false);
-    }
-  };
-
   return (
     <>
       <Header title="Property Details" />
 
       {modal === "termination" && (
         <Modal title="Request Lease Termination" onClose={() => { setModal(""); setSubmitted(false); }}>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-stone-600">
             You are requesting early termination of the tenancy for <strong>{property.title}</strong>.
             This will be reviewed by DARA and communicated to the tenant with the required{" "}
             <strong>90-day notice period</strong>.
@@ -168,7 +152,7 @@ export default function PropertyDetailPage() {
 
       {modal === "upscaling" && (
         <Modal title="Request Rent Payment Upscaling" onClose={() => { setModal(""); setSubmitted(false); }}>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-stone-600">
             You are requesting a rent increase for <strong>{property.title}</strong>.
             Current rent: <strong>{formatCurrency(property.monthlyRent)}/mo</strong>.
           </p>
@@ -194,32 +178,10 @@ export default function PropertyDetailPage() {
         </Modal>
       )}
 
-      {modal === "posted" && (
-        <Modal title="Property Posted to Explore" onClose={() => setModal("")}>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-900">{property.title}</p>
-              <p className="text-sm text-slate-500">
-                Your property is now publicly listed on the Explore page. Tenants can find and apply.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setModal("")}
-            className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-sm transition-colors"
-          >
-            Done
-          </button>
-        </Modal>
-      )}
-
       <main className="flex-1 p-6 overflow-y-auto">
         <Link
           href="/dashboard/properties"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary-600 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary-600 mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Properties
         </Link>
@@ -227,13 +189,13 @@ export default function PropertyDetailPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <div className="relative h-64 bg-slate-100">
+            <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+              <div className="relative h-64 bg-stone-100">
                 {property.images[0] ? (
                   <img src={property.images[0]} alt={property.title} className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                    <Building2 className="w-16 h-16 text-slate-300" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
+                    <Building2 className="w-16 h-16 text-stone-300" />
                   </div>
                 )}
                 {/* Status overlay */}
@@ -244,53 +206,53 @@ export default function PropertyDetailPage() {
                 </div>
               </div>
               {property.images.length > 1 && (
-                <div className="flex gap-2 p-4 overflow-x-auto border-t border-slate-100 bg-slate-50/80">
+                <div className="flex gap-2 p-4 overflow-x-auto border-t border-stone-100 bg-stone-50/80">
                   {property.images.slice(1).map((src, idx) => (
-                    <img key={`${src}-${idx}`} src={src} alt="" className="h-20 w-28 shrink-0 rounded-lg object-cover border border-slate-200" loading="lazy" />
+                    <img key={`${src}-${idx}`} src={src} alt="" className="h-20 w-28 shrink-0 rounded-lg object-cover border border-stone-200" loading="lazy" />
                   ))}
                 </div>
               )}
               <div className="p-6">
                 <div className="mb-4">
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">{property.title}</h2>
-                  <div className="flex items-center gap-1.5 text-slate-500">
+                  <h2 className="text-xl font-bold text-stone-900 mb-1">{property.title}</h2>
+                  <div className="flex items-center gap-1.5 text-stone-500">
                     <MapPin className="w-4 h-4" />
                     <span className="text-sm">{property.address}, {property.subCity} Sub-City, Woreda {property.woreda}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-y border-slate-100">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-y border-stone-100">
                   <div className="flex items-center gap-2">
-                    <BedDouble className="w-5 h-5 text-slate-400" />
-                    <div><p className="text-sm font-semibold">{property.bedrooms}</p><p className="text-xs text-slate-500">Bedrooms</p></div>
+                    <BedDouble className="w-5 h-5 text-stone-400" />
+                    <div><p className="text-sm font-semibold">{property.bedrooms}</p><p className="text-xs text-stone-500">Bedrooms</p></div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Bath className="w-5 h-5 text-slate-400" />
-                    <div><p className="text-sm font-semibold">{property.bathrooms}</p><p className="text-xs text-slate-500">Bathrooms</p></div>
+                    <Bath className="w-5 h-5 text-stone-400" />
+                    <div><p className="text-sm font-semibold">{property.bathrooms}</p><p className="text-xs text-stone-500">Bathrooms</p></div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Ruler className="w-5 h-5 text-slate-400" />
-                    <div><p className="text-sm font-semibold">{property.area} m²</p><p className="text-xs text-slate-500">Area</p></div>
+                    <Ruler className="w-5 h-5 text-stone-400" />
+                    <div><p className="text-sm font-semibold">{property.area} m²</p><p className="text-xs text-stone-500">Area</p></div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-slate-400" />
-                    <div><p className="text-sm font-semibold capitalize">{property.propertyType}</p><p className="text-xs text-slate-500">Type</p></div>
+                    <Building2 className="w-5 h-5 text-stone-400" />
+                    <div><p className="text-sm font-semibold capitalize">{property.propertyType}</p><p className="text-xs text-stone-500">Type</p></div>
                   </div>
                 </div>
 
                 {property.description && (
                   <div className="mt-4">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{property.description}</p>
+                    <h3 className="text-sm font-semibold text-stone-900 mb-2">Description</h3>
+                    <p className="text-sm text-stone-600 leading-relaxed">{property.description}</p>
                   </div>
                 )}
 
                 {property.amenities.length > 0 && (
                   <div className="mt-4">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">Amenities</h3>
+                    <h3 className="text-sm font-semibold text-stone-900 mb-2">Amenities</h3>
                     <div className="flex flex-wrap gap-2">
                       {property.amenities.map((a) => (
-                        <span key={a} className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs">
+                        <span key={a} className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-600 rounded-lg text-xs">
                           <CheckCircle2 className="w-3 h-3 text-emerald-500" />{a}
                         </span>
                       ))}
@@ -299,9 +261,9 @@ export default function PropertyDetailPage() {
                 )}
 
                 {property.homeCondition && (
-                  <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <p className="text-xs text-slate-500">
-                      Condition: <span className="font-medium text-slate-700 capitalize">{property.homeCondition.replace(/_/g, " ")}</span>
+                  <div className="mt-4 p-3 bg-stone-50 rounded-lg border border-stone-100">
+                    <p className="text-xs text-stone-500">
+                      Condition: <span className="font-medium text-stone-700 capitalize">{property.homeCondition.replace(/_/g, " ")}</span>
                     </p>
                   </div>
                 )}
@@ -309,18 +271,18 @@ export default function PropertyDetailPage() {
             </div>
 
             {agreements.length > 0 && (
-              <div className="bg-white rounded-xl border border-slate-200">
-                <div className="px-6 py-4 border-b border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-900">Tenancy Agreements</h3>
+              <div className="bg-white rounded-xl border border-stone-200">
+                <div className="px-6 py-4 border-b border-stone-100">
+                  <h3 className="text-sm font-semibold text-stone-900">Tenancy Agreements</h3>
                 </div>
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-stone-100">
                   {agreements.map((agreement) => (
-                    <Link key={agreement.id} href={`/dashboard/agreements/${agreement.id}`} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+                    <Link key={agreement.id} href={`/dashboard/agreements/${agreement.id}`} className="flex items-center justify-between px-6 py-4 hover:bg-stone-50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-slate-400" />
+                        <FileText className="w-5 h-5 text-stone-400" />
                         <div>
-                          <p className="text-sm font-medium text-slate-900">{agreement.tenantName}</p>
-                          <p className="text-xs text-slate-500">{formatDate(agreement.startDate)} – {formatDate(agreement.endDate)}</p>
+                          <p className="text-sm font-medium text-stone-900">{agreement.tenantName}</p>
+                          <p className="text-xs text-stone-500">{formatDate(agreement.startDate)} – {formatDate(agreement.endDate)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -337,10 +299,10 @@ export default function PropertyDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Price */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <p className="text-sm text-slate-500 mb-1">Monthly Rent</p>
+            <div className="bg-white rounded-xl border border-stone-200 p-6">
+              <p className="text-sm text-stone-500 mb-1">Monthly Rent</p>
               <p className="text-3xl font-bold text-primary-700">{formatCurrency(property.monthlyRent)}</p>
-              <p className="text-xs text-slate-400 mt-1">per month</p>
+              <p className="text-xs text-stone-400 mt-1">per month</p>
 
               {isTenant && isApproved && (
                 <Link
@@ -353,10 +315,10 @@ export default function PropertyDetailPage() {
 
               {isOwner && isOccupied && (
                 <div className="mt-5 space-y-3">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Landlord Actions</p>
+                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Landlord Actions</p>
                   {activeAgreement && (
-                    <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600 flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 text-xs text-stone-600 flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                       Rented since {formatDate(activeAgreement.startDate)} · {monthsOccupied} months
                     </div>
                   )}
@@ -371,7 +333,7 @@ export default function PropertyDetailPage() {
                     disabled={!twoYearsMet}
                     onClick={() => setModal("termination")}
                     className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                      twoYearsMet ? "border-red-300 text-red-700 hover:bg-red-50" : "border-slate-200 text-slate-400 cursor-not-allowed bg-slate-50"
+                      twoYearsMet ? "border-red-300 text-red-700 hover:bg-red-50" : "border-stone-200 text-stone-400 cursor-not-allowed bg-stone-50"
                     }`}
                   >
                     <Scissors className="w-4 h-4" /> Request Termination
@@ -380,7 +342,7 @@ export default function PropertyDetailPage() {
                     disabled={!twoYearsMet}
                     onClick={() => setModal("upscaling")}
                     className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                      twoYearsMet ? "border-indigo-300 text-indigo-700 hover:bg-indigo-50" : "border-slate-200 text-slate-400 cursor-not-allowed bg-slate-50"
+                      twoYearsMet ? "border-primary-300 text-primary-700 hover:bg-primary-50" : "border-stone-200 text-stone-400 cursor-not-allowed bg-stone-50"
                     }`}
                   >
                     <TrendingUp className="w-4 h-4" /> Request Payment Upscaling
@@ -390,28 +352,13 @@ export default function PropertyDetailPage() {
 
               {isOwner && isApproved && (
                 <div className="mt-5 space-y-3">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Landlord Actions</p>
-                  {property.isPostedToExplore ? (
-                    <button
-                      disabled
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-medium cursor-default"
-                    >
-                      <CheckCircle2 className="w-4 h-4" /> Posted
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handlePostToExplore}
-                      disabled={posting}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-60 text-sm font-medium transition-all"
-                    >
-                      {posting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Globe className="w-4 h-4" />
-                      )}
-                      Post to Explore
-                    </button>
-                  )}
+                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Landlord Actions</p>
+                  <button
+                    disabled
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-medium cursor-default"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Listed on Explore
+                  </button>
                   <Link
                     href={`/dashboard/properties/${property.id}/rent-to-tenant`}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-all"
@@ -430,39 +377,39 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Property Owner */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <h3 className="text-sm font-semibold text-slate-900 mb-3">Property Owner</h3>
+            <div className="bg-white rounded-xl border border-stone-200 p-6">
+              <h3 className="text-sm font-semibold text-stone-900 mb-3">Property Owner</h3>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                   <User className="w-5 h-5 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{property.landlordName}</p>
-                  <p className="text-xs text-slate-500">Verified Landlord</p>
+                  <p className="text-sm font-medium text-stone-900">{property.landlordName}</p>
+                  <p className="text-xs text-stone-500">Verified Landlord</p>
                 </div>
               </div>
             </div>
 
             {/* Timeline */}
-            <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3">
-              <h3 className="text-sm font-semibold text-slate-900 mb-1">Timeline</h3>
+            <div className="bg-white rounded-xl border border-stone-200 p-6 space-y-3">
+              <h3 className="text-sm font-semibold text-stone-900 mb-1">Timeline</h3>
               <div className="flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-slate-400" />
-                <span className="text-slate-500">Registered:</span>
-                <span className="text-slate-700">{formatDate(property.createdAt)}</span>
+                <Calendar className="w-4 h-4 text-stone-400" />
+                <span className="text-stone-500">Registered:</span>
+                <span className="text-stone-700">{formatDate(property.createdAt)}</span>
               </div>
               {property.verifiedAt && (
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-slate-500">Verified:</span>
-                  <span className="text-slate-700">{formatDate(property.verifiedAt)}</span>
+                  <span className="text-stone-500">Verified:</span>
+                  <span className="text-stone-700">{formatDate(property.verifiedAt)}</span>
                 </div>
               )}
               {activeAgreement && (
                 <div className="flex items-center gap-2 text-sm">
-                  <FileText className="w-4 h-4 text-indigo-400" />
-                  <span className="text-slate-500">Rented since:</span>
-                  <span className="text-slate-700">{formatDate(activeAgreement.startDate)}</span>
+                  <FileText className="w-4 h-4 text-primary-400" />
+                  <span className="text-stone-500">Rented since:</span>
+                  <span className="text-stone-700">{formatDate(activeAgreement.startDate)}</span>
                 </div>
               )}
             </div>

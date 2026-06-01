@@ -48,7 +48,7 @@ export interface LiveAgreement {
   landlordSignatureDataUrl?: string;
 }
 
-export type NotifRecipient = "landlord" | "dara_agent" | "tenant";
+export type NotifRecipient = "landlord" | "admin" | "tenant";
 
 /* Extension ---------------------------------------------------------- */
 export type ExtensionStatus =
@@ -242,7 +242,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         `${data.tenantName} has signed a contract for ${data.propertyTitle}. Please review and counter-sign.`, id);
       addNotif("tenant", "Contract Submitted Successfully",
         `Your signed contract for ${data.propertyTitle} has been sent to the landlord for counter-signature.`, id);
-      addNotif("dara_agent", "New Tenant-Initiated Agreement",
+      addNotif("admin", "New Tenant-Initiated Agreement",
         `A new rental contract for ${data.propertyTitle} has been submitted by tenant ${data.tenantName} and is awaiting landlord counter-signature.`, id);
       return id;
     },
@@ -269,7 +269,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
       });
       const a = agreements.find((x) => x.id === id);
       if (a) {
-        addNotif("dara_agent", "Agreement Requires DARA Verification",
+        addNotif("admin", "Agreement Requires DARA Verification",
           `A rental contract for ${a.propertyTitle} has been signed by both parties and awaits your review.`, id);
         addNotif("tenant", "Landlord Counter-Signed — Awaiting DARA Verification",
           `${a.landlordName} has counter-signed the contract for ${a.propertyTitle}. The agreement is now with DARA for compliance verification.`, id);
@@ -303,7 +303,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         `${data.landlordName} has sent you a signed rental contract for ${data.propertyTitle}. Go to My Agreements to review and sign.`, id);
       addNotif("landlord", "Contract Sent to Tenant",
         `Your signed contract for ${data.propertyTitle} has been sent to ${data.tenantName}. You will be notified when they accept.`, id);
-      addNotif("dara_agent", "Landlord-Initiated Contract Pending Tenant Acceptance",
+      addNotif("admin", "Landlord-Initiated Contract Pending Tenant Acceptance",
         `A contract for ${data.propertyTitle} has been signed by landlord ${data.landlordName} and is awaiting tenant acceptance.`, id);
       return id;
     },
@@ -328,7 +328,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
       });
       const a = agreements.find((x) => x.id === id);
       if (a) {
-        addNotif("dara_agent", "Agreement Requires DARA Verification",
+        addNotif("admin", "Agreement Requires DARA Verification",
           `Both parties have signed the contract for ${a.propertyTitle}. Awaiting your compliance review.`, id);
         addNotif("landlord", "Tenant Accepted and Signed the Contract",
           `${a.tenantName} has signed the contract for ${a.propertyTitle}. The agreement is now with DARA for verification.`, id);
@@ -356,7 +356,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
           `${a.tenantName} has declined the rental contract for ${a.propertyTitle}. The property is now available again.`, id);
         addNotif("tenant", "You Declined the Contract",
           `You have declined the rental contract for ${a.propertyTitle}. No further action is required.`, id);
-        addNotif("dara_agent", "Contract Declined by Tenant",
+        addNotif("admin", "Contract Declined by Tenant",
           `The rental contract for ${a.propertyTitle} was declined by tenant ${a.tenantName}.`, id);
       }
     },
@@ -380,7 +380,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
           `${a.tenantName} has cancelled the rental agreement for ${a.propertyTitle} before payment was made. The property is now available again.`, id);
         addNotif("tenant", "Agreement Cancelled",
           `You have cancelled the rental agreement for ${a.propertyTitle}. The landlord and DARA have been notified.`, id);
-        addNotif("dara_agent", "Agreement Cancelled by Tenant",
+        addNotif("admin", "Agreement Cancelled by Tenant",
           `The rental agreement for ${a.propertyTitle} (Tenant: ${a.tenantName}) was cancelled by the tenant before payment. No further action required.`, id);
       }
     },
@@ -404,7 +404,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
           `${a.landlordName} has cancelled the rental agreement for ${a.propertyTitle} before payment was made. The property is no longer reserved for you.`, id);
         addNotif("landlord", "You Cancelled the Agreement",
           `You have cancelled the rental agreement for ${a.propertyTitle}. The tenant (${a.tenantName}) and DARA have been notified.`, id);
-        addNotif("dara_agent", "Agreement Cancelled by Landlord",
+        addNotif("admin", "Agreement Cancelled by Landlord",
           `The rental agreement for ${a.propertyTitle} (Tenant: ${a.tenantName}) was cancelled by landlord ${a.landlordName} before payment. No further action required.`, id);
       }
     },
@@ -440,7 +440,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         `Your rental agreement for ${a.propertyTitle} has been approved by DARA. Please complete the advance payment of ETB ${a.advanceAmount.toLocaleString()} to activate your contract.`, id);
       addNotif("landlord", "Agreement Approved by DARA",
         `The rental agreement for ${a.propertyTitle} (Tenant: ${a.tenantName}) has been verified and approved by DARA. Awaiting advance payment from tenant.`, id);
-      addNotif("dara_agent", "Verification Submitted",
+      addNotif("admin", "Verification Submitted",
         `You have approved the rental agreement for ${a.propertyTitle}. Both parties have been notified.`, id);
     },
     [agreements, addNotif]
@@ -461,7 +461,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         `Your rental agreement for ${a.propertyTitle} was not approved by the Authorities. Please review compliance requirements or contact DARA for details.`, id);
       addNotif("landlord", "Agreement Rejected by DARA",
         `The rental agreement for ${a.propertyTitle} (Tenant: ${a.tenantName}) was rejected by the Authorities. Both parties have been notified.`, id);
-      addNotif("dara_agent", "Agreement Rejected",
+      addNotif("admin", "Agreement Rejected",
         `You rejected the rental agreement for ${a.propertyTitle}. Tenant and landlord were notified.`, id);
     },
     [agreements, addNotif]
@@ -487,7 +487,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
           agreementId
         );
         addNotif(
-          "dara_agent",
+          "admin",
           "Verification completed",
           `Approved agreement for ${meta.propertyTitle} (${meta.tenantName} / ${meta.landlordName}).`,
           agreementId
@@ -506,7 +506,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
           agreementId
         );
         addNotif(
-          "dara_agent",
+          "admin",
           "Verification completed",
           `Rejected agreement for ${meta.propertyTitle} (${meta.tenantName} / ${meta.landlordName}). Parties notified.`,
           agreementId
@@ -539,7 +539,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
           `${a.tenantName} has paid the advance (ETB ${a.advanceAmount.toLocaleString()}) via ${method}. The rental contract for ${a.propertyTitle} is now active.`, id);
         addNotif("tenant", "Payment Confirmed — Contract Active",
           `Your advance payment for ${a.propertyTitle} has been received. Your rental contract is now active. You may contact your landlord directly.`, id);
-        addNotif("dara_agent", "Rental Contract Activated",
+        addNotif("admin", "Rental Contract Activated",
           `Advance payment received for ${a.propertyTitle}. Tenant: ${a.tenantName}. Contract is now fully active.`, id);
       }
     },
@@ -601,7 +601,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         `${a.landlordName} has requested to extend your tenancy at ${a.propertyTitle} to ${new Date(newEndDate).toLocaleDateString()}. Please review and sign.`, agreementId);
       addNotif("landlord", "Extension Request Sent to Tenant",
         `Your extension request for ${a.propertyTitle} has been sent to ${a.tenantName} for signature.`, agreementId);
-      addNotif("dara_agent", "Tenancy Extension Requested",
+      addNotif("admin", "Tenancy Extension Requested",
         `Landlord ${a.landlordName} has requested an extension for ${a.propertyTitle} (Tenant: ${a.tenantName}).`, agreementId);
     },
     [agreements, addNotif]
@@ -622,7 +622,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
       });
       addNotif("landlord", "Tenant Signed the Extension",
         `${ext.tenantName} has signed the extension request for ${ext.propertyTitle}. Forwarded to DARA for verification.`, ext.agreementId);
-      addNotif("dara_agent", "Extension Requires Verification",
+      addNotif("admin", "Extension Requires Verification",
         `Both parties have signed an extension for ${ext.propertyTitle}. Please review and approve.`, ext.agreementId);
       addNotif("tenant", "Extension Signed — Awaiting DARA Approval",
         `You have signed the extension for ${ext.propertyTitle}. DARA is now reviewing the request.`, ext.agreementId);
@@ -695,7 +695,7 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
         `${a.landlordName} has filed a termination request for the tenancy at ${a.propertyTitle}. Reason: ${reason}. DARA has been notified.`, agreementId);
       addNotif("landlord", "Termination Request Submitted",
         `Your termination request for ${a.propertyTitle} has been submitted and sent to ${a.tenantName} and DARA.`, agreementId);
-      addNotif("dara_agent", "Tenancy Termination Requested",
+      addNotif("admin", "Tenancy Termination Requested",
         `Landlord ${a.landlordName} has requested termination of the tenancy at ${a.propertyTitle} (Tenant: ${a.tenantName}). Reason: ${reason}.`, agreementId);
     },
     [agreements, addNotif]

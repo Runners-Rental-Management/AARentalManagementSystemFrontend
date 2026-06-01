@@ -43,13 +43,13 @@ export default function TenantProfilePage() {
       <main className="flex-1 p-6 overflow-y-auto">
         <Link
           href="/dashboard/tenants"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary-600 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary-600 mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Find Tenants
         </Link>
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <div className="flex flex-col items-center justify-center py-20 text-stone-400">
             <Loader2 className="w-8 h-8 animate-spin mb-3" />
             <p className="text-sm">Loading tenant profile…</p>
           </div>
@@ -57,8 +57,8 @@ export default function TenantProfilePage() {
 
         {!loading && error && (
           <div className="text-center py-20">
-            <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600 font-medium">{error}</p>
+            <Building2 className="w-12 h-12 text-stone-300 mx-auto mb-3" />
+            <p className="text-stone-600 font-medium">{error}</p>
             <Link
               href="/dashboard/tenants"
               className="mt-3 inline-block text-primary-600 text-sm hover:underline"

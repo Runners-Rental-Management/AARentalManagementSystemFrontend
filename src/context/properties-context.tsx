@@ -11,7 +11,7 @@ import {
 } from "react";
 import type { Property } from "@/lib/types";
 import { useAuth } from "@/context/auth-context";
-import { apiCreateProperty, apiListProperties, getAccessToken } from "@/lib/api";
+import { apiCreateProperty, apiListProperties, getAccessToken, type UploadedFile } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
 /*  Context                                                            */
@@ -21,8 +21,8 @@ export type NewPropertyInput = Omit<
   Property,
   "id" | "status" | "createdAt" | "verifiedAt" | "images"
 > & {
-  /** Object-URL previews from the upload step (kept ephemeral) */
   images?: string[];
+  ownershipDocuments?: UploadedFile[];
 };
 
 interface PropertiesCtx {
@@ -49,14 +49,22 @@ export function PropertiesProvider({ children }: { children: ReactNode }) {
       setUserProperties([]);
       return;
     }
+    // Only roles that have properties to list
+    if (user?.role === "admin") {
+      setUserProperties([]);
+      return;
+    }
     setIsLoading(true);
     try {
       const result = await apiListProperties(token, "page=1&pageSize=100");
       setUserProperties(result.items);
+    } catch {
+      // Silently fail — properties not critical for auth flow
+      setUserProperties([]);
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.role]);
 
   useEffect(() => {
     void refreshProperties();
@@ -83,6 +91,7 @@ export function PropertiesProvider({ children }: { children: ReactNode }) {
         images: input.images ?? [],
         description: input.description,
         homeCondition: input.homeCondition,
+        ownershipDocuments: input.ownershipDocuments,
       });
 
       setUserProperties((prev) => [created, ...prev]);

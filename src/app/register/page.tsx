@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -55,18 +55,24 @@ function FieldError({ msg }: { msg?: string }) {
 }
 
 function inputCls(err?: string) {
-  return `w-full px-3.5 py-2.5 rounded-lg border ${err ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/20" : "border-slate-300 focus:border-primary-500 focus:ring-primary-500/20"} focus:ring-2 outline-none transition-all text-sm`;
+  return `w-full px-3.5 py-2.5 rounded-lg border ${err ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/20" : "border-stone-300 focus:border-primary-500 focus:ring-primary-500/20"} focus:ring-2 outline-none transition-all text-sm`;
 }
 
 function RegisterPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, locale, setLocale } = useLanguage();
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const { withLoading } = useLoading();
   const { showError } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm]   = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, router]);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -170,7 +176,7 @@ function RegisterPageInner() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-slate-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-stone-50 flex">
       {/* Sidebar */}
       <div className="hidden lg:flex lg:w-5/12 bg-primary-700 relative overflow-hidden items-center justify-center p-12">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDJ2LTJoMzR6bTAtMzBWNkgyVjRoMzR6TTIgNTBoMzR2Mkgydi0yeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
@@ -191,7 +197,7 @@ function RegisterPageInner() {
           <div className="flex items-center justify-between mb-6 gap-3">
             <Link
               href={selectedProperty ? "/explore" : "/"}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-stone-100 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               {selectedProperty ? t("landing", "explore") : t("explore", "backToHome")}
@@ -204,27 +210,27 @@ function RegisterPageInner() {
             </div>
             <button
               onClick={() => setLocale(locale === "en" ? "am" : "en")}
-              className="text-sm font-medium text-slate-700 hover:text-primary-600 px-3 py-1.5 border border-slate-200 rounded-lg flex items-center gap-1.5"
+              className="text-sm font-medium text-stone-700 hover:text-primary-600 px-3 py-1.5 border border-stone-200 rounded-lg flex items-center gap-1.5"
             >
               <Globe className="w-4 h-4" />{locale === "en" ? "አማርኛ" : "English"}
             </button>
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">{t("auth", "createAccount")}</h1>
-          <p className="text-slate-500 mb-6">{t("auth", "registerSubtitle")}</p>
+          <h1 className="text-2xl font-bold text-stone-900 mb-2">{t("auth", "createAccount")}</h1>
+          <p className="text-stone-500 mb-6">{t("auth", "registerSubtitle")}</p>
 
           {/* Property intent card */}
           {selectedProperty && (
-            <div className="mb-6 rounded-2xl border border-primary-200 bg-gradient-to-br from-primary-50 to-indigo-50 p-4 flex items-start gap-4">
-              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shrink-0 shadow-sm">
+            <div className="mb-6 rounded-2xl border border-primary-200 bg-gradient-to-br from-primary-50 to-primary-50 p-4 flex items-start gap-4">
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-600 to-primary-600 flex items-center justify-center shrink-0 shadow-sm">
                 <Heart className="w-7 h-7 text-white fill-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-1">
                   {t("explore", "rentThisHome")}
                 </div>
-                <div className="font-semibold text-slate-900 truncate">{selectedProperty.title}</div>
-                <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-0.5">
+                <div className="font-semibold text-stone-900 truncate">{selectedProperty.title}</div>
+                <div className="flex items-center gap-1.5 text-xs text-stone-600 mt-0.5">
                   <MapPin className="w-3.5 h-3.5" />
                   <span className="truncate">{selectedProperty.subCity} · {selectedProperty.address}</span>
                 </div>
@@ -232,7 +238,7 @@ function RegisterPageInner() {
                   {selectedProperty.monthlyRent.toLocaleString()} ETB{t("explore", "perMonth")}
                 </div>
               </div>
-              <Link href="/explore" className="text-xs font-medium text-slate-500 hover:text-primary-700 shrink-0">
+              <Link href="/explore" className="text-xs font-medium text-stone-500 hover:text-primary-700 shrink-0">
                 Change
               </Link>
             </div>
@@ -248,14 +254,14 @@ function RegisterPageInner() {
                 className={`p-4 rounded-xl border-2 text-left transition-all ${
                   selectedRole === role.value
                     ? "border-primary-500 bg-primary-50"
-                    : "border-slate-200 hover:border-slate-300"
+                    : "border-stone-200 hover:border-stone-300"
                 }`}
               >
-                <role.icon className={`w-6 h-6 mb-2 ${selectedRole === role.value ? "text-primary-600" : "text-slate-400"}`} />
-                <p className={`font-semibold text-sm ${selectedRole === role.value ? "text-primary-700" : "text-slate-700"}`}>
+                <role.icon className={`w-6 h-6 mb-2 ${selectedRole === role.value ? "text-primary-600" : "text-stone-400"}`} />
+                <p className={`font-semibold text-sm ${selectedRole === role.value ? "text-primary-700" : "text-stone-700"}`}>
                   {t("auth", role.labelKey)}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">{t("auth", role.descKey)}</p>
+                <p className="text-xs text-stone-500 mt-0.5">{t("auth", role.descKey)}</p>
               </button>
             ))}
           </div>
@@ -282,7 +288,7 @@ function RegisterPageInner() {
             {/* Name row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-stone-700 mb-1">
                   {t("auth", "firstName")} <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -296,7 +302,7 @@ function RegisterPageInner() {
                 <FieldError msg={errors.firstName} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-stone-700 mb-1">
                   {t("auth", "lastName")} <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -313,7 +319,7 @@ function RegisterPageInner() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-stone-700 mb-1">
                 {t("auth", "email")} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -337,7 +343,7 @@ function RegisterPageInner() {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-stone-700 mb-1">
                 {t("auth", "phone")} <span className="text-red-500">*</span>
               </label>
               <input
@@ -353,7 +359,7 @@ function RegisterPageInner() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-stone-700 mb-1">
                 {t("auth", "password")} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -368,7 +374,7 @@ function RegisterPageInner() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -381,7 +387,7 @@ function RegisterPageInner() {
                       <div
                         key={s}
                         className={`h-1 flex-1 rounded-full transition-all ${
-                          pwStrength.score >= s ? pwStrength.color : "bg-slate-200"
+                          pwStrength.score >= s ? pwStrength.color : "bg-stone-200"
                         }`}
                       />
                     ))}
@@ -397,7 +403,7 @@ function RegisterPageInner() {
               )}
               <FieldError msg={errors.password} />
               {!errors.password && (
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-stone-400">
                   Use 8+ characters with uppercase letters and numbers.
                 </p>
               )}
@@ -405,7 +411,7 @@ function RegisterPageInner() {
 
             {/* Confirm password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-stone-700 mb-1">
                 {t("auth", "confirmPassword")} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -420,7 +426,7 @@ function RegisterPageInner() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                 >
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -444,9 +450,9 @@ function RegisterPageInner() {
                     setTermsAccepted(e.target.checked);
                     if (submitted) setErrors((prev) => ({ ...prev, terms: e.target.checked ? undefined : "You must accept the terms and conditions." }));
                   }}
-                  className="mt-0.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                  className="mt-0.5 rounded border-stone-300 text-primary-600 focus:ring-primary-500"
                 />
-                <label htmlFor="terms" className="text-xs text-slate-500 cursor-pointer">
+                <label htmlFor="terms" className="text-xs text-stone-500 cursor-pointer">
                   {t("auth", "terms")}
                 </label>
               </div>
@@ -459,14 +465,14 @@ function RegisterPageInner() {
               className={`w-full font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
                 !isLandlordWithRentIntent
                   ? "bg-primary-600 hover:bg-primary-700 text-white"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  : "bg-stone-200 text-stone-400 cursor-not-allowed"
               }`}
             >
               <UserPlus className="w-4 h-4" />{t("auth", "createButton")}
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500 mt-6">
+          <p className="text-center text-sm text-stone-500 mt-6">
             {t("auth", "hasAccount")}{" "}
             <Link
               href={
@@ -489,7 +495,7 @@ function RegisterPageInner() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+    <Suspense fallback={<div className="min-h-screen bg-stone-50" />}>
       <RegisterPageInner />
     </Suspense>
   );

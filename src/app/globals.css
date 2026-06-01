@@ -4,33 +4,73 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Teal — institutional, calm, not generic startup blue */
+  --color-primary-50: #f0fdfa;
+  --color-primary-100: #ccfbf1;
+  --color-primary-200: #99f6e4;
+  --color-primary-300: #5eead4;
+  --color-primary-400: #2dd4bf;
+  --color-primary-500: #14b8a6;
+  --color-primary-600: #0d9488;
+  --color-primary-700: #0f766e;
+  --color-primary-800: #115e59;
+  --color-primary-900: #134e4a;
+  --color-primary-950: #042f2e;
 
-  --color-accent-50: #fffbeb;
-  --color-accent-100: #fef3c7;
-  --color-accent-200: #fde68a;
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b;
-  --color-accent-600: #d97706;
+  /* Warm ochre accent — earth tones */
+  --color-accent-50: #fdf8f3;
+  --color-accent-100: #f9edd9;
+  --color-accent-200: #f0d4a8;
+  --color-accent-300: #e4b87a;
+  --color-accent-400: #d4954a;
+  --color-accent-500: #b87333;
+  --color-accent-600: #9a5f28;
+
+  --color-surface: #faf9f7;
+  --color-surface-muted: #f5f3ef;
+  --color-surface-elevated: #ffffff;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --shadow-soft: 0 1px 2px rgba(28, 25, 23, 0.04), 0 4px 16px rgba(28, 25, 23, 0.06);
+  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.05), 0 8px 24px rgba(28, 25, 23, 0.07);
 }
 
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-surface);
+  color: #1c1917;
+}
+
+/* ── Reusable surface & panel utilities ── */
+.ui-card {
+  background: var(--color-surface-elevated);
+  border: 1px solid rgba(214, 211, 209, 0.7);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.ui-card-hover {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.ui-card-hover:hover {
+  border-color: rgba(13, 148, 136, 0.25);
+  box-shadow: var(--shadow-card);
+}
+
+.hero-bg {
+  background-color: var(--color-surface);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% -10%, rgba(13, 148, 136, 0.07), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 100% 50%, rgba(184, 115, 51, 0.05), transparent 50%);
+}
+
+.page-heading {
+  letter-spacing: -0.025em;
+  color: #1c1917;
 }
 
 .scrollbar-thin::-webkit-scrollbar {
@@ -56,6 +96,54 @@ body {
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Dashboard form polish: keep working forms centered and readable without
+   changing the standalone login/register screens. */
+.dashboard-shell main > div[class*="max-w-3xl"]:not([class*="mx-auto"]),
+.dashboard-shell main > div[class*="max-w-4xl"]:not([class*="mx-auto"]),
+.dashboard-shell main > div[class*="max-w-xl"]:not([class*="mx-auto"]) {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dashboard-shell {
+  background-color: var(--color-surface-muted);
+  background-image: radial-gradient(ellipse 90% 60% at 50% -30%, rgba(13, 148, 136, 0.04), transparent);
+}
+
+.dashboard-shell form label {
+  color: #44403c;
+  font-weight: 500;
+}
+
+.dashboard-shell form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.dashboard-shell form select,
+.dashboard-shell form textarea {
+  background-color: #fff;
+  border-color: #d6d3d1;
+  border-radius: 0.5rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dashboard-shell form input:focus:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.dashboard-shell form select:focus,
+.dashboard-shell form textarea:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+  outline: none;
+}
+
+.dashboard-shell form input::placeholder,
+.dashboard-shell form textarea::placeholder {
+  color: #a8a29e;
+}
+
+/* Elevated panels used across dashboard pages */
+.dashboard-shell [class*="rounded-xl"][class*="border"][class*="bg-white"],
+.dashboard-shell [class*="rounded-2xl"][class*="border"][class*="bg-white"] {
+  box-shadow: var(--shadow-soft);
 }
 
 /* ---------- Animations ---------- */
@@ -196,7 +284,7 @@ body {
 
 /* ── Dossier / property file styles ── */
 .paper-manila {
-  background-color: #f8fafc;
+  background-color: #f5f3ef;
   background-image:
     radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.75) 0%, transparent 45%),
     radial-gradient(ellipse at 80% 80%, rgba(15, 23, 42, 0.05) 0%, transparent 50%),

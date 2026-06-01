@@ -39,12 +39,8 @@ export default function UserManagementPage() {
         return "bg-blue-100 text-blue-700";
       case "tenant":
         return "bg-emerald-100 text-emerald-700";
-      case "dara_agent":
-        return "bg-amber-100 text-amber-700";
-      case "system_admin":
-        return "bg-red-100 text-red-700";
       default:
-        return "bg-slate-100 text-slate-600";
+        return "bg-stone-100 text-stone-600";
     }
   };
 
@@ -53,17 +49,17 @@ export default function UserManagementPage() {
       <Header title={t("admin", "userManagement")} />
       <main className="flex-1 p-6 overflow-y-auto">
         {/* Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-          {["tenant", "landlord", "admin", "dara_agent", "system_admin"].map(
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {["tenant", "landlord", "admin"].map(
             (role) => (
               <div
                 key={role}
-                className="bg-white rounded-xl border border-slate-200 p-4 text-center"
+                className="bg-white rounded-xl border border-stone-200 p-4 text-center"
               >
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold text-stone-900">
                   {users.filter((u) => u.role === role).length}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-stone-500">
                   {t("roles", role)}
                 </p>
               </div>
@@ -73,8 +69,8 @@ export default function UserManagementPage() {
 
         {/* Filters */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder="Search users..."
@@ -84,51 +80,49 @@ export default function UserManagementPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-stone-400" />
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white outline-none"
+              className="text-sm border border-stone-200 rounded-lg px-3 py-2 bg-white outline-none"
             >
               <option value="all">All Roles</option>
               <option value="tenant">Tenants</option>
               <option value="landlord">Landlords</option>
               <option value="admin">Admins</option>
-              <option value="dara_agent">Authorities Agents</option>
-              <option value="system_admin">System Admin</option>
             </select>
           </div>
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">
+                <tr className="bg-stone-50 border-b border-stone-200">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase px-6 py-3">
                     User
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase px-6 py-3">
                     Contact
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase px-6 py-3">
                     Role
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase px-6 py-3">
                     Status
                   </th>
-                  <th className="text-left text-xs font-semibold text-slate-500 uppercase px-6 py-3">
+                  <th className="text-left text-xs font-semibold text-stone-500 uppercase px-6 py-3">
                     Registered
                   </th>
                   <th className="px-6 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-stone-100">
                 {filtered.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-slate-50 transition-colors"
+                    className="hover:bg-stone-50 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -138,22 +132,22 @@ export default function UserManagementPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900">
+                          <p className="text-sm font-medium text-stone-900">
                             {user.firstName} {user.lastName}
                           </p>
-                          <p className="text-xs text-slate-500 font-mono">
+                          <p className="text-xs text-stone-500 font-mono">
                             {user.idNumber}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600 mb-0.5">
-                        <Mail className="w-3 h-3 text-slate-400" />
+                      <div className="flex items-center gap-1.5 text-sm text-stone-600 mb-0.5">
+                        <Mail className="w-3 h-3 text-stone-400" />
                         {user.email}
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                        <Phone className="w-3 h-3 text-slate-400" />
+                      <div className="flex items-center gap-1.5 text-xs text-stone-500">
+                        <Phone className="w-3 h-3 text-stone-400" />
                         {user.phone}
                       </div>
                     </td>
@@ -177,11 +171,11 @@ export default function UserManagementPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">
+                    <td className="px-6 py-4 text-sm text-stone-500">
                       {formatDate(user.createdAt)}
                     </td>
                     <td className="px-6 py-4">
-                      <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded">
+                      <button className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded">
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </td>

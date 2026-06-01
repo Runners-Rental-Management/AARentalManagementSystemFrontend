@@ -29,24 +29,22 @@ import {
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
 import { useFavorites } from "@/context/favorites-context";
-import { useRentalFlow, type NotifRecipient } from "@/context/rental-flow-context";
-import { notifications } from "@/lib/dummy-data";
+import { apiGetUnreadCount, getAccessToken } from "@/lib/api";
 import { cn, getInitials } from "@/lib/utils";
 
 type NavItem = {
   labelKey: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  roles: Array<"admin" | "landlord" | "tenant" | "dara_agent">;
+  roles: Array<"admin" | "landlord" | "tenant">;
 };
 
 type NavRole = NavItem["roles"][number];
 
 function toNavRole(role: string | undefined): NavRole {
-  if (role === "admin" || role === "landlord" || role === "tenant" || role === "dara_agent") {
+  if (role === "admin" || role === "landlord" || role === "tenant") {
     return role;
   }
-  if (role === "system_admin") return "admin";
   return "tenant";
 }
 
@@ -54,22 +52,16 @@ const ALL_ITEMS: NavItem[] = [
   { labelKey: "favorites", href: "/dashboard/favorites", icon: Heart, roles: ["tenant"] },
   { labelKey: "myAgreements", href: "/dashboard/agreements", icon: FileText, roles: ["tenant"] },
   { labelKey: "payments", href: "/dashboard/payments", icon: CreditCard, roles: ["tenant"] },
-  { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["dara_agent", "admin"] },
+  { labelKey: "analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin"] },
   { labelKey: "userManagement", href: "/dashboard/admin/users", icon: Users, roles: ["admin"] },
   { labelKey: "systemParameters", href: "/dashboard/admin/parameters", icon: Settings, roles: ["admin"] },
   { labelKey: "auditLogs", href: "/dashboard/admin/audit-logs", icon: ScrollText, roles: ["admin"] },
   { labelKey: "rolesPermissions", href: "/dashboard/admin/roles", icon: Shield, roles: ["admin"] },
-  { labelKey: "verifyAgreements", href: "/dashboard/admin/verifications", icon: ShieldCheck, roles: ["dara_agent"] },
-  { labelKey: "reviewViolations", href: "/dashboard/disputes", icon: AlertTriangle, roles: ["dara_agent"] },
-  { labelKey: "approveRentAdjustment", href: "/dashboard/rent-adjustment", icon: TrendingUp, roles: ["dara_agent"] },
-  { labelKey: "penaltyNotices", href: "/dashboard/penalty-notices", icon: Gavel, roles: ["dara_agent"] },
 ];
 
-// Per-role primary nav shown inline ("More" holds analytics & extras for authority)
 const PRIMARY: Record<string, string[]> = {
   tenant: ["favorites", "myAgreements", "payments"],
   admin: ["userManagement", "systemParameters", "auditLogs", "rolesPermissions"],
-  dara_agent: ["verifyAgreements", "reviewViolations", "approveRentAdjustment", "penaltyNotices"],
 };
 
 export function TopNav() {
@@ -79,8 +71,7 @@ export function TopNav() {
   const { count: favCount } = useFavorites();
   const role = toNavRole(user?.role);
 
-  const { unreadFor } = useRentalFlow();
-
+  const [unread, setUnread] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
@@ -111,17 +102,33 @@ export function TopNav() {
     setUserOpen(false);
   }, [pathname]);
 
+  // Poll unread notification count every 30 s
+  useEffect(() => {
+    let active = true;
+    const fetch = async () => {
+      const token = getAccessToken();
+      if (!token) return;
+      try {
+        const count = await apiGetUnreadCount(token);
+        if (active) setUnread(count);
+      } catch {
+        // ignore
+      }
+    };
+    void fetch();
+    const id = window.setInterval(fetch, 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+    };
+  }, []);
+
   const roleItems = ALL_ITEMS.filter((i) => i.roles.includes(role));
   const primaryKeys = PRIMARY[role] ?? [];
   const primaryItems = primaryKeys
     .map((k) => roleItems.find((i) => i.labelKey === k))
     .filter(Boolean) as NavItem[];
   const secondaryItems = roleItems.filter((i) => !primaryKeys.includes(i.labelKey));
-
-  const staticUnread = notifications.filter((n) => !n.isRead).length;
-  const liveRole: NotifRecipient =
-    role === "landlord" ? "landlord" : role === "dara_agent" ? "dara_agent" : "tenant";
-  const unread = staticUnread + unreadFor(liveRole);
 
   const labelFor = (item: NavItem) => t("nav", item.labelKey);
 
@@ -134,8 +141,8 @@ export function TopNav() {
         className={cn(
           "sticky top-0 inset-x-0 z-40 transition-all duration-300",
           scrolled
-            ? "bg-white/90 backdrop-blur-lg border-b border-slate-200 shadow-sm"
-            : "bg-white border-b border-slate-200"
+            ? "bg-surface-elevated/95 backdrop-blur-md border-b border-stone-200/80 shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
+            : "bg-surface-elevated border-b border-stone-200/80"
         )}
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -143,14 +150,14 @@ export function TopNav() {
             <div className="flex items-center gap-2 lg:gap-8">
               <Link
                 href={
-                  role === "admin" || role === "dara_agent" ? "/dashboard/authority" : "/dashboard"
+                  role === "admin" ? "/dashboard/authority" : "/dashboard"
                 }
                 className="flex items-center gap-2 group shrink-0"
               >
-                <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-sm transition-all group-hover:scale-110 group-hover:rotate-3">
+                <div className="w-9 h-9 bg-primary-700 rounded-lg flex items-center justify-center shadow-sm transition-transform duration-200 group-hover:scale-[1.03]">
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-base text-slate-900 hidden sm:inline">
+                <span className="font-bold text-base text-stone-900 hidden sm:inline">
                   {t("landing", "brand")}
                   <span className="text-primary-600">{t("landing", "brandAccent")}</span>
                 </span>
@@ -168,7 +175,7 @@ export function TopNav() {
                         "relative px-3.5 py-2 text-sm font-medium rounded-full transition-all duration-200 inline-flex items-center gap-2",
                         active
                           ? "text-primary-700 bg-primary-50"
-                          : "text-slate-600 hover:text-primary-700 hover:bg-slate-100"
+                          : "text-stone-600 hover:text-primary-700 hover:bg-stone-100"
                       )}
                     >
                       <item.icon
@@ -178,17 +185,17 @@ export function TopNav() {
                             ? "text-rose-500 fill-rose-500"
                             : active
                               ? "text-primary-600"
-                              : "text-slate-400"
+                              : "text-stone-400"
                         )}
                       />
                       <span>{labelFor(item)}</span>
                       {item.labelKey === "favorites" && favCount > 0 && (
-                        <span className="ml-0.5 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-sm">
+                        <span className="ml-0.5 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-rose-600 text-white">
                           {favCount}
                         </span>
                       )}
                       {active && (
-                        <span className="absolute -bottom-[17px] left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-gradient-to-r from-primary-500 to-indigo-500" />
+                        <span className="absolute -bottom-[17px] left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full bg-primary-600" />
                       )}
                     </Link>
                   );
@@ -199,7 +206,7 @@ export function TopNav() {
                   <div className="relative" ref={moreRef}>
                     <button
                       onClick={() => setMoreOpen((v) => !v)}
-                      className="px-3.5 py-2 text-sm font-medium rounded-full transition-colors inline-flex items-center gap-1.5 text-slate-600 hover:text-primary-700 hover:bg-slate-100"
+                      className="px-3.5 py-2 text-sm font-medium rounded-full transition-colors inline-flex items-center gap-1.5 text-stone-600 hover:text-primary-700 hover:bg-stone-100"
                     >
                       More
                       <ChevronDown
@@ -207,7 +214,7 @@ export function TopNav() {
                       />
                     </button>
                     {moreOpen && (
-                      <div className="absolute left-0 mt-2 w-60 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 animate-fade-in-up">
+                      <div className="absolute left-0 mt-2 w-60 bg-white rounded-2xl border border-stone-200 shadow-xl p-2 animate-fade-in-up">
                         {secondaryItems.map((item) => {
                           const active = isActive(item.href);
                           return (
@@ -218,13 +225,13 @@ export function TopNav() {
                                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
                                 active
                                   ? "bg-primary-50 text-primary-700"
-                                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                  : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
                               )}
                             >
                               <item.icon
                                 className={cn(
                                   "w-4 h-4",
-                                  active ? "text-primary-600" : "text-slate-400"
+                                  active ? "text-primary-600" : "text-stone-400"
                                 )}
                               />
                               <span className="truncate">{labelFor(item)}</span>
@@ -242,7 +249,7 @@ export function TopNav() {
             <div className="flex items-center gap-1 sm:gap-2">
               {/* Search (decorative, no functionality yet) */}
               <button
-                className="hidden md:inline-flex items-center justify-center w-9 h-9 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                className="hidden md:inline-flex items-center justify-center w-9 h-9 rounded-full text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors"
                 aria-label="Search"
               >
                 <Search className="w-4 h-4" />
@@ -251,7 +258,7 @@ export function TopNav() {
               {/* Language */}
               <button
                 onClick={() => setLocale(locale === "en" ? "am" : "en")}
-                className="inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 rounded-full text-sm font-medium text-slate-600 hover:text-primary-700 hover:bg-slate-100 transition-colors gap-1.5"
+                className="inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 rounded-full text-sm font-medium text-stone-600 hover:text-primary-700 hover:bg-stone-100 transition-colors gap-1.5"
               >
                 <Globe className="w-4 h-4" />
                 <span className="hidden sm:inline">{locale === "en" ? "አማ" : "EN"}</span>
@@ -260,7 +267,7 @@ export function TopNav() {
               {/* Notifications */}
               <Link
                 href="/dashboard/notifications"
-                className="relative inline-flex items-center justify-center w-9 h-9 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                className="relative inline-flex items-center justify-center w-9 h-9 rounded-full text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors"
                 aria-label="Notifications"
               >
                 <Bell className="w-4.5 h-4.5" />
@@ -275,44 +282,44 @@ export function TopNav() {
               <div className="relative" ref={userRef}>
                 <button
                   onClick={() => setUserOpen((v) => !v)}
-                  className="group flex items-center gap-2 p-1 pr-2 sm:pr-3 rounded-full hover:bg-slate-100 transition-colors"
+                  className="group flex items-center gap-2 p-1 pr-2 sm:pr-3 rounded-full hover:bg-stone-100 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-xs shadow-sm">
+                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-xs shadow-sm">
                     {user ? getInitials(`${user.firstName} ${user.lastName}`) : "?"}
                   </div>
                   <div className="hidden sm:block text-left leading-tight">
-                    <div className="text-xs font-semibold text-slate-900 truncate max-w-[8rem]">
+                    <div className="text-xs font-semibold text-stone-900 truncate max-w-[8rem]">
                       {user?.firstName}
                     </div>
-                    <div className="text-[10px] text-slate-500 capitalize">{t("roles", role)}</div>
+                    <div className="text-[10px] text-stone-500 capitalize">{t("roles", role)}</div>
                   </div>
                   <ChevronDown
                     className={cn(
-                      "w-3.5 h-3.5 text-slate-400 hidden sm:inline transition-transform",
+                      "w-3.5 h-3.5 text-stone-400 hidden sm:inline transition-transform",
                       userOpen && "rotate-180"
                     )}
                   />
                 </button>
                 {userOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 animate-fade-in-up">
-                    <div className="p-3 mb-1 border-b border-slate-100">
-                      <div className="font-semibold text-slate-900 text-sm">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-stone-200 shadow-xl p-2 animate-fade-in-up">
+                    <div className="p-3 mb-1 border-b border-stone-100">
+                      <div className="font-semibold text-stone-900 text-sm">
                         {user?.firstName} {user?.lastName}
                       </div>
-                      <div className="text-xs text-slate-500 truncate">{user?.email}</div>
+                      <div className="text-xs text-stone-500 truncate">{user?.email}</div>
                     </div>
                     <Link
                       href="/dashboard/profile"
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-stone-700 hover:bg-stone-50"
                     >
-                      <UserCircle className="w-4 h-4 text-slate-400" />
+                      <UserCircle className="w-4 h-4 text-stone-400" />
                       {t("nav", "profile")}
                     </Link>
                     <Link
                       href="/dashboard/notifications"
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-stone-700 hover:bg-stone-50"
                     >
-                      <Bell className="w-4 h-4 text-slate-400" />
+                      <Bell className="w-4 h-4 text-stone-400" />
                       {t("nav", "notifications")}
                       {unread > 0 && (
                         <span className="ml-auto text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full">
@@ -323,7 +330,7 @@ export function TopNav() {
                     <button
                       onClick={() => {
                         const isAuthority =
-                          role === "admin" || role === "dara_agent";
+                          role === "admin";
                         logout();
                         window.location.href = isAuthority
                           ? "/authority/login"
@@ -341,7 +348,7 @@ export function TopNav() {
               {/* Mobile menu toggle */}
               <button
                 onClick={() => setMobileOpen((v) => !v)}
-                className="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-full text-slate-700 hover:bg-slate-100 transition-colors"
+                className="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-full text-stone-700 hover:bg-stone-100 transition-colors"
                 aria-label="Menu"
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -352,7 +359,7 @@ export function TopNav() {
 
         {/* Mobile drawer */}
         {mobileOpen && (
-          <div className="lg:hidden border-t border-slate-200 bg-white animate-fade-in-up">
+          <div className="lg:hidden border-t border-stone-200 bg-white animate-fade-in-up">
             <div className="max-w-[1400px] mx-auto px-4 py-3 space-y-1">
               {[...primaryItems, ...secondaryItems].map((item) => {
                 const active = isActive(item.href);
@@ -364,7 +371,7 @@ export function TopNav() {
                       "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
                       active
                         ? "bg-primary-50 text-primary-700"
-                        : "text-slate-600 hover:bg-slate-50"
+                        : "text-stone-600 hover:bg-stone-50"
                     )}
                   >
                     <item.icon
@@ -374,12 +381,12 @@ export function TopNav() {
                           ? "text-rose-500 fill-rose-500"
                           : active
                             ? "text-primary-600"
-                            : "text-slate-400"
+                            : "text-stone-400"
                       )}
                     />
                     <span className="flex-1">{labelFor(item)}</span>
                     {item.labelKey === "favorites" && favCount > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white">
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-rose-600 text-white">
                         {favCount}
                       </span>
                     )}

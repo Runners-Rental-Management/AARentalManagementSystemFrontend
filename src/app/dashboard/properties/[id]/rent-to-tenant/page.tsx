@@ -92,7 +92,7 @@ function SignaturePad({
 
   return (
     <div className="space-y-2">
-      <div className="relative rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 overflow-hidden">
+      <div className="relative rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 overflow-hidden">
         <canvas
           ref={canvasRef}
           width={700}
@@ -107,15 +107,15 @@ function SignaturePad({
           onTouchEnd={endDraw}
         />
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none">
-          <div className="w-48 h-px bg-slate-300" />
-          <p className="text-center text-[10px] text-slate-400 mt-0.5 tracking-wide">SIGN HERE</p>
+          <div className="w-48 h-px bg-stone-300" />
+          <p className="text-center text-[10px] text-stone-400 mt-0.5 tracking-wide">SIGN HERE</p>
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <button type="button" onClick={clear} className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-rose-600 transition-colors">
+        <button type="button" onClick={clear} className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-rose-600 transition-colors">
           <Eraser className="w-3.5 h-3.5" /> Clear
         </button>
-        <button type="button" onClick={exportSig} className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary-600 transition-colors">
+        <button type="button" onClick={exportSig} className="inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-primary-600 transition-colors">
           <Download className="w-3.5 h-3.5" /> Export as PNG
         </button>
       </div>
@@ -137,11 +137,11 @@ function StepDot({ label, step, current }: { label: string; step: Step; current:
       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
         done  ? "bg-emerald-500 border-emerald-500 text-white" :
         active ? "bg-primary-600 border-primary-600 text-white" :
-                 "bg-white border-slate-300 text-slate-400"
+                 "bg-white border-stone-300 text-stone-400"
       }`}>
         {done ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
       </div>
-      <span className={`text-xs font-medium ${active ? "text-primary-600" : done ? "text-emerald-600" : "text-slate-400"}`}>
+      <span className={`text-xs font-medium ${active ? "text-primary-600" : done ? "text-emerald-600" : "text-stone-400"}`}>
         {label}
       </span>
     </div>
@@ -175,7 +175,7 @@ export default function RentToTenantPage() {
       <>
         <Header title="Rent to Specific Tenant" />
         <main className="flex-1 p-6 flex items-center justify-center">
-          <p className="text-slate-500">Property not found.</p>
+          <p className="text-stone-500">Property not found.</p>
         </main>
       </>
     );
@@ -187,7 +187,7 @@ export default function RentToTenantPage() {
       <>
         <Header title="Rent to Specific Tenant" />
         <main className="flex-1 p-6 flex items-center justify-center">
-          <p className="text-slate-500">You do not own this property.</p>
+          <p className="text-stone-500">You do not own this property.</p>
         </main>
       </>
     );
@@ -269,7 +269,7 @@ export default function RentToTenantPage() {
       <main className="flex-1 p-6 overflow-y-auto">
         <Link
           href={`/dashboard/properties/${property.id}`}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary-600 mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary-600 mb-6"
         >
           <ArrowLeft className="w-4 h-4" /> {ct("backToProperty")}
         </Link>
@@ -277,41 +277,41 @@ export default function RentToTenantPage() {
         {/* Progress stepper */}
         <div className="flex items-center justify-center gap-4 mb-8">
           <StepDot label={ct("stepFind")} step="lookup" current={step} />
-          <div className="flex-1 max-w-[60px] h-px bg-slate-200" />
+          <div className="flex-1 max-w-[60px] h-px bg-stone-200" />
           <StepDot label={ct("stepConfirm")} step="confirm_tenant" current={step} />
-          <div className="flex-1 max-w-[60px] h-px bg-slate-200" />
+          <div className="flex-1 max-w-[60px] h-px bg-stone-200" />
           <StepDot label={ct("stepSign")} step="sign_contract" current={step} />
-          <div className="flex-1 max-w-[60px] h-px bg-slate-200" />
+          <div className="flex-1 max-w-[60px] h-px bg-stone-200" />
           <StepDot label={ct("stepDone")} step="done" current={step} />
         </div>
 
         <div className="max-w-xl mx-auto space-y-6">
 
           {/* Property summary card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-4">
+          <div className="bg-white border border-stone-200 rounded-2xl p-4 flex items-center gap-4">
             <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
               <Building2 className="w-6 h-6 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-slate-900 truncate">{property.title}</p>
-              <p className="text-sm text-slate-500">{property.address}, {property.subCity}</p>
+              <p className="font-semibold text-stone-900 truncate">{property.title}</p>
+              <p className="text-sm text-stone-500">{property.address}, {property.subCity}</p>
             </div>
             <div className="text-right shrink-0">
               <p className="font-bold text-primary-700">{formatCurrency(property.monthlyRent)}</p>
-              <p className="text-xs text-slate-400">{ct("perMonth")}</p>
+              <p className="text-xs text-stone-400">{ct("perMonth")}</p>
             </div>
           </div>
 
           {/* ── STEP 1: Fayda Lookup ── */}
           {step === "lookup" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5">
+            <div className="bg-white border border-stone-200 rounded-2xl p-6 space-y-5">
               <div>
-                <h2 className="text-lg font-bold text-slate-900 mb-1">{ct("findTitle")}</h2>
-                <p className="text-sm text-slate-500">{ct("findDesc")}</p>
+                <h2 className="text-lg font-bold text-stone-900 mb-1">{ct("findTitle")}</h2>
+                <p className="text-sm text-stone-500">{ct("findDesc")}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">
                   {ct("fanLabel")}
                 </label>
                 <div className="flex gap-2">
@@ -325,7 +325,7 @@ export default function RentToTenantPage() {
                     className={`flex-1 px-4 py-2.5 rounded-lg border text-sm font-mono tracking-widest outline-none focus:ring-2 transition-all ${
                       lookupError
                         ? "border-red-400 focus:border-red-500 focus:ring-red-500/20"
-                        : "border-slate-300 focus:border-primary-500 focus:ring-primary-500/20"
+                        : "border-stone-300 focus:border-primary-500 focus:ring-primary-500/20"
                     }`}
                   />
                   <button
@@ -368,10 +368,10 @@ export default function RentToTenantPage() {
 
           {/* ── STEP 2: Confirm Tenant ── */}
           {step === "confirm_tenant" && foundTenant && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5">
+            <div className="bg-white border border-stone-200 rounded-2xl p-6 space-y-5">
               <div>
-                <h2 className="text-lg font-bold text-slate-900 mb-1">{ct("tenantFound")}</h2>
-                <p className="text-sm text-slate-500">{ct("verifyCorrect")}</p>
+                <h2 className="text-lg font-bold text-stone-900 mb-1">{ct("tenantFound")}</h2>
+                <p className="text-sm text-stone-500">{ct("verifyCorrect")}</p>
               </div>
 
               <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-4">
@@ -379,11 +379,11 @@ export default function RentToTenantPage() {
                   <UserCheck className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-900">{foundTenant.fullName}</p>
-                  <p className="text-sm text-slate-500 font-mono">FAN: {foundTenant.faydaNumber}</p>
+                  <p className="font-semibold text-stone-900">{foundTenant.fullName}</p>
+                  <p className="text-sm text-stone-500 font-mono">FAN: {foundTenant.faydaNumber}</p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <Phone className="w-3.5 h-3.5 text-slate-400" />
-                    <p className="text-sm text-slate-500">{foundTenant.maskedPhone}</p>
+                    <Phone className="w-3.5 h-3.5 text-stone-400" />
+                    <p className="text-sm text-stone-500">{foundTenant.maskedPhone}</p>
                     <span className="ml-1 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded font-medium">
                       {locale === "am" ? "ፋይዳ ተረጋግጧል" : "Fayda Verified"}
                     </span>
@@ -399,7 +399,7 @@ export default function RentToTenantPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => { setStep("lookup"); setFoundTenant(null); }}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 font-medium text-sm transition-colors"
                 >
                   {ct("searchAgain")}
                 </button>
@@ -415,20 +415,20 @@ export default function RentToTenantPage() {
 
           {/* ── STEP 3: Contract Preview + Landlord Sign + Send ── */}
           {step === "sign_contract" && foundTenant && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5">
+            <div className="bg-white border border-stone-200 rounded-2xl p-6 space-y-5">
               <div>
-                <h2 className="text-lg font-bold text-slate-900 mb-1">
+                <h2 className="text-lg font-bold text-stone-900 mb-1">
                   {landlordSigned ? ct("contractSignedReady") : ct("reviewSign")}
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-stone-500">
                   {landlordSigned ? ct("signedReadyDesc") : ct("reviewSignDesc")}
                 </p>
               </div>
 
               {/* Contract preview — full bilingual contract */}
-              <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="rounded-xl border border-stone-200 overflow-hidden">
                 {/* Contract header strip */}
-                <div className="bg-gradient-to-r from-primary-700 to-indigo-700 px-5 py-3 flex items-center gap-3">
+                <div className="bg-gradient-to-r from-primary-700 to-primary-700 px-5 py-3 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
                     <FileSignature className="w-4 h-4 text-white" />
                   </div>
@@ -463,24 +463,24 @@ export default function RentToTenantPage() {
                 </div>
 
                 {/* Signature row at bottom of doc */}
-                <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-4 grid sm:grid-cols-2 gap-4 text-sm font-[Georgia,serif] text-slate-700">
+                <div className="border-t border-stone-100 bg-stone-50/60 px-6 py-4 grid sm:grid-cols-2 gap-4 text-sm font-[Georgia,serif] text-stone-700">
                   <div>
                     <p className="font-bold mb-2">አከራይ{locale !== "am" && " (Landlord)"}</p>
-                    <p>ስም፡ <span className="border-b border-slate-400 inline-block w-36">{user?.firstName} {user?.lastName}</span></p>
-                    <p className="mt-1.5">ፊርማ፡ <span className={`border-b inline-block w-32 text-xs italic ${landlordSigned ? "border-emerald-400 text-emerald-600 font-semibold" : "border-slate-300 text-slate-400"}`}>
+                    <p>ስም፡ <span className="border-b border-stone-400 inline-block w-36">{user?.firstName} {user?.lastName}</span></p>
+                    <p className="mt-1.5">ፊርማ፡ <span className={`border-b inline-block w-32 text-xs italic ${landlordSigned ? "border-emerald-400 text-emerald-600 font-semibold" : "border-stone-300 text-stone-400"}`}>
                       {landlordSigned
                         ? (locale === "am" ? "✓ ተፈርሟል" : "✓ Signed")
                         : (locale === "am" ? "ሲጠበቅ..." : "Pending...")}
                     </span></p>
-                    <p className="mt-1.5">ቀን፡ <span className="border-b border-slate-400 inline-block w-24">{startStr}</span></p>
+                    <p className="mt-1.5">ቀን፡ <span className="border-b border-stone-400 inline-block w-24">{startStr}</span></p>
                   </div>
                   <div>
                     <p className="font-bold mb-2">ተከራይ{locale !== "am" && " (Tenant)"}</p>
-                    <p>ስም፡ <span className="border-b border-slate-400 inline-block w-36">{foundTenant.fullName}</span></p>
-                    <p className="mt-1.5">ፊርማ፡ <span className="border-b border-slate-300 inline-block w-32 text-slate-400 italic text-xs">
+                    <p>ስም፡ <span className="border-b border-stone-400 inline-block w-36">{foundTenant.fullName}</span></p>
+                    <p className="mt-1.5">ፊርማ፡ <span className="border-b border-stone-300 inline-block w-32 text-stone-400 italic text-xs">
                       {locale === "am" ? "ተከራዩ ሲቀበሉ..." : "Awaiting tenant..."}
                     </span></p>
-                    <p className="mt-1.5">ቀን፡ <span className="border-b border-slate-300 inline-block w-24">&nbsp;</span></p>
+                    <p className="mt-1.5">ቀን፡ <span className="border-b border-stone-300 inline-block w-24">&nbsp;</span></p>
                   </div>
                 </div>
               </div>
@@ -489,35 +489,35 @@ export default function RentToTenantPage() {
               {!landlordSigned && (
                 <div className="space-y-4">
                   {/* Signature pad */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                  <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6">
                     <div className="flex items-center gap-3 mb-5">
-                      <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center">
                         <Pen className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 text-base">{ct("eSignTitle")}</h3>
-                        <p className="text-xs text-slate-500">{ct("eSignDraw")}</p>
+                        <h3 className="font-bold text-stone-900 text-base">{ct("eSignTitle")}</h3>
+                        <p className="text-xs text-stone-500">{ct("eSignDraw")}</p>
                       </div>
                     </div>
 
                     <SignaturePad canvasRef={canvasRef} onSigned={setHasSig} />
 
-                    <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-start gap-3 text-xs text-slate-600 leading-relaxed">
+                    <div className="mt-5 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 flex items-start gap-3 text-xs text-stone-600 leading-relaxed">
                       <ShieldCheck className="w-4 h-4 text-primary-600 shrink-0 mt-0.5" />
                       <span>{ct("eSignLegal")}</span>
                     </div>
                   </div>
 
                   {/* Declaration checkbox */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                  <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 space-y-4">
                     <label className="flex items-start gap-3 cursor-pointer group">
                       <input
                         type="checkbox"
                         checked={declarationChecked}
                         onChange={(e) => setDeclarationChecked(e.target.checked)}
-                        className="mt-1 w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                        className="mt-1 w-4 h-4 rounded border-stone-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                       />
-                      <span className="text-sm text-slate-700 leading-relaxed group-hover:text-slate-900">
+                      <span className="text-sm text-stone-700 leading-relaxed group-hover:text-stone-900">
                         {ct("declarationLandlord")}
                       </span>
                     </label>
@@ -541,7 +541,7 @@ export default function RentToTenantPage() {
                       className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
                         declarationChecked && hasSig
                           ? "bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/20"
-                          : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                          : "bg-stone-200 text-stone-400 cursor-not-allowed"
                       }`}
                     >
                       <FileSignature className="w-5 h-5" /> {ct("signButton")}
@@ -574,19 +574,19 @@ export default function RentToTenantPage() {
 
           {/* ── STEP 4: Done ── */}
           {step === "done" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4">
+            <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center space-y-4">
               <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8 text-emerald-500" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-1">{ct("contractSentTitle")}</h2>
-                <p className="text-sm text-slate-500">
+                <h2 className="text-xl font-bold text-stone-900 mb-1">{ct("contractSentTitle")}</h2>
+                <p className="text-sm text-stone-500">
                   {ct("contractSentDescPre")} <strong>{foundTenant?.fullName}</strong>.{" "}
                   {ct("contractSentDescPost")}
                 </p>
               </div>
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-left space-y-2">
-                <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{ct("whatsNext")}</p>
+              <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 text-left space-y-2">
+                <p className="text-xs font-semibold text-stone-600 uppercase tracking-wide">{ct("whatsNext")}</p>
                 <Step label={ct("next1")} icon={<User className="w-3.5 h-3.5" />} />
                 <Step label={ct("next2")} icon={<FileSignature className="w-3.5 h-3.5" />} />
                 <Step label={ct("next3")} icon={<CheckCircle2 className="w-3.5 h-3.5" />} />
@@ -595,7 +595,7 @@ export default function RentToTenantPage() {
               <div className="flex gap-3 pt-2">
                 <Link
                   href="/dashboard/agreements"
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm text-center transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 font-medium text-sm text-center transition-colors"
                 >
                   {ct("viewAgreements")}
                 </Link>
@@ -616,7 +616,7 @@ export default function RentToTenantPage() {
 
 function Step({ label, icon }: { label: string; icon: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2 text-xs text-slate-600">
+    <div className="flex items-center gap-2 text-xs text-stone-600">
       <span className="text-primary-500">{icon}</span>
       {label}
     </div>

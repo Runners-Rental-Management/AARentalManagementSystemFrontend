@@ -47,8 +47,8 @@ export default function DocumentsPage() {
         {/* Upload button */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
-              <Search className="w-4 h-4 text-slate-400" />
+            <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-3 py-2 flex-1 max-w-sm">
+              <Search className="w-4 h-4 text-stone-400" />
               <input
                 type="text"
                 placeholder={t("common", "search")}
@@ -68,27 +68,27 @@ export default function DocumentsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                <tr className="border-b border-stone-200 bg-stone-50">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("documents", "fileName")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("documents", "fileType")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("documents", "fileSize")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("documents", "relatedTo")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("documents", "uploadedAt")}
                   </th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">
+                  <th className="text-left text-xs font-medium text-stone-500 px-4 py-3">
                     {t("documents", "description")}
                   </th>
                 </tr>
@@ -97,32 +97,32 @@ export default function DocumentsPage() {
                 {filtered.map((doc) => (
                   <tr
                     key={doc.id}
-                    className="border-b border-slate-100 hover:bg-slate-50/50"
+                    className="border-b border-stone-100 hover:bg-stone-50/50"
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <File className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm text-slate-900">
+                        <File className="w-4 h-4 text-stone-400" />
+                        <span className="text-sm text-stone-900">
                           {doc.fileName}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600 uppercase">
+                    <td className="px-4 py-3 text-sm text-stone-600 uppercase">
                       {doc.fileType}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-4 py-3 text-sm text-stone-600">
                       {formatFileSize(doc.fileSize)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
+                    <td className="px-4 py-3 text-sm text-stone-700">
                       {doc.relatedEntityTitle}
-                      <span className="ml-1 text-xs text-slate-400">
+                      <span className="ml-1 text-xs text-stone-400">
                         ({getRelatedTypeLabel(doc.relatedEntityType)})
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-4 py-3 text-sm text-stone-600">
                       {formatDate(doc.uploadedAt)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600 max-w-xs truncate">
+                    <td className="px-4 py-3 text-sm text-stone-600 max-w-xs truncate">
                       {doc.description ?? "—"}
                     </td>
                   </tr>
@@ -132,8 +132,8 @@ export default function DocumentsPage() {
           </div>
           {filtered.length === 0 && (
             <div className="text-center py-16">
-              <FolderOpen className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">
+              <FolderOpen className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+              <p className="text-stone-500 text-sm">
                 {t("documents", "noDocuments")}
               </p>
             </div>

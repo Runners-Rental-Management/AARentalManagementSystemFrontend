@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 
 function isAuthorityRole(role: string | undefined) {
-  return role === "dara_agent" || role === "admin" || role === "system_admin";
+  return role === "admin";
 }
 
 export default function AuthorityBlankPage() {

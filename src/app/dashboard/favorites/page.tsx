@@ -24,11 +24,11 @@ import type { Property } from "@/lib/types";
 import { PropertyCoverImage } from "@/components/property-cover-image";
 
 const GRADIENTS = [
-  "from-sky-500 via-blue-500 to-indigo-600",
+  "from-sky-500 via-blue-500 to-primary-600",
   "from-emerald-500 via-teal-500 to-cyan-600",
   "from-rose-500 via-pink-500 to-fuchsia-600",
   "from-amber-500 via-orange-500 to-red-500",
-  "from-violet-500 via-purple-500 to-indigo-600",
+  "from-violet-500 via-purple-500 to-primary-600",
   "from-lime-500 via-green-500 to-emerald-600",
   "from-cyan-500 via-sky-500 to-blue-600",
   "from-fuchsia-500 via-pink-500 to-rose-600",
@@ -145,22 +145,22 @@ export default function FavoritesPage() {
       {/* Content */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {savedProps.length === 0 ? (
-          <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200 py-16 px-6 text-center animate-fade-in-up">
+          <div className="relative overflow-hidden bg-white rounded-2xl border border-stone-200 py-16 px-6 text-center animate-fade-in-up">
             <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-rose-100 blur-3xl" />
             <div className="absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-sky-100 blur-3xl" />
             <div className="relative">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg shadow-rose-600/20 mb-5 animate-bounce-subtle">
+              <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg shadow-rose-600/20 mb-5 animate-bounce-subtle">
                 <Heart className="w-10 h-10 text-white fill-white" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 mb-2">
                 {t("favorites", "empty")}
               </h2>
-              <p className="text-slate-500 max-w-md mx-auto mb-6">
+              <p className="text-stone-500 max-w-md mx-auto mb-6">
                 {t("favorites", "emptyDesc")}
               </p>
               <Link
                 href="/explore"
-                className="group inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold px-6 py-3.5 rounded-2xl hover:scale-105 transition-transform shadow-lg shadow-rose-500/20"
+                className="group inline-flex items-center gap-2 bg-rose-600 text-white font-semibold px-6 py-3.5 rounded-2xl hover:scale-105 transition-transform shadow-lg shadow-rose-500/20"
               >
                 <Compass className="w-5 h-5 transition-transform group-hover:rotate-12" />
                 {t("favorites", "startBrowsing")}
@@ -175,11 +175,11 @@ export default function FavoritesPage() {
               return (
                 <div
                   key={p.id}
-                  className="group relative bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500"
+                  className="group relative bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-500"
                   style={{ animation: `fade-in-up 0.5s ${idx * 0.05}s both` }}
                 >
                   <Link href={`/dashboard/properties/${p.id}`} className="block">
-                    <div className="relative h-48 overflow-hidden bg-slate-900">
+                    <div className="relative h-48 overflow-hidden bg-stone-900">
                       {p.images[0] ? (
                         <>
                           <PropertyCoverImage
@@ -232,26 +232,26 @@ export default function FavoritesPage() {
                       href={`/dashboard/properties/${p.id}`}
                       className="block"
                     >
-                      <h3 className="font-bold text-slate-900 leading-snug line-clamp-1 group-hover:text-primary-700 transition-colors">
+                      <h3 className="font-bold text-stone-900 leading-snug line-clamp-1 group-hover:text-primary-700 transition-colors">
                         {p.title}
                       </h3>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1 mb-3">
+                      <div className="flex items-center gap-1.5 text-xs text-stone-500 mt-1 mb-3">
                         <MapPin className="w-3 h-3" />
                         <span className="truncate">
                           {p.subCity} · {p.address}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-600 mb-4">
+                      <div className="flex items-center gap-3 text-xs text-stone-600 mb-4">
                         <span className="inline-flex items-center gap-1">
-                          <BedDouble className="w-3.5 h-3.5 text-slate-400" />
+                          <BedDouble className="w-3.5 h-3.5 text-stone-400" />
                           {p.bedrooms}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <Bath className="w-3.5 h-3.5 text-slate-400" />
+                          <Bath className="w-3.5 h-3.5 text-stone-400" />
                           {p.bathrooms}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <Ruler className="w-3.5 h-3.5 text-slate-400" />
+                          <Ruler className="w-3.5 h-3.5 text-stone-400" />
                           {p.area} m²
                         </span>
                       </div>
@@ -259,13 +259,13 @@ export default function FavoritesPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/dashboard/properties/${p.id}`}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold px-3 py-2.5 rounded-xl transition-colors"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-semibold px-3 py-2.5 rounded-xl transition-colors"
                       >
                         {t("favorites", "viewDetails")}
                       </Link>
                       <button
                         onClick={() => goRent(p.id)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-primary-600 to-indigo-600 text-white text-sm font-semibold px-3 py-2.5 rounded-xl hover:scale-[1.02] transition-transform shadow-sm shadow-primary-600/20"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-primary-600 to-primary-600 text-white text-sm font-semibold px-3 py-2.5 rounded-xl hover:scale-[1.02] transition-transform shadow-sm shadow-primary-600/20"
                       >
                         {t("favorites", "rentThis")}
                         <ArrowRight className="w-3.5 h-3.5" />
