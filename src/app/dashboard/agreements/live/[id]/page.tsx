@@ -53,7 +53,9 @@ import { useAuth } from "@/context/auth-context";
 import { useRentalFlow, type LiveAgreement } from "@/context/rental-flow-context";
 import { useLoading } from "@/context/loading-context";
 import { users } from "@/lib/dummy-data";
+import { AgreementContactSection } from "@/components/dashboard/agreement-contact-section";
 import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
+import type { AgreementContacts } from "@/lib/types";
 
 /* ------------------------------------------------------------------ */
 /*  Stage pipeline (order depends on who initiated)                  */
@@ -825,6 +827,24 @@ export default function LiveAgreementPage() {
 
   const landlordPhone = getLandlordPhone(agreement.landlordId, agreement.id);
   const landlordUser = users.find((u) => u.id === agreement.landlordId);
+  const tenantUser = users.find((u) => u.id === agreement.tenantId);
+  const liveContactsUnlocked =
+    agreement.status === "dara_approved" || agreement.status === "paid";
+  const liveContacts: AgreementContacts | undefined =
+    liveContactsUnlocked && landlordUser && tenantUser
+      ? {
+          landlord: {
+            fullName: `${landlordUser.firstName} ${landlordUser.lastName}`.trim(),
+            phone: landlordUser.phone,
+            address: landlordUser.address ?? "Not provided",
+          },
+          tenant: {
+            fullName: `${tenantUser.firstName} ${tenantUser.lastName}`.trim(),
+            phone: tenantUser.phone,
+            address: tenantUser.address ?? "Not provided",
+          },
+        }
+      : undefined;
 
   /* Terminal cancelled / rejected screens */
   if (
@@ -1598,6 +1618,17 @@ export default function LiveAgreementPage() {
                   </div>
                 </div>
               </div>
+
+              <AgreementContactSection
+                agreement={{
+                  id: agreement.id,
+                  status: liveContactsUnlocked ? "pending_payment" : "pending_verification",
+                  verifiedAt: liveContactsUnlocked ? agreement.daraApprovedAt : undefined,
+                  contactsAvailable: liveContactsUnlocked,
+                  contacts: liveContacts,
+                }}
+                accessToken={null}
+              />
 
               <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-4">
                 <h3 className="text-sm font-semibold text-stone-700">

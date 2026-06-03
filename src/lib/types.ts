@@ -87,6 +87,17 @@ export type AgreementStatus =
   | 'expired'
   | 'rejected';
 
+export interface AgreementPartyContact {
+  fullName: string;
+  phone: string;
+  address: string;
+}
+
+export interface AgreementContacts {
+  landlord: AgreementPartyContact;
+  tenant: AgreementPartyContact;
+}
+
 export interface TenancyAgreement {
   id: string;
   propertyId: string;
@@ -96,6 +107,8 @@ export interface TenancyAgreement {
   landlordName: string;
   tenantId: string;
   tenantName: string;
+  contactsAvailable?: boolean;
+  contacts?: AgreementContacts;
   monthlyRent: number;
   advancePayment: number;
   startDate: string;

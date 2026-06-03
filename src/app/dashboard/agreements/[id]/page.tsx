@@ -1,6 +1,7 @@
 "use client";
 
 import { Header } from "@/components/dashboard/header";
+import { AgreementContactSection } from "@/components/dashboard/agreement-contact-section";
 import { ViewTenantProfileLink } from "@/components/dashboard/tenant-public-profile";
 import { useLanguage } from "@/context/language-context";
 import { useAuth } from "@/context/auth-context";
@@ -991,6 +992,11 @@ export default function AgreementDetailPage() {
                 </div>
               )}
             </div>
+
+            <AgreementContactSection
+              agreement={agreement}
+              accessToken={getAccessToken()}
+            />
           </div>
 
           {/* Sidebar */}

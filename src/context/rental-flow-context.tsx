@@ -550,7 +550,12 @@ export function RentalFlowProvider({ children }: { children: ReactNode }) {
   const getLandlordPhone = useCallback(
     (landlordId: string, agreementId: string) => {
       const agreement = agreements.find((a) => a.id === agreementId);
-      if (!agreement || agreement.status !== "paid") return null;
+      if (
+        !agreement ||
+        (agreement.status !== "paid" && agreement.status !== "dara_approved")
+      ) {
+        return null;
+      }
       const landlord = users.find((u) => u.id === landlordId);
       return landlord?.phone ?? null;
     },

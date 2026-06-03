@@ -1,6 +1,10 @@
 import { ApiError } from "@/lib/api-error";
 import type { Property, RentAdjustment, RentPayment, TenantPublicProfile, User, UserRole } from "@/lib/types";
-import type { TenancyAgreement } from "@/lib/types";
+import {
+  contactsFromAgreementPayload,
+  isAgreementContactsUnlocked,
+} from "@/lib/agreement-contacts";
+import type { AgreementContacts, AgreementPartyContact, TenancyAgreement } from "@/lib/types";
 
 const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
@@ -520,13 +524,33 @@ type BackendAgreement = {
     id: string;
     firstName?: string;
     lastName?: string;
+    phone?: string;
+    address?: string | null;
   };
   tenant?: {
     id: string;
     firstName?: string;
     lastName?: string;
+    phone?: string;
+    address?: string | null;
+  };
+  contactsAvailable?: boolean;
+  contacts?: {
+    landlord?: { fullName?: string; phone?: string; address?: string };
+    tenant?: { fullName?: string; phone?: string; address?: string };
   };
 };
+
+function mapPartyContact(
+  raw: { fullName?: string; phone?: string; address?: string } | undefined,
+  fallbackName: string,
+): AgreementPartyContact {
+  return {
+    fullName: raw?.fullName?.trim() || fallbackName,
+    phone: raw?.phone ?? "",
+    address: raw?.address ?? "",
+  };
+}
 
 type AgreementListResponse = {
   items: BackendAgreement[];
@@ -548,7 +572,7 @@ function mapBackendAgreement(raw: BackendAgreement): TenancyAgreement {
       ? `${raw.tenant.firstName} ${raw.tenant.lastName}`.trim()
       : "Tenant";
 
-  return {
+  const base: TenancyAgreement = {
     id: raw.id,
     propertyId: raw.propertyId,
     propertyTitle: raw.property?.title ?? "Property",
@@ -584,6 +608,59 @@ function mapBackendAgreement(raw: BackendAgreement): TenancyAgreement {
     terminatedAt: raw.terminatedAt ? toIsoDate(raw.terminatedAt) : undefined,
     terminationReason: raw.terminationReason ?? undefined,
     utilities: Array.isArray(raw.utilities) ? raw.utilities : [],
+  };
+
+  const unlocked = isAgreementContactsUnlocked({
+    contactsAvailable: raw.contactsAvailable === true,
+    verifiedAt: base.verifiedAt,
+    status: base.status,
+  });
+
+  const contacts =
+    raw.contacts && raw.contactsAvailable === true
+      ? {
+          landlord: mapPartyContact(raw.contacts.landlord, landlordName),
+          tenant: mapPartyContact(raw.contacts.tenant, tenantName),
+        }
+      : contactsFromAgreementPayload(
+          {
+            contacts: raw.contacts as AgreementContacts | undefined,
+            landlord: raw.landlord,
+            tenant: raw.tenant,
+          },
+          landlordName,
+          tenantName,
+        );
+
+  return {
+    ...base,
+    contactsAvailable: unlocked,
+    contacts: unlocked ? contacts : undefined,
+  };
+}
+
+type AgreementContactsResponse = {
+  contactsAvailable: boolean;
+  contacts?: {
+    landlord?: { fullName?: string; phone?: string; address?: string };
+    tenant?: { fullName?: string; phone?: string; address?: string };
+  };
+};
+
+export async function apiGetAgreementContacts(token: string, id: string) {
+  const raw = await apiRequest<AgreementContactsResponse>(
+    `/agreements/${id}/contacts`,
+    { token },
+  );
+  if (!raw.contactsAvailable || !raw.contacts) {
+    return { contactsAvailable: false as const };
+  }
+  return {
+    contactsAvailable: true as const,
+    contacts: {
+      landlord: mapPartyContact(raw.contacts.landlord, "Landlord"),
+      tenant: mapPartyContact(raw.contacts.tenant, "Tenant"),
+    },
   };
 }
 
